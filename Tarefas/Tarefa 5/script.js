@@ -14,15 +14,13 @@ const messages = {
   relaxado: "Que bom que você está relaxado! 🤗"
 };
 
-// Carregar histórico do LocalStorage
 let history = JSON.parse(localStorage.getItem('humorHistory')) || [];
 
-// Função para renderizar o histórico diário
 function renderHistory() {
   historyContainer.innerHTML = '';
 
-  // Agrupar por data
   const grouped = {};
+
   history.forEach(entry => {
     if (!grouped[entry.date]) grouped[entry.date] = [];
     grouped[entry.date].push(entry);
@@ -37,6 +35,7 @@ function renderHistory() {
     dayDiv.appendChild(dayTitle);
 
     const ul = document.createElement('ul');
+
     grouped[date].forEach(entry => {
       const li = document.createElement('li');
       li.textContent = `${entry.time} - ${entry.humor}`;
@@ -48,27 +47,28 @@ function renderHistory() {
   }
 }
 
-// Função para registrar humor
 function addHumor(humor, displayText) {
   const now = new Date();
+
   const date = now.toLocaleDateString();
-  const time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   history.push({ date, time, humor: displayText });
+
   localStorage.setItem('humorHistory', JSON.stringify(history));
 
   texto.textContent = messages[humor];
+
   renderHistory();
 }
 
-// Eventos para os botões
 buttons.forEach(button => {
   button.addEventListener('click', () => {
     const humor = button.dataset.humor;
     const displayText = button.textContent;
+
     addHumor(humor, displayText);
   });
 });
 
-// Renderizar histórico ao carregar a página
 renderHistory();
