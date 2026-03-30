@@ -1,3 +1,5 @@
+console.log("SCRIPT CARREGOU");
+
 const buttons = document.querySelectorAll('.botoes button');
 const texto = document.getElementById('texto');
 const historyContainer = document.getElementById('historyContainer');
