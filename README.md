@@ -70,5 +70,4 @@ O Ágora propõe uma plataforma onde:
 (Adicionar licença, ex: MIT)
 
 ## Contato
-
-(Adicionar)
+diegocdg04@gmail.com
