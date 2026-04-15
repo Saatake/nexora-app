@@ -10,4 +10,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
     }
     // novas tabelas futuramente
+
+    public DbSet<Project> Projects { get; set; }
 }

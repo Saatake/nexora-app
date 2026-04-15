@@ -5,20 +5,16 @@ using Nexora.Api.Models;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Nexora.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// puxa a string de conexão do banco
+// injeta banco e identity
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>().AddEntityFrameworkStores<AppDbContext>();
 
-// injeta o banco postgres usando o entity framework
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// pendura o sistema de login nativo no banco
-builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
-    .AddEntityFrameworkStores<AppDbContext>();
-
+// configura jwt
 var jwtKey = builder.Configuration["Jwt:Key"];
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
 
@@ -41,13 +37,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// injeta os servicos
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// libera a tela do swagger so pra quando tiver rodando local
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -55,10 +52,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
