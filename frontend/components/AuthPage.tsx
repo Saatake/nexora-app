@@ -4,9 +4,7 @@ import React, { useState } from 'react';
 import { UserPlus, LogIn, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-// --- COMPONENTES DE APOIO ---
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5071';
 
 interface AuthInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -25,8 +23,6 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, ...props }) => {
     </div>
   );
 };
-
-// --- FORMULÁRIO DE LOGIN (AGORA FUNCIONANDO) ---
 
 const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogin }) => {
   const [email, setEmail] = useState('');
@@ -52,10 +48,8 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
         throw new Error(data.message || 'E-mail ou senha inválidos.');
       }
 
-      // 🔥 compatível com Token/token
       localStorage.setItem('@AgorApp:token', data.token || data.Token);
 
-      // 🚀 redireciona
       window.location.href = "/dashboard";
 
     } catch (err: any) {
@@ -104,7 +98,6 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
   );
 };
 
-// --- FORMULÁRIO DE CADASTRO (AGORA FUNCIONANDO) ---
 
 const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogin }) => {
   const [name, setName] = useState('');
@@ -184,8 +177,6 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
     </motion.form>
   );
 };
-
-// --- COMPONENTE PRINCIPAL (FULL SCREEN) ---
 
 export default function AuthPage() {
   const [isLoginView, setIsLoginView] = useState(false);
