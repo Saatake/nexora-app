@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
+  const router = useRouter();
+
   const [projects, setProjects] = useState(0);
   const [average, setAverage] = useState(0);
   const [views, setViews] = useState(0);
@@ -11,24 +14,36 @@ export default function Dashboard() {
   const [recentProjects, setRecentProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    // Buscar BACKEND no futuro -------------------------------------------------------------------------------------------
+    // Buscar BACKEND no futuro -----------------------------------------------------------------------------------------------------------
   }, []);
 
   return (
     <div className="h-screen w-full flex bg-slate-100">
 
-      <div className="w-64 bg-indigo-600 text-white p-6">
+      <div className="w-64 bg-indigo-600 text-white p-6 flex flex-col gap-6">
         <h2 className="text-2xl font-bold">Menu</h2>
-        <p className="text-indigo-200 mt-2">Sidebar futura</p>
+
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="text-left px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 transition"
+          >
+            Dashboard
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 p-10 overflow-y-auto">
 
-        <div className="mb-10">
+        <div className="mb-6">
           <h1 className="text-4xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-500 mt-2">
+          <p className="text-slate-500 mt-2 mb-6">
             Bem-vindo de volta! Aqui está um resumo das suas atividades.
           </p>
+
+          <button className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl shadow-md hover:opacity-90 transition w-full text-center">
+            Criar Novo Projeto
+          </button>
         </div>
 
         <div className="grid grid-cols-4 gap-6 mb-10">
@@ -84,16 +99,6 @@ export default function Dashboard() {
               ))
             )}
 
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-8 rounded-2xl shadow-lg">
-            <h2 className="text-2xl font-bold mb-2">Criar Novo Projeto</h2>
-            <p className="text-indigo-100">
-              Publique um novo trabalho acadêmico na plataforma
-            </p>
           </div>
         </div>
 
