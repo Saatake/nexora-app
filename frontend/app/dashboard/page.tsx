@@ -1,6 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 export default function Dashboard() {
+  const [projects, setProjects] = useState(0);
+  const [average, setAverage] = useState(0);
+  const [views, setViews] = useState(0);
+  const [inReview, setInReview] = useState(0);
+
+  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Buscar BACKEND no futuro -------------------------------------------------------------------------------------------
+  }, []);
+
   return (
     <div className="h-screen w-full flex bg-slate-100">
 
@@ -22,22 +35,22 @@ export default function Dashboard() {
 
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <p className="text-slate-500">Projetos Publicados</p>
-            <h2 className="text-3xl font-bold text-indigo-600 mt-2">0</h2>
+            <h2 className="text-3xl font-bold text-indigo-600 mt-2">{projects}</h2>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <p className="text-slate-500">Média Geral</p>
-            <h2 className="text-3xl font-bold text-indigo-600 mt-2">0</h2>
+            <h2 className="text-3xl font-bold text-indigo-600 mt-2">{average}</h2>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <p className="text-slate-500">Visualizações</p>
-            <h2 className="text-3xl font-bold text-indigo-600 mt-2">0</h2>
+            <h2 className="text-3xl font-bold text-indigo-600 mt-2">{views}</h2>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <p className="text-slate-500">Em Avaliação</p>
-            <h2 className="text-3xl font-bold text-indigo-600 mt-2">0</h2>
+            <h2 className="text-3xl font-bold text-indigo-600 mt-2">{inReview}</h2>
           </div>
 
         </div>
@@ -49,35 +62,27 @@ export default function Dashboard() {
 
           <div className="space-y-4">
 
-            <div className="flex justify-between items-center p-4 rounded-xl bg-slate-50">
-              <div>
-                <p className="font-semibold text-slate-800">
-                </p>
-                <p className="text-sm text-slate-500">
-                </p>
-              </div>
-              <span className="text-indigo-600 font-bold"></span>
-            </div>
-
-            <div className="flex justify-between items-center p-4 rounded-xl bg-slate-50">
-              <div>
-                <p className="font-semibold text-slate-800">
-                </p>
-                <p className="text-sm text-slate-500">
-                </p>
-              </div>
-              <span className="text-indigo-600 font-bold"></span>
-            </div>
-
-            <div className="flex justify-between items-center p-4 rounded-xl bg-slate-50">
-              <div>
-                <p className="font-semibold text-slate-800">
-                </p>
-                <p className="text-sm text-slate-500">
-                </p>
-              </div>
-              <span className="text-indigo-600 font-bold"></span>
-            </div>
+            {recentProjects.length === 0 ? (
+              <p className="text-slate-500 text-center">
+                Nenhum projeto encontrado.
+              </p>
+            ) : (
+              recentProjects.map((project, index) => (
+                <div key={index} className="flex justify-between items-center p-4 rounded-xl bg-slate-50">
+                  <div>
+                    <p className="font-semibold text-slate-800">
+                      {project.title}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {project.description}
+                    </p>
+                  </div>
+                  <span className="text-indigo-600 font-bold">
+                    {project.score}
+                  </span>
+                </div>
+              ))
+            )}
 
           </div>
         </div>
@@ -90,16 +95,6 @@ export default function Dashboard() {
               Publique um novo trabalho acadêmico na plataforma
             </p>
           </div>
-
-          <div className="bg-white p-8 rounded-2xl shadow-md">
-            <h2 className="text-2xl font-bold mb-2 text-slate-800">
-              Explorar Projetos
-            </h2>
-            <p className="text-slate-500">
-              Descubra trabalhos de outros estudantes
-            </p>
-          </div>
-
         </div>
 
       </div>
