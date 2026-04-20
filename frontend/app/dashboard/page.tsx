@@ -41,7 +41,10 @@ export default function Dashboard() {
             Bem-vindo de volta! Aqui está um resumo das suas atividades.
           </p>
 
-          <button className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl shadow-md hover:opacity-90 transition w-full text-center">
+          <button
+            onClick={() => router.push("/newproject")}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl shadow-md hover:opacity-90 transition w-full text-center"
+          >
             Criar Novo Projeto
           </button>
         </div>
