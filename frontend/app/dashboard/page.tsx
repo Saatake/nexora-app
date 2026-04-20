@@ -46,7 +46,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-3 gap-6 mb-10 max-w-4xl mx-auto">
 
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <p className="text-slate-500">Projetos Publicados</p>
@@ -61,11 +61,6 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-md">
             <p className="text-slate-500">Visualizações</p>
             <h2 className="text-3xl font-bold text-indigo-600 mt-2">{views}</h2>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-md">
-            <p className="text-slate-500">Em Avaliação</p>
-            <h2 className="text-3xl font-bold text-indigo-600 mt-2">{inReview}</h2>
           </div>
 
         </div>
@@ -106,3 +101,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+// http://localhost:3000/dashboard
