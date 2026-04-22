@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Nexora.Api.Enums;
 
 namespace Nexora.Api.Models;
 
@@ -17,6 +18,10 @@ public class Project
     public string GithubLink { get; set; } = string.Empty;
     
     public string ImageUrl { get; set; } = string.Empty;
+
+    [Required]
+    public ProjectCategory Category { get; set; } // enum para categorias fixas
+                                                  // pra add categorias tem que mexer no enum
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
