@@ -18,7 +18,7 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, ...props }) => {
       </label>
       <input
         {...props}
-        className="w-full px-4 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-indigo-200 focus:ring-2 focus:ring-white focus:border-white outline-none transition duration-150 backdrop-blur-sm"
+        className="w-full px-4 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-white focus:border-white outline-none transition duration-150 backdrop-blur-sm"
       />
     </div>
   );
@@ -72,7 +72,7 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
           <LogIn className="w-10 h-10 text-white" />
         </div>
         <h1 className="text-4xl font-bold text-white tracking-tight">Acesse sua conta</h1>
-        <p className="text-indigo-100 text-lg">Entre para continuar na plataforma</p>
+        <p className="text-white/80 text-lg">Entre para continuar na plataforma</p>
       </div>
 
       {error && (
@@ -90,7 +90,7 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
         <button 
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center items-center bg-white text-indigo-700 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition transform hover:scale-[1.02] shadow-xl disabled:opacity-70 disabled:hover:scale-100"
+          className="w-full flex justify-center items-center bg-white text-black py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition transform hover:scale-[1.02] shadow-xl disabled:opacity-70 disabled:hover:scale-100"
         >
           {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Entrar agora'}
         </button>
@@ -98,7 +98,7 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
         <button 
           type="button"
           onClick={() => window.location.href = "/dashboard"}
-          className="w-full flex justify-center items-center bg-red-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-red-400 transition transform hover:scale-[1.02] shadow-xl"
+          className="w-full flex justify-center items-center bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition transform hover:scale-[1.02] shadow-xl"
         >
           Pular para o Dashboard
         </button>
@@ -139,7 +139,6 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
       const data = await response.json();
 
       if (!response.ok) {
-        console.log(data);
         alert("Erro ao cadastrar");
         return;
       }
@@ -179,7 +178,7 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
       <div className="pt-4 space-y-4 text-center w-full">
         <button 
           type="submit"
-          className="w-full flex justify-center items-center bg-white text-indigo-700 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition transform hover:scale-[1.02] shadow-xl"
+          className="w-full flex justify-center items-center bg-white text-black py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition transform hover:scale-[1.02] shadow-xl"
         >
           Criar conta
         </button>
@@ -203,27 +202,26 @@ export default function AuthPage() {
       <motion.div
         layout
         onClick={() => setIsLoginView(!isLoginView)}
-        className={`group flex flex-col items-center justify-center text-center p-12 lg:p-24 h-full flex-[0.8] ${isLoginView ? 'order-2' : 'order-1'} bg-white hover:bg-slate-50 cursor-pointer transition-colors duration-500 z-20`}
-        transition={{ type: 'tween', ease: 'easeInOut', duration: 0.6 }}
+        className={`group flex flex-col items-center justify-center text-center p-12 lg:p-24 h-full flex-[0.8] ${isLoginView ? 'order-2' : 'order-1'} bg-white hover:bg-gray-100 cursor-pointer transition-colors duration-500 z-20`}
       >
         <AnimatePresence mode="wait">
           {!isLoginView ? (
             <motion.div key="text-register" variants={textVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 flex flex-col items-center">
-              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest">Já é membro?</h3>
-              <h2 className="text-6xl font-black text-slate-900 tracking-tighter leading-tight">Bem-vindo<br/>de volta</h2>
-              <p className="text-xl text-slate-500 max-w-md mt-4">Acesse sua conta para explorar projetos, avaliar trabalhos e gerenciar seu perfil.</p>
+              <h3 className="text-sm font-bold text-[#60B5FF] uppercase tracking-widest">Já é membro?</h3>
+              <h2 className="text-6xl font-black text-black tracking-tighter leading-tight">Bem-vindo<br/>de volta</h2>
+              <p className="text-xl text-gray-600 max-w-md mt-4">Acesse sua conta para explorar projetos, avaliar trabalhos e gerenciar seu perfil.</p>
               
-              <div className="mt-10 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold text-lg group-hover:bg-indigo-600 group-hover:scale-105 transition-all duration-300 shadow-2xl">
+              <div className="mt-10 bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg group-hover:bg-[#60B5FF] group-hover:text-black transition-all duration-300 shadow-2xl">
                 Ir para o Login
               </div>
             </motion.div>
           ) : (
             <motion.div key="text-login" variants={textVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 flex flex-col items-center">
-              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest">Novo por aqui?</h3>
-              <h2 className="text-6xl font-black text-slate-900 tracking-tighter leading-tight">Faça parte<br/>da rede</h2>
-              <p className="text-xl text-slate-500 max-w-md mt-4">Crie sua conta e tenha acesso ao maior repositório de projetos acadêmicos.</p>
+              <h3 className="text-sm font-bold text-[#60B5FF] uppercase tracking-widest">Novo por aqui?</h3>
+              <h2 className="text-6xl font-black text-black tracking-tighter leading-tight">Faça parte<br/>da rede</h2>
+              <p className="text-xl text-gray-600 max-w-md mt-4">Crie sua conta e tenha acesso ao maior repositório de projetos acadêmicos.</p>
               
-              <div className="mt-10 bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold text-lg group-hover:bg-indigo-600 group-hover:scale-105 transition-all duration-300 shadow-2xl">
+              <div className="mt-10 bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg group-hover:bg-[#60B5FF] group-hover:text-black transition-all duration-300 shadow-2xl">
                 Criar minha conta
               </div>
             </motion.div>
@@ -233,8 +231,7 @@ export default function AuthPage() {
       
       <motion.div
         layout 
-        className={`relative flex flex-col items-center justify-center p-12 lg:p-24 h-full flex-1 ${isLoginView ? 'order-1' : 'order-2'} z-10 bg-indigo-600 shadow-2xl`}
-        transition={{ type: 'tween', ease: 'easeInOut', duration: 0.6 }}
+        className={`relative flex flex-col items-center justify-center p-12 lg:p-24 h-full flex-1 ${isLoginView ? 'order-1' : 'order-2'} z-10 bg-[#60B5FF] shadow-2xl`}
       >
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
