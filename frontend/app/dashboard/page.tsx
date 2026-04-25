@@ -30,6 +30,13 @@ export default function Dashboard() {
           >
             Dashboard
           </button>
+
+          <button
+            onClick={() => router.push("/explore")}
+            className="text-left px-4 py-2 rounded-lg hover:bg-white/20 transition"
+          >
+            Explorar Projetos
+          </button>
         </div>
       </div>
 
