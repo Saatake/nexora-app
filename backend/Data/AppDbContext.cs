@@ -9,7 +9,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
-    // novas tabelas futuramente
 
     public DbSet<Project> Projects { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<Evaluation> Evaluations { get; set; }
 }

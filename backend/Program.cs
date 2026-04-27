@@ -6,6 +6,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Nexora.Api.Services;
+using Nexora.Api.Interfaces;
+using Nexora.Api.Repositories;
+using Nexora.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,12 +53,47 @@ builder.Services.AddCors(options =>
 });
 
 // injeta os servicos
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IEvaluationRepository, EvaluationRepository>();
+builder.Services.AddScoped<IEvaluationService, EvaluationService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IRankingService, RankingService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// corrige colunas faltando na tabela Projects (executa apenas uma vez, safe com IF NOT EXISTS)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.ExecuteSqlRaw(@"
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""Category"" integer NOT NULL DEFAULT 1;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""GithubLink"" text NOT NULL DEFAULT '';
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""CreatedAt"" timestamp with time zone NOT NULL DEFAULT now();
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""IsApproved"" boolean NOT NULL DEFAULT false;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""ViewCount"" integer NOT NULL DEFAULT 0;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""DownloadCount"" integer NOT NULL DEFAULT 0;
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Projects' AND column_name='ImageUrl')
+               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Projects' AND column_name='FileUrl')
+            THEN ALTER TABLE ""Projects"" RENAME COLUMN ""ImageUrl"" TO ""FileUrl"";
+            END IF;
+        END $$;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""FileUrl"" text NOT NULL DEFAULT '';
+    ");
+}
+
+// middleware de erros globais (tem que ser o primeiro)
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

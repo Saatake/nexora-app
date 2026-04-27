@@ -1,12 +1,8 @@
 using System.Net;
 using System.Net.Mail;
+using Nexora.Api.Interfaces;
 
 namespace Nexora.Api.Services;
-
-public interface IEmailService
-{
-    Task SendEmailAsync(string email, string subject, string htmlMessage);
-}
 
 public class EmailService : IEmailService
 {

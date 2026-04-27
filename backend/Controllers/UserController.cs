@@ -1,98 +1,62 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Nexora.Api.Models;
-using Nexora.Api.Dtos;
+using Nexora.Api.Dtos.Requests;
+using Nexora.Api.Interfaces;
 using System.Security.Claims;
 
 namespace Nexora.Api.Controllers;
 
 [Route("api/users")]
 [ApiController]
-[Authorize] // protege todas as rotas deste controller
+[Authorize]
 public class UserController : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserService _userService;
 
-    public UserController(UserManager<ApplicationUser> userManager)
+    public UserController(IUserService userService)
     {
-        _userManager = userManager;
+        _userService = userService;
     }
 
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        // extrai o id do usuario direto das claims do token jwt
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var result = await _userService.GetProfileAsync(userId);
         
-        if (userId == null)
-            return Unauthorized();
+        if (!result.Succeeded) 
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Errors });
 
-        var user = await _userManager.FindByIdAsync(userId);
-
-        if (user == null)
-            return NotFound("usuário não encontrado.");
-
-        // mapeia para o dto para nao enviar dados sensiveis
-        var userDto = new UserDto
-        {
-            Id = user.Id,
-            Email = user.Email!,
-            Name = user.Name,
-            Course = user.Course,
-            Bio = user.Bio,
-            RoleType = user.RoleType
-        };
-
-        return Ok(userDto);
+        return Ok(result.Data);
     }
 
     [HttpPut("me")]
-    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileDto model)
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequestDto model)
     {
-        // pega o id pelo token jwt
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        if (userId == null) return Unauthorized();
 
-        // busca o cara no banco
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-            return NotFound("usuário não encontrado.");
-
-        // atualiza so os campos permitidos
-        user.Name = model.Name;
-        user.Course = model.Course;
-        user.Bio = model.Bio;
-
-        // salva no banco de dados
-        var result = await _userManager.UpdateAsync(user);
+        var result = await _userService.UpdateProfileAsync(userId, model);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Errors });
 
-        return Ok(new { Message = "perfil atualizado com sucesso!" });
+        return Ok(new { result.Message });
     }
 
     [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto model)
     {
-        // pega o id pelo token jwt
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-            return Unauthorized();
+        if (userId == null) return Unauthorized();
 
-        // busca o cara no banco
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-            return NotFound("usuário não encontrado.");
-
-        // o identity ja exige a senha atual e troca pela nova com hash
-        var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+        var result = await _userService.ChangePasswordAsync(userId, model);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Errors });
 
-        return Ok(new { Message = "senha alterada com sucesso!" });
+        return Ok(new { result.Message });
     }
 }
