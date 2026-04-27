@@ -15,4 +15,6 @@ public interface IProjectService
     Task<ProjectResult> UpdateAsync(int id, UpdateProjectRequestDto model, string userId);
     Task<ProjectResult> DeleteAsync(int id, string userId);
     Task<ProjectResult> ApproveAsync(int id, string professorId);
+    Task<ProjectResult> IncrementViewAsync(int id);
+    Task<ProjectResult> GetDownloadAsync(int id);
 }

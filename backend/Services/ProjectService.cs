@@ -152,6 +152,33 @@ public class ProjectService : IProjectService
         return new ProjectResult { Succeeded = true, Message = "projeto aprovado com sucesso!", Data = MapToDto(project) };
     }
 
+    public async Task<ProjectResult> IncrementViewAsync(int id)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project == null)
+            return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
+
+        project.ViewCount++;
+        await _projectRepository.UpdateAsync(project);
+
+        return new ProjectResult { Succeeded = true, Message = "visualização registrada." };
+    }
+
+    public async Task<ProjectResult> GetDownloadAsync(int id)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project == null)
+            return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
+
+        if (string.IsNullOrWhiteSpace(project.FileUrl))
+            return new ProjectResult { Succeeded = false, Message = "este projeto não possui arquivo para download." };
+
+        project.DownloadCount++;
+        await _projectRepository.UpdateAsync(project);
+
+        return new ProjectResult { Succeeded = true, Message = project.FileUrl };
+    }
+
     private static ProjectResponseDto MapToDto(Project p)
     {
         double? avgGrade = null;

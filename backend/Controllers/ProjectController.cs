@@ -129,4 +129,26 @@ public class ProjectController : ControllerBase
 
         return Ok(result.Data);
     }
+
+    [HttpPost("{id}/views")]
+    [AllowAnonymous]
+    public async Task<IActionResult> IncrementView(int id)
+    {
+        var result = await _projectService.IncrementViewAsync(id);
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
+
+        return Ok(new { result.Message });
+    }
+
+    [HttpGet("{id}/download")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Download(int id)
+    {
+        var result = await _projectService.GetDownloadAsync(id);
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
+
+        return Ok(new { fileUrl = result.Message });
+    }
 }
