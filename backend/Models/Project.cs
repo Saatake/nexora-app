@@ -25,6 +25,8 @@ public class Project
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsApproved { get; set; } = false;
+
     [Required]
     public string UserId { get; set; } = string.Empty;
 

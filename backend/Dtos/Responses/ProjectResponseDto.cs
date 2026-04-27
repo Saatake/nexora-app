@@ -9,5 +9,6 @@ public class ProjectResponseDto
     public string ImageUrl { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty; // Texto da categoria
     public string AuthorName { get; set; } = string.Empty; // Nome do aluno que postou
+    public bool IsApproved { get; set; }
     public DateTime CreatedAt { get; set; }
 }

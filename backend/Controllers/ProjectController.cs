@@ -92,4 +92,23 @@ public class ProjectController : ControllerBase
 
         return Ok(new { result.Message });
     }
+
+    [HttpPatch("{id}/approve")]
+    [Authorize]
+    public async Task<IActionResult> Approve(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _projectService.ApproveAsync(id, userId);
+
+        if (!result.Succeeded)
+        {
+            if (result.IsNotFound) return NotFound(new { result.Message });
+            if (result.IsForbidden) return StatusCode(403, new { result.Message });
+            return BadRequest(new { result.Message });
+        }
+
+        return Ok(result.Data);
+    }
 }
