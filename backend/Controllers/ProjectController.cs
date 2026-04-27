@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nexora.Api.Dtos.Requests;
+using Nexora.Api.Enums;
 using Nexora.Api.Interfaces;
 using System.Security.Claims;
 
@@ -32,9 +33,13 @@ public class ProjectController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetFeed()
+    public async Task<IActionResult> GetFeed([FromQuery] string? search, [FromQuery] ProjectCategory? category, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var feed = await _projectService.GetFeedAsync();
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
+        var feed = await _projectService.GetFeedAsync(search, category, page, pageSize);
         return Ok(feed);
     }
 

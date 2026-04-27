@@ -1,5 +1,6 @@
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Dtos.Responses;
+using Nexora.Api.Enums;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
 using Nexora.Api.Results;
@@ -57,6 +58,19 @@ public class ProjectService : IProjectService
             AuthorName = p.User?.Name ?? "Anônimo",
             CreatedAt = p.CreatedAt
         });
+    }
+
+    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, int page, int pageSize)
+    {
+        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, page, pageSize);
+
+        return new PagedResponseDto<ProjectResponseDto>
+        {
+            Items = items.Select(MapToDto),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<ProjectResult> GetByIdAsync(int id)
