@@ -31,4 +31,16 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
     }
+
+    public async Task UpdateAsync(Project project)
+    {
+        _context.Projects.Update(project);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Project project)
+    {
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
+    }
 }

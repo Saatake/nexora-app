@@ -7,4 +7,6 @@ public interface IProjectRepository
     Task<Project> CreateAsync(Project project);
     Task<IEnumerable<Project>> GetAllAsync();
     Task<Project?> GetByIdAsync(int id);
+    Task UpdateAsync(Project project);
+    Task DeleteAsync(Project project);
 }

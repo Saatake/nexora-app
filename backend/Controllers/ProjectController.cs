@@ -18,10 +18,9 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize] // Precisa de token para publicar
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateProjectRequestDto request)
     {
-        // Pega o ID do usuário direto do token JWT
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
         if (string.IsNullOrEmpty(userId))
@@ -32,10 +31,60 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous] // Qualquer um pode ver os projetos (Feed)
+    [AllowAnonymous]
     public async Task<IActionResult> GetFeed()
     {
         var feed = await _projectService.GetFeedAsync();
         return Ok(feed);
+    }
+
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await _projectService.GetByIdAsync(id);
+
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
+
+        return Ok(result.Data);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateProjectRequestDto request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _projectService.UpdateAsync(id, request, userId);
+
+        if (!result.Succeeded)
+        {
+            if (result.IsNotFound) return NotFound(new { result.Message });
+            if (result.IsForbidden) return Forbid();
+            return BadRequest(new { result.Message });
+        }
+
+        return Ok(result.Data);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var result = await _projectService.DeleteAsync(id, userId);
+
+        if (!result.Succeeded)
+        {
+            if (result.IsNotFound) return NotFound(new { result.Message });
+            if (result.IsForbidden) return Forbid();
+            return BadRequest(new { result.Message });
+        }
+
+        return Ok(new { result.Message });
     }
 }

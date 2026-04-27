@@ -2,6 +2,7 @@ using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Dtos.Responses;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
+using Nexora.Api.Results;
 
 namespace Nexora.Api.Services;
 
@@ -56,5 +57,67 @@ public class ProjectService : IProjectService
             AuthorName = p.User?.Name ?? "Anônimo",
             CreatedAt = p.CreatedAt
         });
+    }
+
+    public async Task<ProjectResult> GetByIdAsync(int id)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project == null)
+            return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
+
+        return new ProjectResult
+        {
+            Succeeded = true,
+            Data = MapToDto(project)
+        };
+    }
+
+    public async Task<ProjectResult> UpdateAsync(int id, UpdateProjectRequestDto model, string userId)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project == null)
+            return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
+
+        if (project.UserId != userId)
+            return new ProjectResult { Succeeded = false, IsForbidden = true, Message = "você não tem permissão para editar este projeto." };
+
+        project.Title = model.Title;
+        project.Description = model.Description;
+        project.GithubLink = model.GithubLink;
+        project.ImageUrl = model.ImageUrl;
+        project.Category = model.Category;
+
+        await _projectRepository.UpdateAsync(project);
+
+        return new ProjectResult { Succeeded = true, Message = "projeto atualizado com sucesso!", Data = MapToDto(project) };
+    }
+
+    public async Task<ProjectResult> DeleteAsync(int id, string userId)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project == null)
+            return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
+
+        if (project.UserId != userId)
+            return new ProjectResult { Succeeded = false, IsForbidden = true, Message = "você não tem permissão para deletar este projeto." };
+
+        await _projectRepository.DeleteAsync(project);
+
+        return new ProjectResult { Succeeded = true, Message = "projeto deletado com sucesso!" };
+    }
+
+    private static ProjectResponseDto MapToDto(Project p)
+    {
+        return new ProjectResponseDto
+        {
+            Id = p.Id,
+            Title = p.Title,
+            Description = p.Description,
+            GithubLink = p.GithubLink,
+            ImageUrl = p.ImageUrl,
+            Category = p.Category.ToString(),
+            AuthorName = p.User?.Name ?? "Anônimo",
+            CreatedAt = p.CreatedAt
+        };
     }
 }
