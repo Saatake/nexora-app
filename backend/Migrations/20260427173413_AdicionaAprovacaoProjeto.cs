@@ -12,51 +12,29 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "RoleType",
-                table: "AspNetUsers",
-                type: "integer",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
+            // mapeia valores texto para inteiros e converte a coluna
+            migrationBuilder.Sql(@"
+                UPDATE ""AspNetUsers"" SET ""RoleType"" = '1' WHERE LOWER(""RoleType"") IN ('estudante', 'aluno', 'student');
+                UPDATE ""AspNetUsers"" SET ""RoleType"" = '2' WHERE LOWER(""RoleType"") IN ('professor', 'teacher');
+                UPDATE ""AspNetUsers"" SET ""RoleType"" = '1' WHERE ""RoleType"" !~ '^\d+$';
+                ALTER TABLE ""AspNetUsers"" ALTER COLUMN ""RoleType"" TYPE integer USING ""RoleType""::integer;
+            ");
 
-            migrationBuilder.CreateTable(
-                name: "Projects",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    GithubLink = table.Column<string>(type: "text", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: false),
-                    Category = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsApproved = table.Column<bool>(type: "boolean", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Projects", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Projects_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Projects_UserId",
-                table: "Projects",
-                column: "UserId");
+            // garante que a tabela Projects tem todas as colunas esperadas
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""Category"" integer NOT NULL DEFAULT 1;
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""IsApproved"" boolean NOT NULL DEFAULT false;
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""GithubLink"" text NOT NULL DEFAULT '';
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""ImageUrl"" text NOT NULL DEFAULT '';
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""CreatedAt"" timestamp with time zone NOT NULL DEFAULT now();
+                CREATE INDEX IF NOT EXISTS ""IX_Projects_UserId"" ON ""Projects"" (""UserId"");
+            ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Projects");
+            migrationBuilder.Sql(@"ALTER TABLE ""Projects"" DROP COLUMN IF EXISTS ""IsApproved"";");
 
             migrationBuilder.AlterColumn<string>(
                 name: "RoleType",

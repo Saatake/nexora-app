@@ -71,6 +71,27 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// corrige colunas faltando na tabela Projects (executa apenas uma vez, safe com IF NOT EXISTS)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.ExecuteSqlRaw(@"
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""Category"" integer NOT NULL DEFAULT 1;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""GithubLink"" text NOT NULL DEFAULT '';
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""CreatedAt"" timestamp with time zone NOT NULL DEFAULT now();
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""IsApproved"" boolean NOT NULL DEFAULT false;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""ViewCount"" integer NOT NULL DEFAULT 0;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""DownloadCount"" integer NOT NULL DEFAULT 0;
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Projects' AND column_name='ImageUrl')
+               AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Projects' AND column_name='FileUrl')
+            THEN ALTER TABLE ""Projects"" RENAME COLUMN ""ImageUrl"" TO ""FileUrl"";
+            END IF;
+        END $$;
+        ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""FileUrl"" text NOT NULL DEFAULT '';
+    ");
+}
+
 // middleware de erros globais (tem que ser o primeiro)
 app.UseMiddleware<ExceptionMiddleware>();
 

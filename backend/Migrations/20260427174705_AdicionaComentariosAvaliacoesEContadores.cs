@@ -12,24 +12,18 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "ImageUrl",
-                table: "Projects",
-                newName: "FileUrl");
-
-            migrationBuilder.AddColumn<int>(
-                name: "DownloadCount",
-                table: "Projects",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<int>(
-                name: "ViewCount",
-                table: "Projects",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
+            // idempotente: colunas já podem existir via Program.cs
+            migrationBuilder.Sql(@"
+                DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Projects' AND column_name='ImageUrl')
+                       AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Projects' AND column_name='FileUrl')
+                    THEN ALTER TABLE ""Projects"" RENAME COLUMN ""ImageUrl"" TO ""FileUrl"";
+                    END IF;
+                END $$;
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""FileUrl"" text NOT NULL DEFAULT '';
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""DownloadCount"" integer NOT NULL DEFAULT 0;
+                ALTER TABLE ""Projects"" ADD COLUMN IF NOT EXISTS ""ViewCount"" integer NOT NULL DEFAULT 0;
+            ");
 
             migrationBuilder.CreateTable(
                 name: "Comments",
