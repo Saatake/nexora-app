@@ -12,6 +12,8 @@ using Nexora.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+
 // injeta banco e identity
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
@@ -46,7 +48,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins(frontendUrl)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
