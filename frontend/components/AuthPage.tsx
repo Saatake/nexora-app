@@ -87,32 +87,26 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
       </div>
 
       <div className="pt-6 space-y-4 text-center w-full">
-        <button 
+        <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center items-center bg-white text-black py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition transform hover:scale-[1.02] shadow-xl disabled:opacity-70 disabled:hover:scale-100"
+          className="w-full flex justify-center items-center bg-white text-black py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition transform hover:scale-[1.02] shadow-xl disabled:opacity-70"
         >
           {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Entrar agora'}
-        </button>
-
-        <button 
-          type="button"
-          onClick={() => window.location.href = "/dashboard"}
-          className="w-full flex justify-center items-center bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition transform hover:scale-[1.02] shadow-xl"
-        >
-          Pular para o Dashboard
         </button>
       </div>
     </motion.form>
   );
 };
 
-
 const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogin }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // 🔥 ÚNICA ADIÇÃO
+  const [roleType, setRoleType] = useState("Student");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +126,7 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
           name,
           course: "",
           bio: "",
-          roleType: "Student"
+          roleType
         }),
       });
 
@@ -169,20 +163,39 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
       <div className="space-y-5 w-full">
         <AuthInput label="NOME COMPLETO" type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} required />
         <AuthInput label="E-MAIL" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
         <div className="flex gap-4">
           <AuthInput label="SENHA" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <AuthInput label="CONFIRMAR" type="password" placeholder="********" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
         </div>
+
+        {/* 🔥 ADIÇÃO SEM ALTERAR ESTILO */}
+        <div className="space-y-1.5 w-full text-left">
+          <label className="text-xs font-semibold text-white uppercase tracking-wide">
+            Tipo de conta
+          </label>
+
+          <select
+            value={roleType}
+            onChange={(e) => setRoleType(e.target.value)}
+            className="w-full px-4 py-4 rounded-xl bg-white/10 border border-white/20 text-white"
+          >
+            <option value="Student">Aluno</option>
+            <option value="Professor">Professor</option>
+          </select>
+        </div>
+
       </div>
 
       <div className="pt-4 space-y-4 text-center w-full">
-        <button 
+        <button
           type="submit"
           className="w-full flex justify-center items-center bg-white text-black py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition transform hover:scale-[1.02] shadow-xl"
         >
           Criar conta
         </button>
       </div>
+
     </motion.form>
   );
 };
@@ -190,15 +203,9 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
 export default function AuthPage() {
   const [isLoginView, setIsLoginView] = useState(false);
 
-  const textVariants = {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
-  };
-
   return (
     <div className="h-screen w-full flex font-sans overflow-hidden bg-white">
-      
+
       <motion.div
         layout
         onClick={() => setIsLoginView(!isLoginView)}
@@ -206,35 +213,29 @@ export default function AuthPage() {
       >
         <AnimatePresence mode="wait">
           {!isLoginView ? (
-            <motion.div key="text-register" variants={textVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 flex flex-col items-center">
+            <motion.div key="text-register" className="space-y-6 flex flex-col items-center">
               <h3 className="text-sm font-bold text-[#60B5FF] uppercase tracking-widest">Já é membro?</h3>
               <h2 className="text-6xl font-black text-black tracking-tighter leading-tight">Bem-vindo<br/>de volta</h2>
-              <p className="text-xl text-gray-600 max-w-md mt-4">Acesse sua conta para explorar projetos, avaliar trabalhos e gerenciar seu perfil.</p>
-              
-              <div className="mt-10 bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg group-hover:bg-[#60B5FF] group-hover:text-black transition-all duration-300 shadow-2xl">
-                Ir para o Login
-              </div>
+              <p className="text-xl text-gray-600 max-w-md mt-4">
+                Acesse sua conta para explorar projetos, avaliar trabalhos e gerenciar seu perfil.
+              </p>
             </motion.div>
           ) : (
-            <motion.div key="text-login" variants={textVariants} initial="initial" animate="animate" exit="exit" className="space-y-6 flex flex-col items-center">
+            <motion.div key="text-login" className="space-y-6 flex flex-col items-center">
               <h3 className="text-sm font-bold text-[#60B5FF] uppercase tracking-widest">Novo por aqui?</h3>
               <h2 className="text-6xl font-black text-black tracking-tighter leading-tight">Faça parte<br/>da rede</h2>
-              <p className="text-xl text-gray-600 max-w-md mt-4">Crie sua conta e tenha acesso ao maior repositório de projetos acadêmicos.</p>
-              
-              <div className="mt-10 bg-black text-white px-10 py-4 rounded-2xl font-bold text-lg group-hover:bg-[#60B5FF] group-hover:text-black transition-all duration-300 shadow-2xl">
-                Criar minha conta
-              </div>
+              <p className="text-xl text-gray-600 max-w-md mt-4">
+                Crie sua conta e tenha acesso ao maior repositório de projetos acadêmicos.
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.div>
-      
+
       <motion.div
-        layout 
+        layout
         className={`relative flex flex-col items-center justify-center p-12 lg:p-24 h-full flex-1 ${isLoginView ? 'order-1' : 'order-2'} z-10 bg-[#60B5FF] shadow-2xl`}
       >
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-
         <div className="w-full h-full flex flex-col justify-center items-center z-10">
           <AnimatePresence mode="wait">
             {!isLoginView ? (

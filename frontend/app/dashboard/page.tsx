@@ -1,113 +1,189 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Sidebar from "@/components/Sidebar";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5071";
+
+type Project = {
+  id: string | number;
+  title: string;
+  description: string;
+  score?: number;
+};
 
 export default function Dashboard() {
   const router = useRouter();
 
-  const [projects, setProjects] = useState(0);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [average, setAverage] = useState(0);
   const [views, setViews] = useState(0);
-  const [inReview, setInReview] = useState(0);
-
-  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Buscar BACKEND no futuro --------------------------------------------------------------------------
+    async function loadDashboard() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem("@AgorApp:token");
+
+        const res = await fetch(`${API_BASE}/api/projects/me`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        // 🔥 PROTEÇÃO CONTRA FORMATO DE API
+        let list: Project[] = [];
+
+        if (Array.isArray(data)) {
+          list = data;
+        } else if (Array.isArray(data?.projects)) {
+          list = data.projects;
+        } else if (Array.isArray(data?.data)) {
+          list = data.data;
+        } else {
+          list = [];
+        }
+
+        setProjects(list);
+
+        // 📊 MÉDIA SEGURA
+        if (list.length > 0) {
+          const sum = list.reduce((acc, p) => acc + (p.score || 0), 0);
+          setAverage(sum / list.length);
+        } else {
+          setAverage(0);
+        }
+
+        // 👀 MOCK DE VIEWS (pode vir do backend depois)
+        setViews(list.length * 12);
+
+      } catch (err) {
+        console.error(err);
+        setError("Erro ao carregar dashboard");
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboard();
   }, []);
 
   return (
-    <div className="h-screen w-full flex bg-white">
+    <div className="min-h-screen bg-white flex">
 
-      <div className="w-64 bg-gradient-to-b from-[#60B5FF] to-[#3A8DDB] text-white p-6 flex flex-col gap-6">
-        <h2 className="text-2xl font-bold">Menu</h2>
+      {/* SIDEBAR FIXA */}
+      <Sidebar />
 
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-left px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 transition"
-          >
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className="flex-1 ml-64 p-10">
+
+        {/* HEADER */}
+        <div className="mb-8">
+
+          <h1 className="text-4xl font-bold text-slate-900">
             Dashboard
-          </button>
+          </h1>
 
-          <button
-            onClick={() => router.push("/explore")}
-            className="text-left px-4 py-2 rounded-lg hover:bg-white/20 transition"
-          >
-            Explorar Projetos
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 p-10 overflow-y-auto">
-
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-500 mt-2 mb-6">
-            Bem-vindo de volta! Aqui está um resumo das suas atividades.
+          <p className="text-slate-500 mt-2">
+            Bem-vindo de volta! Aqui está seu desempenho acadêmico.
           </p>
 
           <button
             onClick={() => router.push("/newproject")}
-            className="bg-gradient-to-r from-[#60B5FF] to-[#3A8DDB] text-white px-8 py-3 rounded-xl shadow-md hover:opacity-90 transition w-full text-center"
+            className="mt-6 bg-gradient-to-r from-[#60B5FF] to-[#3A8DDB] text-white px-6 py-3 rounded-xl shadow-md hover:opacity-90 transition"
           >
             Criar Novo Projeto
           </button>
+
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-10 max-w-4xl mx-auto">
+        {/* ERRO */}
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
 
-          <div className="bg-[#F8FAFC] rounded-2xl p-6 shadow-sm">
-            <p className="text-slate-500">Projetos Publicados</p>
-            <h2 className="text-3xl font-bold text-[#3A8DDB] mt-2">{projects}</h2>
+        {/* CARDS */}
+        <div className="grid grid-cols-3 gap-6 mb-10">
+
+          <div className="bg-slate-50 p-6 rounded-2xl shadow-sm">
+            <p className="text-slate-500">Projetos</p>
+            <h2 className="text-3xl font-bold text-[#3A8DDB]">
+              {projects.length}
+            </h2>
           </div>
 
-          <div className="bg-[#F8FAFC] rounded-2xl p-6 shadow-sm">
+          <div className="bg-slate-50 p-6 rounded-2xl shadow-sm">
             <p className="text-slate-500">Média Geral</p>
-            <h2 className="text-3xl font-bold text-[#3A8DDB] mt-2">{average}</h2>
+            <h2 className="text-3xl font-bold text-[#3A8DDB]">
+              {average.toFixed(1)}
+            </h2>
           </div>
 
-          <div className="bg-[#F8FAFC] rounded-2xl p-6 shadow-sm">
+          <div className="bg-slate-50 p-6 rounded-2xl shadow-sm">
             <p className="text-slate-500">Visualizações</p>
-            <h2 className="text-3xl font-bold text-[#3A8DDB] mt-2">{views}</h2>
+            <h2 className="text-3xl font-bold text-[#3A8DDB]">
+              {views}
+            </h2>
           </div>
 
         </div>
 
-        <div className="bg-[#F8FAFC] rounded-2xl p-6 shadow-sm mb-10">
-          <h2 className="text-xl font-bold text-slate-800 mb-6">
-            Projetos Recentes
-          </h2>
-
+        {/* LISTA DE PROJETOS */}
+        {loading ? (
+          <p className="text-slate-500">Carregando dashboard...</p>
+        ) : projects.length === 0 ? (
+          <p className="text-slate-500">Nenhum projeto encontrado</p>
+        ) : (
           <div className="space-y-4">
 
-            {recentProjects.length === 0 ? (
-              <p className="text-slate-500 text-center">
-                Nenhum projeto encontrado.
-              </p>
-            ) : (
-              recentProjects.map((project, index) => (
-                <div key={index} className="flex justify-between items-center p-4 rounded-xl bg-white hover:bg-slate-50 transition">
+            <h2 className="text-xl font-bold text-slate-800 mb-4">
+              Seus Projetos Recentes
+            </h2>
+
+            {projects.map((p) => (
+              <div
+                key={p.id}
+                className="bg-slate-50 p-5 rounded-2xl shadow-sm hover:shadow-md transition"
+              >
+
+                <div className="flex justify-between">
+
                   <div>
-                    <p className="font-semibold text-slate-800">
-                      {project.title}
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      {project.description}
+                    <h3 className="text-lg font-bold text-slate-900">
+                      {p.title}
+                    </h3>
+
+                    <p className="text-slate-500">
+                      {p.description}
                     </p>
                   </div>
-                  <span className="text-[#3A8DDB] font-bold">
-                    {project.score}
-                  </span>
+
+                  <div className="text-[#3A8DDB] font-bold">
+                    {p.score ?? 0}
+                  </div>
+
                 </div>
-              ))
-            )}
+
+              </div>
+            ))}
 
           </div>
-        </div>
+        )}
 
-      </div>
+      </main>
+
     </div>
   );
 }
