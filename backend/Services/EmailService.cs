@@ -28,7 +28,7 @@ public class EmailService : IEmailService
 
         var mailMessage = new MailMessage
         {
-            From = new MailAddress("nao-responda@agora.com", "Ágora App"),
+            From = new MailAddress(username!, "Ágora App"),
             Subject = subject,
             Body = htmlMessage,
             IsBodyHtml = true

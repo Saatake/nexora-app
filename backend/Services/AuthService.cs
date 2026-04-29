@@ -13,17 +13,20 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
+    private readonly string _frontendUrl;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _emailService = emailService;
+        _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:3000";
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequestDto model)
@@ -61,7 +64,7 @@ public class AuthService : IAuthService
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         var encodedToken = Uri.EscapeDataString(token);
-        var link = $"http://localhost:5173/confirmar-email?email={user.Email}&token={encodedToken}";
+        var link = $"{_frontendUrl}/confirmar-email?email={user.Email}&token={encodedToken}";
 
         var htmlMessage = $@"
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px; background-color: #ffffff;'>
@@ -109,7 +112,7 @@ public class AuthService : IAuthService
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var encodedToken = Uri.EscapeDataString(token);
-        var link = $"http://localhost:5173/resetar-senha?email={user.Email}&token={encodedToken}";
+        var link = $"{_frontendUrl}/resetar-senha?email={user.Email}&token={encodedToken}";
 
         await _emailService.SendEmailAsync(user.Email!, "recuperação de senha", $"clique <a href='{link}'>aqui</a> para resetar sua senha.");
         return new AuthResult { Succeeded = true, Message = "link de recuperação enviado." };
