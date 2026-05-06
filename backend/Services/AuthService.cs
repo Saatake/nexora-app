@@ -46,6 +46,14 @@ public class AuthService : IAuthService
             if (user == null)
                 return Fail();
 
+            if (!user.EmailConfirmed)
+                return new AuthResult
+                {
+                    Succeeded = false,
+                    IsUnauthorized = true,
+                    Message = "email não confirmado. verifique sua caixa de entrada."
+                };
+
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (!result.Succeeded)
@@ -82,8 +90,7 @@ public class AuthService : IAuthService
                 Name = model.Name ?? "",
                 Course = model.Course ?? "",
                 Bio = model.Bio ?? "",
-                RoleType = ParseRoleType(model.RoleType),
-                EmailConfirmed = true // modo dev
+                RoleType = ParseRoleType(model.RoleType)
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -97,10 +104,20 @@ public class AuthService : IAuthService
                 };
             }
 
+            var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(confirmationToken);
+            var confirmationLink = $"{_frontendUrl}/confirmar-email?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
+
+            await _emailService.SendEmailAsync(
+                user.Email!,
+                "Confirme seu email - Nexora",
+                $"<p>Olá, {user.Name}!</p><p>Clique no link abaixo para confirmar seu email:</p><p><a href='{confirmationLink}'>Confirmar email</a></p>"
+            );
+
             return new AuthResult
             {
                 Succeeded = true,
-                Message = "usuário criado com sucesso!"
+                Message = "usuário criado com sucesso! verifique seu email para confirmar o cadastro."
             };
         }
         catch (Exception ex)
@@ -117,11 +134,23 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult> ConfirmEmailAsync(string email, string token)
     {
-        return new AuthResult
-        {
-            Succeeded = true,
-            Message = "email desativado no modo dev"
-        };
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+            return new AuthResult { Succeeded = false, Message = "usuário não encontrado." };
+
+        var decodedToken = Uri.UnescapeDataString(token);
+        var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+        if (!result.Succeeded)
+            return new AuthResult
+            {
+                Succeeded = false,
+                Message = "token inválido ou expirado.",
+                Errors = result.Errors.Select(e => e.Description)
+            };
+
+        return new AuthResult { Succeeded = true, Message = "email confirmado com sucesso!" };
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordRequestDto model)
