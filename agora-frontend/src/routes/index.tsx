@@ -4,9 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 // Pages
 import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
+
 // Placeholder pages that we will create next
-const DashboardPage = () => <div>Dashboard <RoleGuard></RoleGuard></div>;
-const RegisterPage = () => <div>Register</div>;
+const DashboardPage = () => <div>Dashboard</div>;
 const ProfilePage = () => <div>Profile</div>;
 
 // Componente para rotas protegidas
