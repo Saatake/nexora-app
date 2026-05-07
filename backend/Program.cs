@@ -5,6 +5,8 @@ using Nexora.Api.Models;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Nexora.Api.Services;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Repositories;
@@ -44,6 +46,53 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     };
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("JwtBearer");
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrWhiteSpace(authHeader))
+            {
+                logger.LogWarning("JWT missing Authorization header for {Path}", context.Request.Path);
+                return Task.CompletedTask;
+            }
+
+            var hasBearer = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
+            logger.LogInformation("JWT Authorization header received. HasBearer={HasBearer} Length={Length}", hasBearer, authHeader.Length);
+
+            if (hasBearer)
+            {
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                try
+                {
+                    var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                    var aud = jwt.Audiences.FirstOrDefault() ?? "";
+                    logger.LogInformation("JWT token received. Issuer={Issuer} Audience={Audience} Exp={Exp}", jwt.Issuer, aud, jwt.ValidTo);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "JWT token could not be read.");
+                }
+            }
+
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("JwtBearer");
+            var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                logger.LogWarning("JWT validated but NameIdentifier claim is missing.");
+            }
+            else
+            {
+                logger.LogInformation("JWT validated for user {UserId}", userId);
+            }
+            return Task.CompletedTask;
+        },
         OnAuthenticationFailed = context =>
         {
             var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
