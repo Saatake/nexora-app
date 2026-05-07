@@ -5,6 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 // Pages
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import ConfirmEmailPage from '../pages/ConfirmEmailPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 
 // Placeholder pages that we will create next
 const DashboardPage = () => <div>Dashboard</div>;
@@ -22,6 +25,9 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/confirmar-email" element={<ConfirmEmailPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         
         {/* Rotas Privadas */}
         <Route 

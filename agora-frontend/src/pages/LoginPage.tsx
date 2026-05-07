@@ -12,15 +12,36 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const getErrorMessage = (err: any, fallback: string) => {
+    const data = err?.response?.data;
+    if (typeof data?.message === 'string') {
+      return data.message;
+    }
+    if (Array.isArray(data?.errors)) {
+      return data.errors.join(', ');
+    }
+    if (data?.errors && typeof data.errors === 'object') {
+      return Object.values(data.errors).flat().join(', ');
+    }
+    return fallback;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token, user } = response.data;
-      login(token, user);
+      const { token } = response.data;
+      const meResponse = await api.get('/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      login(token, meResponse.data);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao realizar login');
+      setError(getErrorMessage(err, 'Erro ao realizar login'));
     }
   };
 
@@ -28,7 +49,7 @@ const LoginPage = () => {
     <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-700 via-blue-600 to-teal-400 p-4'>
       <div className='mb-8 flex items-center text-white text-3xl font-bold tracking-tight'>
         <div className='bg-white text-indigo-700 w-10 h-10 flex items-center justify-center rounded-lg mr-3 shadow-lg'>
-          N
+          A
         </div>
         Ágora
       </div>
@@ -40,10 +61,10 @@ const LoginPage = () => {
         </div>
 
         <div className='flex bg-gray-100 p-1 mb-8 rounded-xl shadow-inner'>
-          <button onClick={() => setRoleTab('Aluno')} className={\lex-1 py-2 text-sm font-semibold rounded-lg transition-all \\}>
+          <button onClick={() => setRoleTab('Aluno')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${roleTab === 'Aluno' ? 'bg-white text-indigo-600 shadow' : 'text-gray-500 hover:text-gray-700'}`}>
             Aluno
           </button>
-          <button onClick={() => setRoleTab('Professor')} className={\lex-1 py-2 text-sm font-semibold rounded-lg transition-all \\}>
+          <button onClick={() => setRoleTab('Professor')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${roleTab === 'Professor' ? 'bg-white text-indigo-600 shadow' : 'text-gray-500 hover:text-gray-700'}`}>
             Professor
           </button>
         </div>
@@ -76,7 +97,7 @@ const LoginPage = () => {
               <input type='checkbox' className='form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 mr-2' />
               Lembrar de mim
             </label>
-            <a href='#' className='font-semibold text-indigo-600 hover:text-indigo-500'>Esqueci a senha</a>
+            <Link to='/forgot-password' className='font-semibold text-indigo-600 hover:text-indigo-500'>Esqueci a senha</Link>
           </div>
 
           <button type='submit' className='w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg transition-colors mt-6'>

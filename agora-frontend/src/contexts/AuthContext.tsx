@@ -5,6 +5,9 @@ interface User {
   id: string;
   name: string;
   email: string;
+  course?: string;
+  bio?: string;
+  roleType?: string;
 }
 
 interface AuthContextData {
@@ -25,9 +28,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
 
-    if (storedToken && storedUser) {
+    if (storedToken) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    }
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
   }, []);
 

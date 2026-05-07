@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, User, BookOpen, PenSquare } from 'lucide-react';
 import api from '../api/axios';
 
 const RegisterPage = () => {
@@ -13,9 +14,24 @@ const RegisterPage = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const getErrorMessage = (err: any, fallback: string) => {
+    const data = err?.response?.data;
+    if (typeof data?.message === 'string') {
+      return data.message;
+    }
+    if (Array.isArray(data?.errors)) {
+      return data.errors.join(', ');
+    }
+    if (data?.errors && typeof data.errors === 'object') {
+      return Object.values(data.errors).flat().join(', ');
+    }
+    return fallback;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -26,94 +42,162 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
     try {
       const response = await api.post('/auth/register', formData);
       setSuccess(response.data.message || 'Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.');
-      
-      // Limpar form opcional ou redirecionar
+
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-      
     } catch (err: any) {
-      if (err.response?.data?.errors) {
-        // Se houver lista de erros
-        const errorMessages = err.response.data.errors.join(', ');
-        setError(errorMessages);
-      } else {
-        setError(err.response?.data?.message || 'Erro ao realizar cadastro');
-      }
+      setError(getErrorMessage(err, 'Erro ao realizar cadastro'));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h1>Cadastro - Ágora</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
-      
-      <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <input 
-          type="text" 
-          name="name"
-          placeholder="Nome (obrigatório)" 
-          value={formData.name} 
-          onChange={handleChange} 
-          required 
-          style={{ padding: '8px' }}
-        />
-        <input 
-          type="email" 
-          name="email"
-          placeholder="Email (obrigatório)" 
-          value={formData.email} 
-          onChange={handleChange} 
-          required 
-          style={{ padding: '8px' }}
-        />
-        <input 
-          type="password" 
-          name="password"
-          placeholder="Senha (mínimo 6 caracteres)" 
-          value={formData.password} 
-          onChange={handleChange} 
-          required 
-          style={{ padding: '8px' }}
-        />
-        <input 
-          type="text" 
-          name="course"
-          placeholder="Curso" 
-          value={formData.course} 
-          onChange={handleChange} 
-          style={{ padding: '8px' }}
-        />
-        <textarea 
-          name="bio"
-          placeholder="Bio" 
-          value={formData.bio} 
-          onChange={handleChange} 
-          style={{ padding: '8px' }}
-        />
-        
-        <select 
-          name="roleType" 
-          value={formData.roleType} 
-          onChange={handleChange}
-          style={{ padding: '8px' }}
-        >
-          <option value="Estudante">Estudante</option>
-          <option value="Professor">Professor</option>
-        </select>
+    <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-700 via-blue-600 to-teal-400 p-4'>
+      <div className='mb-8 flex items-center text-white text-3xl font-bold tracking-tight'>
+        <div className='bg-white text-indigo-700 w-10 h-10 flex items-center justify-center rounded-lg mr-3 shadow-lg'>
+          A
+        </div>
+        Ágora
+      </div>
 
-        <button type="submit" style={{ padding: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Cadastrar
-        </button>
-      </form>
-      
-      <p style={{ marginTop: '15px' }}>
-        Já tem uma conta? <Link to="/login">Faça Login</Link>
-      </p>
+      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-xl p-8 md:p-10 relative'>
+        <div className='text-center mb-8'>
+          <h1 className='text-3xl font-extrabold text-gray-900'>Crie sua conta</h1>
+          <p className='text-sm text-gray-500 mt-2'>Guarde seus projetos e mostre sua evolução.</p>
+        </div>
+
+        <div className='flex bg-gray-100 p-1 mb-8 rounded-xl shadow-inner'>
+          <button
+            type='button'
+            onClick={() => setFormData({ ...formData, roleType: 'Estudante' })}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${formData.roleType === 'Estudante' ? 'bg-white text-indigo-600 shadow' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Aluno
+          </button>
+          <button
+            type='button'
+            onClick={() => setFormData({ ...formData, roleType: 'Professor' })}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${formData.roleType === 'Professor' ? 'bg-white text-indigo-600 shadow' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Professor
+          </button>
+        </div>
+
+        {error && <div className='mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center'>{error}</div>}
+        {success && <div className='mb-4 text-sm text-emerald-700 bg-emerald-100 p-3 rounded-lg text-center'>{success}</div>}
+
+        <form onSubmit={handleRegister} className='space-y-5'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+            <div className='space-y-1'>
+              <label className='text-sm font-semibold text-gray-700'>Nome completo</label>
+              <div className='relative'>
+                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                  <User className='h-5 w-5 text-gray-400' />
+                </div>
+                <input
+                  type='text'
+                  name='name'
+                  placeholder='Seu nome'
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                />
+              </div>
+            </div>
+
+            <div className='space-y-1'>
+              <label className='text-sm font-semibold text-gray-700'>Email</label>
+              <div className='relative'>
+                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                  <Mail className='h-5 w-5 text-gray-400' />
+                </div>
+                <input
+                  type='email'
+                  name='email'
+                  placeholder='seu.email@universidade.edu.br'
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+            <div className='space-y-1'>
+              <label className='text-sm font-semibold text-gray-700'>Senha</label>
+              <div className='relative'>
+                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                  <Lock className='h-5 w-5 text-gray-400' />
+                </div>
+                <input
+                  type='password'
+                  name='password'
+                  placeholder='Minimo de 6 caracteres'
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                />
+              </div>
+            </div>
+
+            <div className='space-y-1'>
+              <label className='text-sm font-semibold text-gray-700'>Curso</label>
+              <div className='relative'>
+                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                  <BookOpen className='h-5 w-5 text-gray-400' />
+                </div>
+                <input
+                  type='text'
+                  name='course'
+                  placeholder='Engenharia, Design, etc.'
+                  value={formData.course}
+                  onChange={handleChange}
+                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className='space-y-1'>
+            <label className='text-sm font-semibold text-gray-700'>Bio</label>
+            <div className='relative'>
+              <div className='absolute top-3 left-3 pointer-events-none'>
+                <PenSquare className='h-5 w-5 text-gray-400' />
+              </div>
+              <textarea
+                name='bio'
+                placeholder='Conte em poucas linhas sobre voce e seu foco academico.'
+                value={formData.bio}
+                onChange={handleChange}
+                rows={4}
+                className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400 resize-none'
+              />
+            </div>
+          </div>
+
+          <button
+            type='submit'
+            disabled={loading}
+            className='w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-bold rounded-xl shadow-lg transition-colors mt-6'
+          >
+            {loading ? 'Criando conta...' : 'Cadastrar'}
+          </button>
+
+          <p className='text-center text-sm text-gray-600 mt-6'>
+            Ja tem uma conta? <Link to='/login' className='font-bold text-indigo-600 hover:text-indigo-500'>Entrar</Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };
