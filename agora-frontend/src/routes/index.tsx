@@ -1,0 +1,49 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+// Pages
+import LoginPage from '../pages/LoginPage';
+// Placeholder pages that we will create next
+const DashboardPage = () => <div>Dashboard <RoleGuard></RoleGuard></div>;
+const RegisterPage = () => <div>Register</div>;
+const ProfilePage = () => <div>Profile</div>;
+
+// Componente para rotas protegidas
+const PrivateRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Rotas Privadas */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <DashboardPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          } 
+        />
+        
+        <Route path="*" element={<Navigate to="/dashboard" />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRoutes;
