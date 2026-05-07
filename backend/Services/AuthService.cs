@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 
 namespace Nexora.Api.Services;
 
@@ -20,6 +21,7 @@ public class AuthService : IAuthService
     private readonly IEmailService _emailService;
     private readonly ILogger<AuthService> _logger;
     private readonly string _frontendUrl;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -27,14 +29,16 @@ public class AuthService : IAuthService
         ITokenService tokenService,
         IEmailService emailService,
         IConfiguration configuration,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _emailService = emailService;
         _logger = logger;
-        _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:3000";
+        _httpContextAccessor = httpContextAccessor;
+        _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequestDto model)
@@ -106,13 +110,61 @@ public class AuthService : IAuthService
 
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = Uri.EscapeDataString(confirmationToken);
-            var confirmationLink = $"{_frontendUrl}/confirmar-email?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
+                        var frontendUrl = ResolveFrontendUrl();
+                        var confirmationLink = $"{frontendUrl}/confirmar-email?email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
 
-            await _emailService.SendEmailAsync(
-                user.Email!,
-                "Confirme seu email - Nexora",
-                $"<p>Olá, {user.Name}!</p><p>Clique no link abaixo para confirmar seu email:</p><p><a href='{confirmationLink}'>Confirmar email</a></p>"
-            );
+                        var emailHtml = $@"<!DOCTYPE html>
+<html lang='pt-br'>
+<head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Confirme seu email</title>
+</head>
+<body style='margin:0;padding:0;background-color:#f3f4f6;font-family:Arial, Helvetica, sans-serif;'>
+    <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background-color:#f3f4f6;padding:32px 0;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:520px;background:#ffffff;border-radius:20px;box-shadow:0 20px 40px rgba(15,23,42,0.12);overflow:hidden;'>
+                    <tr>
+                        <td style='padding:32px 32px 8px;'>
+                            <div style='display:inline-flex;align-items:center;gap:12px;'>
+                                <div style='width:44px;height:44px;border-radius:12px;background:#4f46e5;color:#ffffff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;'>A</div>
+                                <div style='font-size:22px;font-weight:700;color:#111827;'>Agora</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='padding:0 32px 24px;'>
+                            <h1 style='margin:16px 0 8px;font-size:24px;color:#111827;'>Confirme seu email</h1>
+                            <p style='margin:0;color:#4b5563;font-size:15px;line-height:1.6;'>Ola, {user.Name}! Clique no botao abaixo para ativar sua conta e continuar no Agora.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='padding:0 32px 32px;'>
+                            <a href='{confirmationLink}' style='display:inline-block;padding:12px 20px;border-radius:12px;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;'>Confirmar email</a>
+                            <p style='margin:20px 0 0;color:#6b7280;font-size:13px;line-height:1.6;'>Se o botao nao funcionar, copie e cole este link no navegador:</p>
+                            <p style='margin:8px 0 0;word-break:break-all;'>
+                                <a href='{confirmationLink}' style='color:#4f46e5;text-decoration:none;font-size:13px;'>{confirmationLink}</a>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='padding:0 32px 24px;'>
+                            <p style='margin:0;color:#9ca3af;font-size:12px;line-height:1.6;'>Se voce nao solicitou este cadastro, ignore este email.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+                        await _emailService.SendEmailAsync(
+                                user.Email!,
+                                "Confirme seu email - Agora",
+                                emailHtml
+                        );
 
             return new AuthResult
             {
@@ -187,5 +239,22 @@ public class AuthService : IAuthService
             IsUnauthorized = true,
             Message = "usuário ou senha inválidos."
         };
+    }
+
+    private string ResolveFrontendUrl()
+    {
+        var request = _httpContextAccessor.HttpContext?.Request;
+        if (request == null)
+            return _frontendUrl.TrimEnd('/');
+
+        var origin = request.Headers["Origin"].ToString();
+        if (!string.IsNullOrWhiteSpace(origin) && Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+            return originUri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+
+        var referer = request.Headers["Referer"].ToString();
+        if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+            return refererUri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+
+        return _frontendUrl.TrimEnd('/');
     }
 }

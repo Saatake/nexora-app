@@ -31,6 +31,37 @@ const RegisterPage = () => {
     return fallback;
   };
 
+  const normalizeRegisterErrors = (message: string) => {
+    const parts = message.split(',').map((item) => item.trim()).filter(Boolean);
+    if (parts.length === 0) {
+      return message;
+    }
+
+    const mapped = parts.map((item) => {
+      if (item.includes('is already taken')) {
+        return 'Este email ja esta cadastrado.';
+      }
+      if (item.includes('Passwords must have at least one non alphanumeric character')) {
+        return 'A senha precisa ter pelo menos 1 simbolo.';
+      }
+      if (item.includes('Passwords must have at least one lowercase')) {
+        return 'A senha precisa ter pelo menos 1 letra minuscula.';
+      }
+      if (item.includes('Passwords must have at least one uppercase')) {
+        return 'A senha precisa ter pelo menos 1 letra maiuscula.';
+      }
+      if (item.includes('Passwords must have at least one digit')) {
+        return 'A senha precisa ter pelo menos 1 numero.';
+      }
+      if (item.includes('Passwords must be at least')) {
+        return 'A senha precisa ter no minimo 6 caracteres.';
+      }
+      return item;
+    });
+
+    return Array.from(new Set(mapped)).join('\n');
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -51,7 +82,8 @@ const RegisterPage = () => {
         navigate('/login');
       }, 3000);
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Erro ao realizar cadastro'));
+      const message = getErrorMessage(err, 'Erro ao realizar cadastro');
+      setError(normalizeRegisterErrors(message));
     } finally {
       setLoading(false);
     }
@@ -89,7 +121,7 @@ const RegisterPage = () => {
           </button>
         </div>
 
-        {error && <div className='mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center'>{error}</div>}
+        {error && <div className='mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center whitespace-pre-line'>{error}</div>}
         {success && <div className='mb-4 text-sm text-emerald-700 bg-emerald-100 p-3 rounded-lg text-center'>{success}</div>}
 
         <form onSubmit={handleRegister} className='space-y-5'>
