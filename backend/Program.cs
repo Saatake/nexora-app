@@ -12,7 +12,7 @@ using Nexora.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:3000";
+var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
 
 // DB
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
