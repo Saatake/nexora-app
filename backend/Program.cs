@@ -42,6 +42,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("JwtBearer");
+            logger.LogWarning(context.Exception, "JWT auth failed for {Path}", context.HttpContext.Request.Path);
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("JwtBearer");
+            if (!context.Handled)
+            {
+                logger.LogWarning("JWT challenge: error={Error} description={Description}", context.Error, context.ErrorDescription);
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // IMPORTANTÍSSIMO

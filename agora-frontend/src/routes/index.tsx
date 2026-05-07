@@ -8,9 +8,9 @@ import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ConfirmEmailPage from '../pages/ConfirmEmailPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
+import DashboardPage from '../pages/DashboardPage';
 
 // Placeholder pages that we will create next
-const DashboardPage = () => <div>Dashboard</div>;
 const ProfilePage = () => <div>Profile</div>;
 
 // Componente para rotas protegidas

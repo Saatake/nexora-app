@@ -32,11 +32,8 @@ const LoginPage = () => {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token } = response.data;
-      const meResponse = await api.get('/users/me', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+      const meResponse = await api.get('/users/me');
 
       login(token, meResponse.data);
       navigate('/dashboard');

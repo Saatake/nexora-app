@@ -1,2 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
-html, body, #root { width: 100%; height: 100%; margin: 0; padding: 0; background-color: #f8fafc; }
+
+:root {
+	--agora-ink: #0f172a;
+	--agora-muted: #64748b;
+	--agora-bg: #f4f7fb;
+	--agora-panel: #ffffff;
+	--agora-border: #e2e8f0;
+	--agora-accent: #0ea5a5;
+	--agora-accent-strong: #0f766e;
+	--agora-navy: #0b1427;
+	--agora-navy-soft: #111c33;
+	--agora-shadow: 0 26px 60px rgba(15, 23, 42, 0.08);
+}
+
+html, body, #root {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	background-color: var(--agora-bg);
+	color: var(--agora-ink);
+	font-family: 'Manrope', sans-serif;
+}
+
+.agora-shell {
+	background-image:
+		radial-gradient(circle at top left, rgba(14, 165, 165, 0.18), transparent 45%),
+		radial-gradient(circle at 20% 60%, rgba(56, 189, 248, 0.16), transparent 45%),
+		linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 247, 251, 0.9));
+}
+
+@keyframes dashFadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.dash-fade {
+	animation: dashFadeUp 0.6s ease both;
+}
