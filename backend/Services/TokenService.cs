@@ -9,6 +9,13 @@ namespace Nexora.Api.Services;
 
 public class TokenService : ITokenService
 {
+    private readonly IConfiguration _configuration;
+
+    public TokenService(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
     public string GenerateJwtToken(ApplicationUser user)
     {
         var claims = new List<Claim>
@@ -19,14 +26,14 @@ public class TokenService : ITokenService
         };
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes("SUA_CHAVE_SUPER_SECRETA_AQUI_123456")
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
         );
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: "agora-api",
-            audience: "agora-app",
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddDays(7),
             signingCredentials: creds
