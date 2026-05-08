@@ -85,6 +85,16 @@ const ProjectDetailsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [showEvaluationForm, setShowEvaluationForm] = useState(false);
+  const [evaluationData, setEvaluationData] = useState({
+    relevance: 0,
+    quality: 0,
+    methodology: 0,
+    presentation: 0,
+    innovation: 0,
+    feedback: ''
+  });
   const [error, setError] = useState('');
 
   const projectId = useMemo(() => Number(id), [id]);
@@ -155,6 +165,52 @@ const ProjectDetailsPage = () => {
       setError('Nao foi possivel publicar o comentario.');
     } finally {
       setIsCommenting(false);
+    }
+  };
+
+  const handleSubmitEvaluation = async () => {
+    if (!projectId) return;
+    
+    // Validar se todas as notas foram preenchidas
+    if (
+      evaluationData.relevance === 0 ||
+      evaluationData.quality === 0 ||
+      evaluationData.methodology === 0 ||
+      evaluationData.presentation === 0 ||
+      evaluationData.innovation === 0
+    ) {
+      setError('Por favor, preencha todas as notas de 1 a 10.');
+      return;
+    }
+
+    setIsEvaluating(true);
+    setError('');
+    try {
+      await api.post(`/projects/${projectId}/evaluations`, evaluationData);
+      
+      // Recarregar avaliações
+      const evaluationResponse = await api.get<Evaluation[]>(`/projects/${projectId}/evaluations`);
+      setEvaluations(evaluationResponse.data ?? []);
+      
+      // Resetar formulário
+      setEvaluationData({
+        relevance: 0,
+        quality: 0,
+        methodology: 0,
+        presentation: 0,
+        innovation: 0,
+        feedback: ''
+      });
+      setShowEvaluationForm(false);
+      
+      // Recarregar projeto para atualizar média
+      const projectResponse = await api.get<Project>(`/projects/${projectId}`);
+      setProject(projectResponse.data);
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Não foi possível enviar a avaliação.';
+      setError(message);
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -338,6 +394,126 @@ const ProjectDetailsPage = () => {
 
               {activeTab === 'evaluations' && (
                 <div className="space-y-4">
+                  {/* Formulário de Avaliação */}
+                  {!showEvaluationForm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowEvaluationForm(true)}
+                      className="w-full rounded-2xl border-2 border-dashed border-[var(--agora-accent)] bg-[var(--agora-accent)]/5 px-4 py-3 text-sm font-semibold text-[var(--agora-accent)] hover:bg-[var(--agora-accent)]/10 transition"
+                    >
+                      + Avaliar este projeto
+                    </button>
+                  ) : (
+                    <div className="rounded-2xl border border-[var(--agora-border)] bg-slate-50 p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-base font-semibold text-[var(--agora-ink)]">Nova Avaliação</h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowEvaluationForm(false);
+                            setError('');
+                          }}
+                          className="text-sm text-[var(--agora-muted)] hover:text-[var(--agora-ink)]"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-2">
+                            Relevância (1-10)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={evaluationData.relevance || ''}
+                            onChange={(e) => setEvaluationData({ ...evaluationData, relevance: Number(e.target.value) })}
+                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-2">
+                            Qualidade (1-10)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={evaluationData.quality || ''}
+                            onChange={(e) => setEvaluationData({ ...evaluationData, quality: Number(e.target.value) })}
+                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-2">
+                            Metodologia (1-10)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={evaluationData.methodology || ''}
+                            onChange={(e) => setEvaluationData({ ...evaluationData, methodology: Number(e.target.value) })}
+                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-2">
+                            Apresentação (1-10)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={evaluationData.presentation || ''}
+                            onChange={(e) => setEvaluationData({ ...evaluationData, presentation: Number(e.target.value) })}
+                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-2">
+                            Inovação (1-10)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={evaluationData.innovation || ''}
+                            onChange={(e) => setEvaluationData({ ...evaluationData, innovation: Number(e.target.value) })}
+                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-2">
+                          Feedback (opcional)
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={evaluationData.feedback}
+                          onChange={(e) => setEvaluationData({ ...evaluationData, feedback: e.target.value })}
+                          placeholder="Deixe um comentário sobre o projeto..."
+                          className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm resize-none"
+                        />
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleSubmitEvaluation}
+                          disabled={isEvaluating}
+                          className="rounded-xl bg-[var(--agora-accent)] px-6 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                        >
+                          {isEvaluating ? 'Enviando...' : 'Enviar Avaliação'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lista de Avaliações */}
                   {evaluations.length === 0 && (
                     <p className="text-sm text-[var(--agora-muted)]">Sem avaliacoes ainda.</p>
                   )}
