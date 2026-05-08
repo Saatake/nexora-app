@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Eye, Star, Users } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import api from '../api/axios';
 
@@ -7,7 +8,10 @@ type Project = {
   id: number;
   title: string;
   description: string;
+  summary?: string | null;
+  course?: string | null;
   category: string;
+  authorName?: string;
   averageGrade?: number | null;
   viewCount: number;
   downloadCount: number;
@@ -49,28 +53,64 @@ const ExploreProjectsPage = () => {
         <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="mt-8 flex items-center justify-between">
+        <p className="text-lg text-slate-600">
+          {isLoading ? 'Carregando projetos...' : `${projects.length} projetos`}
+        </p>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
         {isLoading && Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-44 rounded-3xl bg-slate-100 animate-pulse" />
+          <div key={i} className="h-96 rounded-[2rem] bg-slate-100 animate-pulse" />
         ))}
 
         {!isLoading && projects.length === 0 && (
-          <div className="rounded-3xl border border-dashed border-slate-200 p-6 text-sm text-[var(--agora-muted)]">Nenhum projeto encontrado.</div>
+          <div className="rounded-[2rem] border border-dashed border-slate-200 p-8 text-sm text-[var(--agora-muted)]">Nenhum projeto encontrado.</div>
         )}
 
         {!isLoading && projects.map((project) => (
-          <Link key={project.id} to={`/projects/${project.id}`} className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)] transition hover:shadow-md">
-            <div className="flex items-center justify-between">
-              <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">{project.category}</span>
+          <Link
+            key={project.id}
+            to={`/projects/${project.id}`}
+            className="group flex h-full flex-col rounded-[2rem] border border-[var(--agora-border)] bg-white p-6 shadow-[var(--agora-shadow)] transition hover:-translate-y-1 hover:border-[var(--agora-accent)] hover:shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <span className="rounded-full bg-[#ede5ff] px-4 py-2 text-sm font-semibold text-[var(--agora-accent)]">
+                {project.category}
+              </span>
+              <span className="flex items-center gap-1 text-xl font-semibold text-emerald-500">
+                <Star size={22} className="fill-emerald-500 text-emerald-500" />
+                {project.averageGrade?.toFixed(1) ?? '--'}
+              </span>
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-[var(--agora-ink)]">{project.title}</h3>
-            <p className="mt-2 text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
-            <div className="mt-5 flex items-center justify-between text-xs text-[var(--agora-muted)]">
-              <div className="flex flex-wrap items-center gap-4">
-                <span className="flex items-center gap-1">👁️ {new Intl.NumberFormat('pt-BR').format(project.viewCount)}</span>
-                <span className="flex items-center gap-1">📥 {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}</span>
+
+            <div className="mt-6 space-y-4">
+              <h3 className="text-[1.55rem] font-bold leading-tight text-[var(--agora-ink)] transition group-hover:text-[var(--agora-accent)]">
+                {project.title}
+              </h3>
+              <p className="text-base text-slate-500">
+                {project.course ? `${project.course} • ` : ''}
+                {project.createdAt ? new Date(project.createdAt).getFullYear() : '--'}
+                {project.authorName ? ` • ${project.authorName}` : ''}
+              </p>
+              <p className="text-base leading-relaxed text-slate-500 line-clamp-3">
+                {project.summary || project.description}
+              </p>
+            </div>
+
+            <div className="mt-auto pt-8">
+              <div className="border-t border-slate-200 pt-5">
+                <div className="flex items-center justify-between text-base text-slate-500">
+                  <span className="inline-flex items-center gap-2">
+                    <Users size={18} />
+                    {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Eye size={18} />
+                    {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
+                  </span>
+                </div>
               </div>
-              <span className="flex items-center gap-1 text-emerald-600 font-semibold">{project.averageGrade?.toFixed(1) ?? '--'}</span>
             </div>
           </Link>
         ))}

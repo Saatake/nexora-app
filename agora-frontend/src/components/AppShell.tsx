@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  Bell,
   Compass,
   FolderKanban,
   LayoutGrid,
@@ -148,10 +147,6 @@ const AppShell = ({
                     className="w-full rounded-2xl border border-[var(--agora-border)] bg-white/80 px-11 py-3 text-sm shadow-[var(--agora-shadow)]/30 outline-none transition focus:border-[var(--agora-accent)]"
                   />
                 </div>
-                <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--agora-border)] bg-white/80" type="submit">
-                  <Bell size={18} className="text-[var(--agora-muted)]" />
-                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400"></span>
-                </button>
                 <Link
                   to="/profile"
                   className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
@@ -164,10 +159,6 @@ const AppShell = ({
               </form>
             ) : (
               <div className="flex items-center gap-3 lg:max-w-2xl">
-                <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--agora-border)] bg-white/80">
-                  <Bell size={18} className="text-[var(--agora-muted)]" />
-                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400"></span>
-                </button>
                 <Link
                   to="/profile"
                   className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
