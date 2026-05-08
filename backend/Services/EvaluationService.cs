@@ -22,8 +22,8 @@ public class EvaluationService : IEvaluationService
     public async Task<ProjectResult> CreateAsync(int projectId, CreateEvaluationRequestDto model, string professorId)
     {
         var professor = await _userManager.FindByIdAsync(professorId);
-        if (professor == null || professor.RoleType != UserRole.Professor)
-            return new ProjectResult { Succeeded = false, IsForbidden = true, Message = "apenas professores podem avaliar projetos." };
+        if (professor == null)
+            return new ProjectResult { Succeeded = false, IsForbidden = true, Message = "usuário não encontrado." };
 
         var alreadyEvaluated = await _evaluationRepository.ProfessorAlreadyEvaluatedAsync(projectId, professorId);
         if (alreadyEvaluated)
