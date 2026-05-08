@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Calendar, Download, Eye, Plus, Star } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Calendar, Download, Eye, Plus, Star, Edit, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 
@@ -53,9 +53,16 @@ const formatDate = (value: string) => {
 };
 
 const MyProjectsPage = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{ show: boolean; projectId: number | null; projectTitle: string }>({
+    show: false,
+    projectId: null,
+    projectTitle: ''
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
   const filterParam = useMemo(() => {
@@ -88,6 +95,37 @@ const MyProjectsPage = () => {
       isMounted = false;
     };
   }, [filterParam]);
+
+  const handleDelete = async () => {
+    if (!deleteModal.projectId) return;
+    
+    setIsDeleting(true);
+    setError('');
+    try {
+      await api.delete(`/projects/${deleteModal.projectId}`);
+      
+      // Remover projeto da lista
+      setProjects(projects.filter(p => p.id !== deleteModal.projectId));
+      setDeleteModal({ show: false, projectId: null, projectTitle: '' });
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Não foi possível excluir o projeto.';
+      setError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEdit = (projectId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/projects/${projectId}/edit`);
+  };
+
+  const confirmDelete = (projectId: number, projectTitle: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteModal({ show: true, projectId, projectTitle });
+  };
 
   return (
     <AppShell
@@ -139,52 +177,99 @@ const MyProjectsPage = () => {
 
         {!isLoading &&
           projects.map((project) => (
-            <Link
+            <div
               key={project.id}
-              to={`/projects/${project.id}`}
-              className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)] transition hover:shadow-md"
+              className="relative rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)] transition hover:shadow-md"
             >
-              <div className="flex items-center justify-between">
-                <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">
-                  {formatCategory(project.category)}
-                </span>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    project.isApproved
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-amber-50 text-amber-600'
-                  }`}
+              {/* Botões de ação */}
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button
+                  onClick={(e) => handleEdit(project.id, e)}
+                  className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition"
+                  title="Editar"
                 >
-                  {project.isApproved ? 'Aprovado' : 'Em avaliacao'}
-                </span>
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => confirmDelete(project.id, project.title, e)}
+                  className="h-8 w-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition"
+                  title="Excluir"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
 
-              <h3 className="mt-4 text-lg font-semibold text-[var(--agora-ink)]">{project.title}</h3>
-              <p className="mt-2 text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
-
-              <div className="mt-5 flex items-center justify-between text-xs text-[var(--agora-muted)]">
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="flex items-center gap-1">
-                    <Eye size={14} />
-                    {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
+              <Link to={`/projects/${project.id}`} className="block">
+                <div className="flex items-center justify-between pr-20">
+                  <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">
+                    {formatCategory(project.category)}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Download size={14} />
-                    {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} />
-                    {formatDate(project.createdAt)}
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      project.isApproved
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'bg-amber-50 text-amber-600'
+                    }`}
+                  >
+                    {project.isApproved ? 'Aprovado' : 'Em avaliacao'}
                   </span>
                 </div>
-                <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-                  <Star size={14} />
-                  {project.averageGrade?.toFixed(1) ?? '--'}
-                </span>
-              </div>
-            </Link>
+
+                <h3 className="mt-4 text-lg font-semibold text-[var(--agora-ink)]">{project.title}</h3>
+                <p className="mt-2 text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
+
+                <div className="mt-5 flex items-center justify-between text-xs text-[var(--agora-muted)]">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="flex items-center gap-1">
+                      <Eye size={14} />
+                      {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Download size={14} />
+                      {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} />
+                      {formatDate(project.createdAt)}
+                    </span>
+                  </div>
+                  <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                    <Star size={14} />
+                    {project.averageGrade?.toFixed(1) ?? '--'}
+                  </span>
+                </div>
+              </Link>
+            </div>
           ))}
       </div>
+
+      {/* Modal de confirmação de exclusão */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full">
+            <h3 className="text-xl font-bold text-slate-900 mb-4">Excluir Projeto</h3>
+            <p className="text-sm text-slate-600 mb-6">
+              Tem certeza que deseja excluir o projeto <strong>"{deleteModal.projectTitle}"</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteModal({ show: false, projectId: null, projectTitle: '' })}
+                disabled={isDeleting}
+                className="rounded-xl border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 };
