@@ -29,6 +29,8 @@ public class UserService : IUserService
             Name = user.Name,
             Course = user.Course,
             Bio = user.Bio,
+            PhotoUrl = user.PhotoUrl,
+            Interests = user.Interests,
             RoleType = user.RoleType.ToString()
         };
 
@@ -44,6 +46,8 @@ public class UserService : IUserService
         user.Name = model.Name;
         user.Course = model.Course;
         user.Bio = model.Bio;
+        user.PhotoUrl = model.PhotoUrl;
+        user.Interests = model.Interests;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)

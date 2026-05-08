@@ -13,6 +13,12 @@ public class UpdateProfileRequestDto
 
     [MaxLength(500)]
     public string Bio { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? PhotoUrl { get; set; }
+
+    [MaxLength(500)]
+    public string? Interests { get; set; }
 }
 
 public class ChangePasswordRequestDto
