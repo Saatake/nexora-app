@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +11,7 @@ const LoginPage = () => {
   const [roleTab, setRoleTab] = useState<'Aluno' | 'Professor'>('Aluno');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const getErrorMessage = (err: any, fallback: string) => {
     const data = err?.response?.data;
@@ -85,7 +86,12 @@ const LoginPage = () => {
               <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                 <Lock className='h-5 w-5 text-gray-400' />
               </div>
-              <input type='password' placeholder='••••••••' value={password} onChange={(e) => setPassword(e.target.value)} required className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400' />
+              <div className='relative'>
+                <input type={showPassword ? 'text' : 'password'} placeholder='••••••••' value={password} onChange={(e) => setPassword(e.target.value)} required className='pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400' />
+                <button type='button' onClick={() => setShowPassword((s) => !s)} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'>
+                  {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+                </button>
+              </div>
             </div>
           </div>
 

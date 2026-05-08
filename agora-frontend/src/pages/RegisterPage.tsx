@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, BookOpen, PenSquare } from 'lucide-react';
+import { Mail, Lock, User, BookOpen, PenSquare, Eye, EyeOff } from 'lucide-react';
 import api from '../api/axios';
 import { FACENS_COURSES } from '../constants/facensCourses';
 
@@ -13,6 +13,8 @@ const RegisterPage = () => {
     bio: '',
     roleType: 'Estudante'
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,6 +77,11 @@ const RegisterPage = () => {
     setError('');
     setSuccess('');
     setLoading(true);
+    if (formData.password !== confirmPassword) {
+      setError('As senhas nao coincidem.');
+      setLoading(false);
+      return;
+    }
     try {
       const response = await api.post('/auth/register', formData);
       setSuccess(response.data.message || 'Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.');
@@ -171,15 +178,20 @@ const RegisterPage = () => {
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                   <Lock className='h-5 w-5 text-gray-400' />
                 </div>
-                <input
-                  type='password'
-                  name='password'
-                  placeholder='Minimo de 6 caracteres'
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
-                />
+                <div className='relative'>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name='password'
+                    placeholder='Minimo de 6 caracteres'
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className='pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                  />
+                  <button type='button' onClick={() => setShowPassword((s) => !s)} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'>
+                    {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -203,6 +215,24 @@ const RegisterPage = () => {
                   ))}
                 </select>
               </div>
+            </div>
+          </div>
+
+          <div className='space-y-1'>
+            <label className='text-sm font-semibold text-gray-700'>Confirmar senha</label>
+            <div className='relative'>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name='confirmPassword'
+                placeholder='Repita a senha'
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className='pl-4 pr-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+              />
+              <button type='button' onClick={() => setShowPassword((s) => !s)} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'>
+                {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+              </button>
             </div>
           </div>
 

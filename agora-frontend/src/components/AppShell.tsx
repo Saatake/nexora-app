@@ -19,6 +19,7 @@ type AppShellProps = {
   headerActions?: React.ReactNode;
   searchPlaceholder?: string;
   children: React.ReactNode;
+  showSearch?: boolean;
 };
 
 const AppShell = ({
@@ -27,10 +28,23 @@ const AppShell = ({
   headerActions,
   searchPlaceholder = 'Buscar projetos, alunos ou professores',
   children
+  , showSearch = true
 }: AppShellProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const initial = user?.name?.trim()?.charAt(0).toUpperCase() ?? 'A';
+
+  const [query, setQuery] = React.useState('');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query?.trim();
+    if (!q) {
+      navigate('/explore');
+      return;
+    }
+    navigate(`/explore?search=${encodeURIComponent(q)}`);
+  };
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutGrid, to: '/dashboard' },
@@ -122,29 +136,49 @@ const AppShell = ({
               {headerActions && <div className="flex items-center gap-3">{headerActions}</div>}
             </div>
 
-            <div className="flex flex-1 items-center gap-3 lg:max-w-2xl">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--agora-muted)]" />
-                <input
-                  type="text"
-                  placeholder={searchPlaceholder}
-                  className="w-full rounded-2xl border border-[var(--agora-border)] bg-white/80 px-11 py-3 text-sm shadow-[var(--agora-shadow)]/30 outline-none transition focus:border-[var(--agora-accent)]"
-                />
-              </div>
-              <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--agora-border)] bg-white/80">
-                <Bell size={18} className="text-[var(--agora-muted)]" />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400"></span>
-              </button>
-              <Link
-                to="/profile"
-                className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
-              >
-                <div className="h-8 w-8 rounded-xl bg-[var(--agora-accent)]/15 text-[var(--agora-accent)] flex items-center justify-center font-semibold">
-                  {initial}
+            {showSearch ? (
+              <form onSubmit={handleSearchSubmit} className="flex flex-1 items-center gap-3 lg:max-w-2xl">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--agora-muted)]" />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    type="text"
+                    placeholder={searchPlaceholder}
+                    className="w-full rounded-2xl border border-[var(--agora-border)] bg-white/80 px-11 py-3 text-sm shadow-[var(--agora-shadow)]/30 outline-none transition focus:border-[var(--agora-accent)]"
+                  />
                 </div>
-                {user?.name ?? 'Meu perfil'}
-              </Link>
-            </div>
+                <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--agora-border)] bg-white/80" type="submit">
+                  <Bell size={18} className="text-[var(--agora-muted)]" />
+                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400"></span>
+                </button>
+                <Link
+                  to="/profile"
+                  className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
+                >
+                  <div className="h-8 w-8 rounded-xl bg-[var(--agora-accent)]/15 text-[var(--agora-accent)] flex items-center justify-center font-semibold">
+                    {initial}
+                  </div>
+                  {user?.name ?? 'Meu perfil'}
+                </Link>
+              </form>
+            ) : (
+              <div className="flex items-center gap-3 lg:max-w-2xl">
+                <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--agora-border)] bg-white/80">
+                  <Bell size={18} className="text-[var(--agora-muted)]" />
+                  <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400"></span>
+                </button>
+                <Link
+                  to="/profile"
+                  className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
+                >
+                  <div className="h-8 w-8 rounded-xl bg-[var(--agora-accent)]/15 text-[var(--agora-accent)] flex items-center justify-center font-semibold">
+                    {initial}
+                  </div>
+                  {user?.name ?? 'Meu perfil'}
+                </Link>
+              </div>
+            )}
           </header>
 
           {children}
