@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BookOpen, Calendar, Eye, Mail, Star, UserCircle2 } from 'lucide-react';
+import { BookOpen, Calendar, Mail, Star, UserCircle2, Upload } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,10 +11,12 @@ type UserProfile = {
   email: string;
   course: string;
   bio?: string;
-  interests?: string[];
-  projectCount: number;
-  averageGrade: number;
-  totalViews: number;
+  photoUrl?: string;
+  interests?: string;
+  roleType: string;
+  projectCount?: number;
+  averageGrade?: number;
+  totalViews?: number;
 };
 
 type Project = {
@@ -43,10 +45,14 @@ const ProfilePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editData, setEditData] = useState({
     name: '',
     course: '',
     bio: '',
+    photoUrl: '',
     interests: ''
   });
   const [error, setError] = useState('');
@@ -62,23 +68,31 @@ const ProfilePage = () => {
       setIsLoading(true);
       setError('');
       try {
-        // Por enquanto, vamos usar os dados do usuário atual
-        // TODO: criar endpoint GET /api/users/:id para ver perfil de outros usuários
-        const statsResponse = await api.get('/dashboard/stats');
-        const projectsResponse = await api.get('/projects/me', { params: { page: 1, pageSize: 10 } });
+        const profileResponse = await api.get(`/users/${userId}`);
+        
+        // Se for o próprio perfil, buscar stats do dashboard
+        let stats = { projectCount: 0, averageGrade: 0, totalViews: 0 };
+        if (isOwnProfile) {
+          try {
+            const statsResponse = await api.get('/dashboard/stats');
+            stats = statsResponse.data;
+          } catch (err) {
+            // Stats opcionais, não bloqueia
+          }
+        }
+
+        // Buscar projetos
+        const projectsResponse = isOwnProfile
+          ? await api.get('/projects/me', { params: { page: 1, pageSize: 10 } })
+          : { data: { items: [] } };
 
         if (!isMounted) return;
 
         setProfile({
-          id: currentUser?.id || '',
-          name: currentUser?.name || '',
-          email: currentUser?.email || '',
-          course: currentUser?.course || '',
-          bio: 'Estudante apaixonada por desenvolvimento web e inteligência artificial.',
-          interests: ['Inteligência Artificial', 'Desenvolvimento Web', 'Machine Learning', 'UX/UI Design'],
-          projectCount: statsResponse.data?.projectCount || 0,
-          averageGrade: statsResponse.data?.averageGrade || 0,
-          totalViews: statsResponse.data?.totalViews || 0
+          ...profileResponse.data,
+          projectCount: stats.projectCount,
+          averageGrade: stats.averageGrade,
+          totalViews: stats.totalViews
         });
 
         setProjects(projectsResponse.data?.items || []);
@@ -96,23 +110,93 @@ const ProfilePage = () => {
     return () => {
       isMounted = false;
     };
-  }, [userId, currentUser]);
+  }, [userId, isOwnProfile]);
 
   const handleEditProfile = () => {
     if (!profile) return;
+    const interests = profile.interests ? profile.interests : '';
     setEditData({
       name: profile.name,
       course: profile.course,
       bio: profile.bio || '',
-      interests: profile.interests?.join(', ') || ''
+      photoUrl: profile.photoUrl || '',
+      interests
     });
     setIsEditing(true);
   };
 
   const handleSaveProfile = async () => {
-    // TODO: criar endpoint PUT /api/users/me para editar perfil
-    setError('Funcionalidade de edição em desenvolvimento.');
-    setIsEditing(false);
+    if (!profile) return;
+    setIsSaving(true);
+    setError('');
+    try {
+      await api.put('/users/me', editData);
+      
+      // Recarregar perfil
+      const profileResponse = await api.get(`/users/${userId}`);
+      setProfile({
+        ...profile,
+        ...profileResponse.data
+      });
+      
+      setIsEditing(false);
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Não foi possível atualizar o perfil.';
+      setError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('A imagem deve ter no máximo 5MB.');
+      return;
+    }
+
+    // Validar tipo
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Envie uma imagem JPG, PNG ou WEBP.');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResponse = await api.post('/uploads/profile-photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const photoUrl = uploadResponse.data.url;
+
+      // Atualizar perfil com a nova foto
+      await api.put('/users/me', {
+        name: profile?.name || '',
+        course: profile?.course || '',
+        bio: profile?.bio || '',
+        photoUrl,
+        interests: profile?.interests || ''
+      });
+
+      // Recarregar perfil
+      const profileResponse = await api.get(`/users/${userId}`);
+      setProfile({
+        ...profile!,
+        ...profileResponse.data
+      });
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Não foi possível fazer upload da foto.';
+      setError(message);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const initial = profile?.name?.trim()?.charAt(0).toUpperCase() ?? 'A';
@@ -151,10 +235,36 @@ const ProfilePage = () => {
             {/* Foto de perfil sobreposta */}
             <div className="relative -mt-16 flex items-end justify-between">
               <div className="flex items-end gap-6">
-                <div className="h-32 w-32 rounded-3xl bg-white shadow-lg border-4 border-white flex items-center justify-center">
-                  <div className="h-full w-full rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-5xl">
-                    {initial}
-                  </div>
+                <div className="relative h-32 w-32 rounded-3xl bg-white shadow-lg border-4 border-white flex items-center justify-center">
+                  {profile.photoUrl ? (
+                    <img
+                      src={profile.photoUrl}
+                      alt={profile.name}
+                      className="h-full w-full rounded-3xl object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-5xl">
+                      {initial}
+                    </div>
+                  )}
+                  
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingPhoto}
+                      className="absolute bottom-0 right-0 h-10 w-10 rounded-xl bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 shadow-lg disabled:opacity-50"
+                      title="Alterar foto"
+                    >
+                      {isUploadingPhoto ? '...' : <Upload className="w-5 h-5" />}
+                    </button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
                 </div>
                 
                 <div className="pb-2">
@@ -188,24 +298,26 @@ const ProfilePage = () => {
 
             {/* Bio */}
             <div className="mt-6">
-              <p className="text-slate-600">{profile.bio}</p>
+              <p className="text-slate-600">{profile.bio || 'Sem bio cadastrada.'}</p>
             </div>
 
-            {/* Stats */}
-            <div className="mt-6 grid grid-cols-3 gap-6">
-              <div className="rounded-2xl bg-purple-50 p-6 text-center">
-                <div className="text-4xl font-bold text-purple-600">{profile.projectCount}</div>
-                <div className="mt-1 text-sm text-slate-600">Projetos</div>
+            {/* Stats - apenas para próprio perfil */}
+            {isOwnProfile && profile.projectCount !== undefined && (
+              <div className="mt-6 grid grid-cols-3 gap-6">
+                <div className="rounded-2xl bg-purple-50 p-6 text-center">
+                  <div className="text-4xl font-bold text-purple-600">{profile.projectCount}</div>
+                  <div className="mt-1 text-sm text-slate-600">Projetos</div>
+                </div>
+                <div className="rounded-2xl bg-emerald-50 p-6 text-center">
+                  <div className="text-4xl font-bold text-emerald-600">{profile.averageGrade?.toFixed(1) || '0.0'}</div>
+                  <div className="mt-1 text-sm text-slate-600">Média Geral</div>
+                </div>
+                <div className="rounded-2xl bg-blue-50 p-6 text-center">
+                  <div className="text-4xl font-bold text-blue-600">{profile.totalViews || 0}</div>
+                  <div className="mt-1 text-sm text-slate-600">Visualizações</div>
+                </div>
               </div>
-              <div className="rounded-2xl bg-emerald-50 p-6 text-center">
-                <div className="text-4xl font-bold text-emerald-600">{profile.averageGrade.toFixed(1)}</div>
-                <div className="mt-1 text-sm text-slate-600">Média Geral</div>
-              </div>
-              <div className="rounded-2xl bg-blue-50 p-6 text-center">
-                <div className="text-4xl font-bold text-blue-600">{profile.totalViews}</div>
-                <div className="mt-1 text-sm text-slate-600">Visualizações</div>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 
@@ -253,19 +365,21 @@ const ProfilePage = () => {
           {/* Sidebar */}
           <div className="space-y-8">
             {/* Áreas de Interesse */}
-            <section className="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Áreas de Interesse</h3>
-              <div className="space-y-2">
-                {profile.interests?.map((interest, index) => (
-                  <div
-                    key={index}
-                    className="rounded-xl bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700"
-                  >
-                    {interest}
-                  </div>
-                ))}
-              </div>
-            </section>
+            {profile.interests && profile.interests.trim() && (
+              <section className="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Áreas de Interesse</h3>
+                <div className="space-y-2">
+                  {profile.interests.split(',').map((interest, index) => (
+                    <div
+                      key={index}
+                      className="rounded-xl bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700"
+                    >
+                      {interest.trim()}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Contato */}
             <section className="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
@@ -339,15 +453,17 @@ const ProfilePage = () => {
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="rounded-xl border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  disabled={isSaving}
+                  className="rounded-xl border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSaveProfile}
-                  className="rounded-xl bg-purple-600 px-6 py-2 text-sm font-semibold text-white hover:bg-purple-700"
+                  disabled={isSaving}
+                  className="rounded-xl bg-purple-600 px-6 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
                 >
-                  Salvar
+                  {isSaving ? 'Salvando...' : 'Salvar'}
                 </button>
               </div>
             </div>
