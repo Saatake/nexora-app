@@ -275,32 +275,40 @@ const DashboardPage = () => {
               </div>
 
               <div className="relative mt-6">
-                <div className="pointer-events-none absolute inset-0 grid grid-rows-4 gap-0">
-                  {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={`grid-${index}`} className="border-t border-dashed border-slate-200"></div>
-                  ))}
-                </div>
-                <svg viewBox={`0 0 ${lineChart.width} ${lineChart.height}`} className="h-56 w-full">
-                  <defs>
-                    <linearGradient id="gradeLine" x1="0" x2="1" y1="0" y2="1">
-                      <stop offset="0%" stopColor="#0ea5a5" />
-                      <stop offset="100%" stopColor="#38bdf8" />
-                    </linearGradient>
-                  </defs>
-                  <polyline
-                    fill="none"
-                    stroke="url(#gradeLine)"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={lineChart.points}
-                  />
-                  {lineChart.values.map((value, index) => {
-                    const x = lineChart.paddingX + index * ((lineChart.width - lineChart.paddingX * 2) / (lineChart.labels.length - 1 || 1));
-                    const y = lineChart.height - lineChart.paddingY - (value / Math.max(10, ...lineChart.values)) * (lineChart.height - lineChart.paddingY * 2);
-                    return <circle key={`point-${index}`} cx={x} cy={y} r={5} fill="#ffffff" stroke="#0ea5a5" strokeWidth="2" />;
-                  })}
-                </svg>
+                {lineChart.values.every(v => v === 0) ? (
+                  <div className="h-56 flex items-center justify-center text-sm text-slate-400">
+                    Ainda não há dados de evolução de notas
+                  </div>
+                ) : (
+                  <>
+                    <div className="pointer-events-none absolute inset-0 grid grid-rows-4 gap-0">
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <div key={`grid-${index}`} className="border-t border-dashed border-slate-200"></div>
+                      ))}
+                    </div>
+                    <svg viewBox={`0 0 ${lineChart.width} ${lineChart.height}`} className="h-56 w-full">
+                      <defs>
+                        <linearGradient id="gradeLine" x1="0" x2="1" y1="0" y2="1">
+                          <stop offset="0%" stopColor="#0ea5a5" />
+                          <stop offset="100%" stopColor="#38bdf8" />
+                        </linearGradient>
+                      </defs>
+                      <polyline
+                        fill="none"
+                        stroke="url(#gradeLine)"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        points={lineChart.points}
+                      />
+                      {lineChart.values.map((value, index) => {
+                        const x = lineChart.paddingX + index * ((lineChart.width - lineChart.paddingX * 2) / (lineChart.labels.length - 1 || 1));
+                        const y = lineChart.height - lineChart.paddingY - (value / Math.max(10, ...lineChart.values)) * (lineChart.height - lineChart.paddingY * 2);
+                        return <circle key={`point-${index}`} cx={x} cy={y} r={5} fill="#ffffff" stroke="#0ea5a5" strokeWidth="2" />;
+                      })}
+                    </svg>
+                  </>
+                )}
               </div>
 
               <div className="mt-4 grid grid-cols-7 text-xs text-[var(--agora-muted)]">
@@ -324,18 +332,24 @@ const DashboardPage = () => {
               </div>
 
               <div className="mt-6 flex h-56 items-end gap-4">
-                {criteriaBars.map((bar) => (
-                  <div key={bar.label} className="flex flex-1 flex-col items-center gap-2">
-                    <div className="text-xs font-semibold text-[var(--agora-ink)]">{bar.value.toFixed(1)}</div>
-                    <div className="flex h-full w-full items-end">
-                      <div
-                        className={`w-full rounded-2xl ${bar.color}`}
-                        style={{ height: `${Math.max(8, (bar.value / 10) * 100)}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-[var(--agora-muted)]">{bar.label}</div>
+                {criteriaBars.every(bar => bar.value === 0) ? (
+                  <div className="w-full h-full flex items-center justify-center text-sm text-slate-400">
+                    Ainda não há avaliações por critério
                   </div>
-                ))}
+                ) : (
+                  criteriaBars.map((bar) => (
+                    <div key={bar.label} className="flex flex-1 flex-col items-center gap-2">
+                      <div className="text-xs font-semibold text-[var(--agora-ink)]">{bar.value.toFixed(1)}</div>
+                      <div className="flex h-full w-full items-end">
+                        <div
+                          className={`w-full rounded-2xl ${bar.color}`}
+                          style={{ height: `${Math.max(8, (bar.value / 10) * 100)}%` }}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-[var(--agora-muted)]">{bar.label}</div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </section>

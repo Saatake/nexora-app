@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
+import { useAuth } from '../contexts/AuthContext';
 
 type Project = {
   id: number;
@@ -26,6 +27,7 @@ type Project = {
   githubLink: string;
   fileUrl: string;
   category: string;
+  authorId: string;
   authorName: string;
   viewCount: number;
   downloadCount: number;
@@ -43,6 +45,7 @@ type Evaluation = {
   innovation: number;
   average: number;
   feedback: string;
+  professorId: string;
   professorName: string;
   createdAt: string;
 };
@@ -77,6 +80,7 @@ const formatDate = (value: string) => {
 const ProjectDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -98,6 +102,16 @@ const ProjectDetailsPage = () => {
   const [error, setError] = useState('');
 
   const projectId = useMemo(() => Number(id), [id]);
+  
+  // Verifica se o usuário pode avaliar
+  const canEvaluate = useMemo(() => {
+    if (!user || !project) return false;
+    // Não pode avaliar próprio projeto
+    if (project.authorId === user.id) return false;
+    // Não pode avaliar se já avaliou
+    const alreadyEvaluated = evaluations.some(e => e.professorId === user.id);
+    return !alreadyEvaluated;
+  }, [user, project, evaluations]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -395,7 +409,7 @@ const ProjectDetailsPage = () => {
               {activeTab === 'evaluations' && (
                 <div className="space-y-4">
                   {/* Formulário de Avaliação */}
-                  {!showEvaluationForm ? (
+                  {canEvaluate && !showEvaluationForm && (
                     <button
                       type="button"
                       onClick={() => setShowEvaluationForm(true)}
@@ -403,7 +417,21 @@ const ProjectDetailsPage = () => {
                     >
                       + Avaliar este projeto
                     </button>
-                  ) : (
+                  )}
+                  
+                  {!canEvaluate && !evaluations.some(e => e.professorId === user?.id) && project?.authorId === user?.id && (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 text-center">
+                      Você não pode avaliar seu próprio projeto.
+                    </div>
+                  )}
+                  
+                  {!canEvaluate && evaluations.some(e => e.professorId === user?.id) && (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 text-center">
+                      ✓ Você já avaliou este projeto.
+                    </div>
+                  )}
+                  
+                  {showEvaluationForm && (
                     <div className="rounded-2xl border border-[var(--agora-border)] bg-slate-50 p-6 space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-base font-semibold text-[var(--agora-ink)]">Nova Avaliação</h3>

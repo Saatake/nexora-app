@@ -218,7 +218,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <AppShell title="Perfil" subtitle="" showSearch={false}>
+    <AppShell title="" subtitle="" showSearch={false}>
       <div className="mt-8 space-y-8">
         {error && (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -228,14 +228,11 @@ const ProfilePage = () => {
 
         {/* Cabeçalho com foto e info */}
         <section className="relative">
-          {/* Banner gradiente */}
-          <div className="h-40 rounded-t-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-500" />
-          
-          <div className="rounded-b-3xl bg-white shadow-sm border border-slate-100 px-8 pb-8">
-            {/* Foto de perfil sobreposta */}
-            <div className="relative -mt-16 flex items-end justify-between">
-              <div className="flex items-end gap-6">
-                <div className="relative h-32 w-32 rounded-3xl bg-white shadow-lg border-4 border-white flex items-center justify-center">
+          <div className="rounded-3xl bg-white shadow-sm border border-slate-100 px-8 py-8">
+            {/* Foto de perfil */}
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="relative h-32 w-32 rounded-3xl shadow-md flex items-center justify-center">
                   {profile.photoUrl ? (
                     <img
                       src={profile.photoUrl}
@@ -267,7 +264,7 @@ const ProfilePage = () => {
                   />
                 </div>
                 
-                <div className="pb-2">
+                <div>
                   <h2 className="text-3xl font-bold text-slate-900">{profile.name}</h2>
                   <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
                     <span className="inline-flex items-center gap-1">
@@ -372,7 +369,7 @@ const ProfilePage = () => {
                   {profile.interests.split(',').map((interest, index) => (
                     <div
                       key={index}
-                      className="rounded-xl bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700"
+                      className="rounded-xl bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 break-words"
                     >
                       {interest.trim()}
                     </div>
