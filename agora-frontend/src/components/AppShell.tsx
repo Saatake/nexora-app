@@ -6,7 +6,6 @@ import {
   LayoutGrid,
   LogOut,
   Search,
-  Settings,
   Trophy,
   User2
 } from 'lucide-react';
@@ -97,10 +96,6 @@ const AppShell = ({
           </div>
 
           <div className="space-y-2">
-            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/5">
-              <Settings size={18} />
-              Configuracoes
-            </button>
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/5"
