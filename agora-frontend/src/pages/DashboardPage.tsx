@@ -400,10 +400,13 @@ const DashboardPage = () => {
                         </p>
                         <p className="text-xs text-[var(--agora-muted)]">Views</p>
                       </div>
-                      <button className="flex items-center gap-2 rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm font-semibold text-[var(--agora-ink)]">
+                      <Link
+                        to={`/projects/${project.id}`}
+                        className="flex items-center gap-2 rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm font-semibold text-[var(--agora-ink)]"
+                      >
                         Abrir
                         <Star size={14} className="text-amber-500" />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 ))}

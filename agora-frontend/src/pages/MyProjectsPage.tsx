@@ -139,9 +139,10 @@ const MyProjectsPage = () => {
 
         {!isLoading &&
           projects.map((project) => (
-            <div
+            <Link
               key={project.id}
-              className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)]"
+              to={`/projects/${project.id}`}
+              className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)] transition hover:shadow-md"
             >
               <div className="flex items-center justify-between">
                 <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">

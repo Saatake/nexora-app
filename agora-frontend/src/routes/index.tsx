@@ -14,6 +14,7 @@ import NewProjectPage from '../pages/NewProjectPage';
 import ExploreProjectsPage from '../pages/ExploreProjectsPage';
 import RankingPage from '../pages/RankingPage';
 import ProfilePage from '../pages/ProfilePage';
+import ProjectDetailsPage from '../pages/ProjectDetailsPage';
 
 // Componente para rotas protegidas
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -53,6 +54,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <NewProjectPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/projects/:id" 
+          element={
+            <PrivateRoute>
+              <ProjectDetailsPage />
             </PrivateRoute>
           } 
         />

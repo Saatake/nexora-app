@@ -48,7 +48,7 @@ const AppShell = ({
   return (
     <div className="min-h-screen agora-shell text-[var(--agora-ink)]">
       <div className="flex min-h-screen">
-        <aside className="hidden lg:flex w-72 flex-col justify-between bg-gradient-to-b from-[var(--agora-navy)] via-[var(--agora-navy-soft)] to-[#0a1224] text-white p-8">
+        <aside className="hidden lg:flex w-72 flex-col justify-between bg-gradient-to-b from-[var(--agora-navy)] via-[var(--agora-navy-soft)] to-[#0a1224] text-white p-8 lg:sticky lg:top-0 lg:h-screen lg:self-start">
           <div>
             <div className="flex items-center gap-3 mb-10">
               <div className="h-11 w-11 rounded-2xl bg-[var(--agora-accent)]/20 flex items-center justify-center text-[var(--agora-accent)] font-bold text-lg">A</div>
