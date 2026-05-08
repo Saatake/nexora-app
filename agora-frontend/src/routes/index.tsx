@@ -11,6 +11,7 @@ import ResetPasswordPage from '../pages/ResetPasswordPage';
 import DashboardPage from '../pages/DashboardPage';
 import MyProjectsPage from '../pages/MyProjectsPage';
 import NewProjectPage from '../pages/NewProjectPage';
+import EditProjectPage from '../pages/EditProjectPage';
 import ExploreProjectsPage from '../pages/ExploreProjectsPage';
 import RankingPage from '../pages/RankingPage';
 import ProfilePage from '../pages/ProfilePage';
@@ -54,6 +55,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <NewProjectPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/projects/:id/edit" 
+          element={
+            <PrivateRoute>
+              <EditProjectPage />
             </PrivateRoute>
           } 
         />
