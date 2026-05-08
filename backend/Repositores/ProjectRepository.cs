@@ -46,7 +46,7 @@ public class ProjectRepository : IProjectRepository
             query = query.Where(p => p.Category == category.Value);
 
         if (!string.IsNullOrWhiteSpace(course))
-            query = query.Where(p => p.User != null && p.User.Course.ToLower().Contains(course.ToLower()));
+            query = query.Where(p => p.Course != null && p.Course.ToLower().Contains(course.ToLower()));
 
         if (minGrade.HasValue)
             query = query.Where(p => p.Evaluations.Any() && p.Evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0) >= minGrade.Value);

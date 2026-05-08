@@ -25,6 +25,11 @@ public class ProjectService : IProjectService
         {
             Title = request.Title,
             Description = request.Description,
+            Summary = request.Summary,
+            Course = request.Course,
+            Area = request.Area,
+            Advisor = request.Advisor,
+            TeamMembers = request.TeamMembers,
             GithubLink = request.GithubLink,
             FileUrl = request.FileUrl,
             Category = request.Category,
@@ -39,9 +44,15 @@ public class ProjectService : IProjectService
             Id = created.Id,
             Title = created.Title,
             Description = created.Description,
+            Summary = created.Summary,
+            Course = created.Course,
+            Area = created.Area,
+            Advisor = created.Advisor,
+            TeamMembers = created.TeamMembers,
             GithubLink = created.GithubLink,
             FileUrl = created.FileUrl,
             Category = created.Category.ToString(),
+            IsApproved = created.IsApproved,
             CreatedAt = created.CreatedAt
         };
     }
@@ -55,10 +66,16 @@ public class ProjectService : IProjectService
             Id = p.Id,
             Title = p.Title,
             Description = p.Description,
+            Summary = p.Summary,
+            Course = p.Course,
+            Area = p.Area,
+            Advisor = p.Advisor,
+            TeamMembers = p.TeamMembers,
             GithubLink = p.GithubLink,
             FileUrl = p.FileUrl,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
+            IsApproved = p.IsApproved,
             CreatedAt = p.CreatedAt
         });
     }
@@ -113,6 +130,11 @@ public class ProjectService : IProjectService
 
         project.Title = model.Title;
         project.Description = model.Description;
+        project.Summary = model.Summary;
+        project.Course = model.Course;
+        project.Area = model.Area;
+        project.Advisor = model.Advisor;
+        project.TeamMembers = model.TeamMembers;
         project.GithubLink = model.GithubLink;
         project.FileUrl = model.FileUrl;
         project.Category = model.Category;
@@ -174,10 +196,16 @@ public class ProjectService : IProjectService
             Id = p.Id,
             Title = p.Title,
             Description = p.Description,
+            Summary = p.Summary,
+            Course = p.Course,
+            Area = p.Area,
+            Advisor = p.Advisor,
+            TeamMembers = p.TeamMembers,
             GithubLink = p.GithubLink,
             FileUrl = p.FileUrl,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
+            IsApproved = p.IsApproved,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
             AverageGrade = avgGrade,

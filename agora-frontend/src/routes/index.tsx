@@ -9,9 +9,11 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ConfirmEmailPage from '../pages/ConfirmEmailPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 import DashboardPage from '../pages/DashboardPage';
-
-// Placeholder pages that we will create next
-const ProfilePage = () => <div>Profile</div>;
+import MyProjectsPage from '../pages/MyProjectsPage';
+import NewProjectPage from '../pages/NewProjectPage';
+import ExploreProjectsPage from '../pages/ExploreProjectsPage';
+import RankingPage from '../pages/RankingPage';
+import ProfilePage from '../pages/ProfilePage';
 
 // Componente para rotas protegidas
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -35,6 +37,38 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <DashboardPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/projects" 
+          element={
+            <PrivateRoute>
+              <MyProjectsPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/projects/new" 
+          element={
+            <PrivateRoute>
+              <NewProjectPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/explore" 
+          element={
+            <PrivateRoute>
+              <ExploreProjectsPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/ranking" 
+          element={
+            <PrivateRoute>
+              <RankingPage />
             </PrivateRoute>
           } 
         />

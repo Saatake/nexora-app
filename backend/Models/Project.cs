@@ -14,6 +14,21 @@ public class Project
     
     [Required]
     public string Description { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? Summary { get; set; }
+
+    [MaxLength(120)]
+    public string? Course { get; set; }
+
+    [MaxLength(120)]
+    public string? Area { get; set; }
+
+    [MaxLength(120)]
+    public string? Advisor { get; set; }
+
+    [MaxLength(1000)]
+    public string? TeamMembers { get; set; }
     
     public string GithubLink { get; set; } = string.Empty;
     

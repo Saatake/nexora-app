@@ -13,6 +13,21 @@ public class CreateProjectRequestDto
     [MaxLength(5000, ErrorMessage = "descrição pode ter no máximo 5000 caracteres.")]
     public string Description { get; set; } = string.Empty;
 
+    [MaxLength(200, ErrorMessage = "resumo pode ter no máximo 200 caracteres.")]
+    public string? Summary { get; set; }
+
+    [MaxLength(120, ErrorMessage = "curso pode ter no máximo 120 caracteres.")]
+    public string? Course { get; set; }
+
+    [MaxLength(120, ErrorMessage = "área pode ter no máximo 120 caracteres.")]
+    public string? Area { get; set; }
+
+    [MaxLength(120, ErrorMessage = "orientador pode ter no máximo 120 caracteres.")]
+    public string? Advisor { get; set; }
+
+    [MaxLength(1000, ErrorMessage = "integrantes pode ter no máximo 1000 caracteres.")]
+    public string? TeamMembers { get; set; }
+
     public string GithubLink { get; set; } = string.Empty;
 
     public string FileUrl { get; set; } = string.Empty;
@@ -30,6 +45,21 @@ public class UpdateProjectRequestDto
     [Required(ErrorMessage = "descrição é obrigatória.")]
     [MaxLength(5000, ErrorMessage = "descrição pode ter no máximo 5000 caracteres.")]
     public string Description { get; set; } = string.Empty;
+
+    [MaxLength(200, ErrorMessage = "resumo pode ter no máximo 200 caracteres.")]
+    public string? Summary { get; set; }
+
+    [MaxLength(120, ErrorMessage = "curso pode ter no máximo 120 caracteres.")]
+    public string? Course { get; set; }
+
+    [MaxLength(120, ErrorMessage = "área pode ter no máximo 120 caracteres.")]
+    public string? Area { get; set; }
+
+    [MaxLength(120, ErrorMessage = "orientador pode ter no máximo 120 caracteres.")]
+    public string? Advisor { get; set; }
+
+    [MaxLength(1000, ErrorMessage = "integrantes pode ter no máximo 1000 caracteres.")]
+    public string? TeamMembers { get; set; }
 
     public string GithubLink { get; set; } = string.Empty;
 

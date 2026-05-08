@@ -1,23 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   BarChart3,
-  Bell,
   Clock,
-  Compass,
   Eye,
   FolderKanban,
-  LayoutGrid,
   LineChart,
-  LogOut,
-  Search,
-  Settings,
   Star,
-  Trophy,
-  User2
 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import AppShell from '../components/AppShell';
 
 type DashboardStats = {
   projectCount: number;
@@ -89,6 +82,8 @@ const formatDate = (value: string) => {
 const formatCategory = (category: string) => {
   const lookup: Record<string, string> = {
     Tcc: 'TCC',
+    Upx: 'UPX',
+    IniciacaoCientifica: 'Iniciacao Cientifica',
     Relatorio: 'Relatorio',
     ProjetoEscrito: 'Projeto escrito'
   };
@@ -96,8 +91,7 @@ const formatCategory = (category: string) => {
 };
 
 const DashboardPage = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [charts, setCharts] = useState<DashboardCharts | null>(null);
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
@@ -193,180 +187,67 @@ const DashboardPage = () => {
 
   const displayStats = stats ?? { projectCount: 0, averageGrade: 0, totalViews: 0 };
   const name = user?.name?.split(' ')[0] ?? 'Aluno';
-  const initial = user?.name?.trim()?.charAt(0).toUpperCase() ?? 'A';
-
-  const navItems = [
-    { label: 'Dashboard', icon: LayoutGrid, to: '/dashboard' },
-    { label: 'Meus projetos', icon: FolderKanban, to: '#', disabled: true },
-    { label: 'Explorar projetos', icon: Compass, to: '#', disabled: true },
-    { label: 'Ranking', icon: Trophy, to: '#', disabled: true },
-    { label: 'Perfil', icon: User2, to: '/profile' }
-  ];
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
-    <div className="min-h-screen agora-shell text-[var(--agora-ink)]">
-      <div className="flex min-h-screen">
-        <aside className="hidden lg:flex w-72 flex-col justify-between bg-gradient-to-b from-[var(--agora-navy)] via-[var(--agora-navy-soft)] to-[#0a1224] text-white p-8">
-          <div>
-            <div className="flex items-center gap-3 mb-10">
-              <div className="h-11 w-11 rounded-2xl bg-[var(--agora-accent)]/20 flex items-center justify-center text-[var(--agora-accent)] font-bold text-lg">A</div>
-              <div>
-                <p className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
-                  Agora
-                </p>
-                <p className="text-xs text-white/60">Academic workspace</p>
-              </div>
-            </div>
+    <AppShell title="Dashboard" subtitle={`Bem-vindo, ${name}`}>
+      {error && (
+        <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {error}
+        </div>
+      )}
 
-            <nav className="space-y-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                if (item.to !== '#' && !item.disabled) {
-                  return (
-                    <NavLink
-                      key={item.label}
-                      to={item.to}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                          isActive
-                            ? 'bg-white/10 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]'
-                            : 'text-white/70 hover:text-white hover:bg-white/5'
-                        }`
-                      }
-                    >
-                      <Icon size={18} />
-                      {item.label}
-                    </NavLink>
-                  );
-                }
-                return (
-                  <div
-                    key={item.label}
-                    className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white/40 cursor-not-allowed"
-                  >
-                    <Icon size={18} />
-                    {item.label}
-                  </div>
-                );
-              })}
-            </nav>
-          </div>
-
-          <div className="space-y-2">
-            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/5">
-              <Settings size={18} />
-              Configuracoes
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/5"
+      <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {[
+          {
+            label: 'Projetos publicados',
+            value: displayStats.projectCount,
+            icon: FolderKanban,
+            accent: 'text-[var(--agora-accent)]',
+            to: '/projects'
+          },
+          {
+            label: 'Media geral',
+            value: displayStats.averageGrade.toFixed(1),
+            icon: Star,
+            accent: 'text-amber-500'
+          },
+          {
+            label: 'Visualizacoes totais',
+            value: new Intl.NumberFormat('pt-BR').format(displayStats.totalViews),
+            icon: Eye,
+            accent: 'text-sky-500'
+          }
+        ].map((card, index) => {
+          const Icon = card.icon;
+          const content = (
+            <div
+              className="dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-5 shadow-[var(--agora-shadow)]"
+              style={{ animationDelay: `${index * 120}ms` }}
             >
-              <LogOut size={18} />
-              Sair
-            </button>
-            <div className="mt-6 flex items-center gap-3 rounded-2xl bg-white/5 px-4 py-3">
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center font-semibold">
-                {initial}
-              </div>
-              <div>
-                <p className="text-sm font-medium">{user?.name ?? 'Aluno Nexora'}</p>
-                <p className="text-xs text-white/50">{user?.course ?? 'Aluno'}</p>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <main className="flex-1 px-6 py-8 lg:px-10">
-          <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm text-[var(--agora-muted)]">Bem-vindo, {name}</p>
-              <h1
-                className="text-3xl font-semibold text-[var(--agora-ink)]"
-                style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}
-              >
-                Dashboard
-              </h1>
-            </div>
-            <div className="flex flex-1 items-center gap-3 lg:max-w-xl">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--agora-muted)]" />
-                <input
-                  type="text"
-                  placeholder="Buscar projetos, alunos ou professores"
-                  className="w-full rounded-2xl border border-[var(--agora-border)] bg-white/80 px-11 py-3 text-sm shadow-[var(--agora-shadow)]/30 outline-none transition focus:border-[var(--agora-accent)]"
-                />
-              </div>
-              <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--agora-border)] bg-white/80">
-                <Bell size={18} className="text-[var(--agora-muted)]" />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-emerald-400"></span>
-              </button>
-              <Link
-                to="/profile"
-                className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
-              >
-                <div className="h-8 w-8 rounded-xl bg-[var(--agora-accent)]/15 text-[var(--agora-accent)] flex items-center justify-center font-semibold">
-                  {initial}
+              <div className="flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--agora-accent)]/10">
+                  <Icon className={card.accent} size={22} />
                 </div>
-                {user?.name ?? 'Meu perfil'}
-              </Link>
+                <span className="text-xs text-[var(--agora-muted)]">Atualizado agora</span>
+              </div>
+              <div className="mt-5">
+                <p className="text-3xl font-semibold text-[var(--agora-ink)]">{card.value}</p>
+                <p className="text-sm text-[var(--agora-muted)]">{card.label}</p>
+              </div>
             </div>
-          </header>
+          );
 
-          {error && (
-            <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
-          )}
+          return card.to ? (
+            <Link key={card.label} to={card.to} className="focus:outline-none">
+              {content}
+            </Link>
+          ) : (
+            <div key={card.label}>{content}</div>
+          );
+        })}
+      </section>
 
-          <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            {[
-              {
-                label: 'Projetos publicados',
-                value: displayStats.projectCount,
-                icon: FolderKanban,
-                accent: 'text-[var(--agora-accent)]'
-              },
-              {
-                label: 'Media geral',
-                value: displayStats.averageGrade.toFixed(1),
-                icon: Star,
-                accent: 'text-amber-500'
-              },
-              {
-                label: 'Visualizacoes totais',
-                value: new Intl.NumberFormat('pt-BR').format(displayStats.totalViews),
-                icon: Eye,
-                accent: 'text-sky-500'
-              }
-            ].map((card, index) => {
-              const Icon = card.icon;
-              return (
-                <div
-                  key={card.label}
-                  className="dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-5 shadow-[var(--agora-shadow)]"
-                  style={{ animationDelay: `${index * 120}ms` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--agora-accent)]/10">
-                      <Icon className={card.accent} size={22} />
-                    </div>
-                    <span className="text-xs text-[var(--agora-muted)]">Atualizado agora</span>
-                  </div>
-                  <div className="mt-5">
-                    <p className="text-3xl font-semibold text-[var(--agora-ink)]">{card.value}</p>
-                    <p className="text-sm text-[var(--agora-muted)]">{card.label}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </section>
-
-          <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
+      <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
             <div className="dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '200ms' }}>
               <div className="flex items-center justify-between">
                 <div>
@@ -459,16 +340,18 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          <section className="mt-8 dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '440ms' }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
-                  Projetos recentes
-                </h2>
-                <p className="text-sm text-[var(--agora-muted)]">Ultimas publicacoes do seu portfolio</p>
-              </div>
-              <button className="text-sm font-semibold text-[var(--agora-accent)]">Ver todos</button>
-            </div>
+      <section className="mt-8 dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '440ms' }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
+              Projetos recentes
+            </h2>
+            <p className="text-sm text-[var(--agora-muted)]">Ultimas publicacoes do seu portfolio</p>
+          </div>
+          <Link to="/projects" className="text-sm font-semibold text-[var(--agora-accent)]">
+            Ver todos
+          </Link>
+        </div>
 
             <div className="mt-5 space-y-4">
               {isLoading && (
@@ -525,10 +408,8 @@ const DashboardPage = () => {
                   </div>
                 ))}
             </div>
-          </section>
-        </main>
-      </div>
-    </div>
+      </section>
+    </AppShell>
   );
 };
 
