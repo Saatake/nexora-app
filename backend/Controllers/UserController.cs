@@ -36,6 +36,20 @@ public class UserController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetProfile(string id)
+    {
+        var result = await _userService.GetProfileAsync(id);
+
+        if (!result.Succeeded)
+            return result.IsNotFound
+                ? NotFound(new { result.Message })
+                : BadRequest(new { result.Errors });
+
+        return Ok(result.Data);
+    }
+
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequestDto model)
     {
