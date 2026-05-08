@@ -1,0 +1,23 @@
+export const FACENS_COURSES = [
+  'Engenharia Agronomica',
+  'Engenharia Civil',
+  'Engenharia de Alimentos',
+  'Engenharia de Computacao',
+  'Engenharia de Producao',
+  'Engenharia Eletrica',
+  'Engenharia Mecanica',
+  'Engenharia Mecatronica',
+  'Engenharia Quimica',
+  'Analise e Desenvolvimento de Sistemas (ADS)',
+  'Ciencia de Dados e Inteligencia Artificial',
+  'Defesa Cibernetica',
+  'Gestao de TI',
+  'Jogos Digitais',
+  'Sistemas de Informacao',
+  'Arquitetura e Urbanismo',
+  'Biomedicina',
+  'Enfermagem',
+  'Veterinaria',
+  'Odontologia',
+  'Psicologia'
+] as const;

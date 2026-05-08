@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, BookOpen, PenSquare } from 'lucide-react';
 import api from '../api/axios';
+import { FACENS_COURSES } from '../constants/facensCourses';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ const RegisterPage = () => {
     return Array.from(new Set(mapped)).join('\n');
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -188,14 +189,19 @@ const RegisterPage = () => {
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                   <BookOpen className='h-5 w-5 text-gray-400' />
                 </div>
-                <input
-                  type='text'
+                <select
                   name='course'
-                  placeholder='Engenharia, Design, etc.'
                   value={formData.course}
                   onChange={handleChange}
-                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
-                />
+                  className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 bg-white appearance-none'
+                >
+                  <option value=''>Selecione seu curso</option>
+                  {FACENS_COURSES.map((course) => (
+                    <option key={course} value={course}>
+                      {course}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

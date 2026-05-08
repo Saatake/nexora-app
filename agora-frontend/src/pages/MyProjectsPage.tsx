@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Download, Eye, Plus, Star } from 'lucide-react';
 import api from '../api/axios';
@@ -182,7 +182,7 @@ const MyProjectsPage = () => {
                   {project.averageGrade?.toFixed(1) ?? '--'}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
       </div>
     </AppShell>

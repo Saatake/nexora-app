@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, X } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
+import { FACENS_COURSES } from '../constants/facensCourses';
 
 type ProjectCategory = 'Tcc' | 'Upx' | 'IniciacaoCientifica' | 'Relatorio' | 'ProjetoEscrito';
 
@@ -141,12 +142,18 @@ const NewProjectPage = () => {
 
               <div>
                 <label className="text-sm font-semibold text-[var(--agora-ink)]">Curso</label>
-                <input
+                <select
                   value={course}
                   onChange={(event) => setCourse(event.target.value)}
-                  placeholder="Selecione o curso"
                   className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
-                />
+                >
+                  <option value="">Selecione o curso</option>
+                  {FACENS_COURSES.map((courseOption) => (
+                    <option key={courseOption} value={courseOption}>
+                      {courseOption}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
