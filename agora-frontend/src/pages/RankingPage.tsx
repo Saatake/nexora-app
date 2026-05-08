@@ -185,7 +185,11 @@ const RankingPage = () => {
         {/* Estatísticas Gerais */}
         {stats && (
           <section className="rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-500 p-8 text-white shadow-lg">
-            <div className="text-center mb-8">
+
+            <div className="text-center mb-8 flex flex-col items-center">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 backdrop-blur-sm">
+                <Users className="w-7 h-7 text-white" />
+              </div>
               <h2 className="text-3xl font-bold">Estatísticas Gerais</h2>
               <p className="text-purple-100 mt-2">Panorama da plataforma em 2026</p>
             </div>
