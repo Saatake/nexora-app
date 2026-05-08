@@ -19,6 +19,9 @@ const NewProjectPage = () => {
   const [advisor, setAdvisor] = useState('');
   const [memberName, setMemberName] = useState('');
   const [members, setMembers] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadedFileName, setUploadedFileName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,6 +36,41 @@ const NewProjectPage = () => {
 
   const handleRemoveMember = (member: string) => {
     setMembers((prev) => prev.filter((item) => item !== member));
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError('');
+    if (file.type !== 'application/pdf') {
+      setUploadError('Envie apenas PDF.');
+      return;
+    }
+
+    if (file.size > 20_000_000) {
+      setUploadError('Arquivo acima de 20MB.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await api.post('/uploads/project-file', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setFileUrl(response.data.url ?? '');
+      setUploadedFileName(response.data.fileName ?? file.name);
+    } catch (err) {
+      setUploadError('Nao foi possivel enviar o arquivo.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -169,6 +207,7 @@ const NewProjectPage = () => {
               <input
                 value={advisor}
                 onChange={(event) => setAdvisor(event.target.value)}
+                required
                 placeholder="Ex: Prof. Dr. Joao Silva"
                 className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
               />
@@ -229,6 +268,29 @@ const NewProjectPage = () => {
                 className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
               />
             </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-dashed border-[var(--agora-border)] bg-slate-50 px-4 py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[var(--agora-ink)]">Enviar PDF</p>
+                <p className="text-xs text-[var(--agora-muted)]">Maximo 20MB. O link sera preenchido automaticamente.</p>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-[var(--agora-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--agora-accent)]">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                {isUploading ? 'Enviando...' : 'Selecionar PDF'}
+              </label>
+            </div>
+            {uploadedFileName && (
+              <p className="mt-3 text-xs text-[var(--agora-muted)]">Arquivo enviado: {uploadedFileName}</p>
+            )}
+            {uploadError && <p className="mt-2 text-xs text-rose-600">{uploadError}</p>}
           </div>
         </section>
 
