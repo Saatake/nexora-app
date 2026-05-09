@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import api from '../api/axios';
 
 interface User {
   id: string;
@@ -52,6 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Limpa o header Authorization do axios
+    delete api.defaults.headers.common['Authorization'];
   };
 
   return (
