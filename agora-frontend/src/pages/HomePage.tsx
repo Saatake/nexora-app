@@ -42,12 +42,11 @@ const HomePage = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-bold text-lg shadow-lg">
-                N
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Nexora
-              </span>
+              <img 
+                src="/src/assets/logo.png" 
+                alt="Ágora" 
+                className="h-14"
+              />
             </div>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -240,10 +239,11 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-white/10 w-10 h-10 flex items-center justify-center rounded-xl font-bold text-lg">
-                  N
-                </div>
-                <span className="text-xl font-bold">Nexora</span>
+              <img 
+                src="/src/assets/logo-icon.png" 
+                alt="Ágora" 
+                className="h-10"
+              />
               </div>
               <p className="text-gray-400 text-sm">
                 Plataforma acadêmica para gerenciamento de projetos universitários.
@@ -279,7 +279,7 @@ const HomePage = () => {
           </div>
 
           <div className="border-t border-white/10 pt-8 text-center text-gray-400 text-sm">
-            © 2026 Nexora. Todos os direitos reservados.
+            © 2026 Ágora. Todos os direitos reservados.
           </div>
         </div>
       </footer>

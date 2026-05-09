@@ -63,13 +63,11 @@ const AppShell = ({
         <aside className="hidden lg:flex w-72 flex-col justify-between bg-gradient-to-b from-[var(--agora-navy)] via-[var(--agora-navy-soft)] to-[#0a1224] text-white p-8 lg:sticky lg:top-0 lg:h-screen lg:self-start">
           <div>
             <div className="flex items-center gap-3 mb-10">
-              <div className="h-11 w-11 rounded-2xl bg-[var(--agora-accent)]/20 flex items-center justify-center text-[var(--agora-accent)] font-bold text-lg">A</div>
-              <div>
-                <p className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
-                  Agora
-                </p>
-                <p className="text-xs text-white/60">Academic workspace</p>
-              </div>
+              <img 
+                src="/src/assets/logo-icon.png" 
+                alt="Ágora" 
+                className="h-12"
+              />
             </div>
 
             <nav className="space-y-2">
@@ -108,7 +106,7 @@ const AppShell = ({
                 {initial}
               </div>
               <div>
-                <p className="text-sm font-medium">{user?.name ?? 'Aluno Nexora'}</p>
+                <p className="text-sm font-medium">{user?.name ?? 'Aluno Ágora'}</p>
                 <p className="text-xs text-white/50">{user?.course ?? 'Aluno'}</p>
               </div>
             </div>
@@ -130,7 +128,7 @@ const AppShell = ({
               {headerActions && <div className="flex items-center gap-3">{headerActions}</div>}
             </div>
 
-            {showSearch ? (
+            {showSearch && (
               <form onSubmit={handleSearchSubmit} className="flex flex-1 items-center gap-3 lg:max-w-2xl">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--agora-muted)]" />
@@ -142,28 +140,7 @@ const AppShell = ({
                     className="w-full rounded-2xl border border-[var(--agora-border)] bg-white/80 px-11 py-3 text-sm shadow-[var(--agora-shadow)]/30 outline-none transition focus:border-[var(--agora-accent)]"
                   />
                 </div>
-                <Link
-                  to="/profile"
-                  className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
-                >
-                  <div className="h-8 w-8 rounded-xl bg-[var(--agora-accent)]/15 text-[var(--agora-accent)] flex items-center justify-center font-semibold">
-                    {initial}
-                  </div>
-                  {user?.name ?? 'Meu perfil'}
-                </Link>
               </form>
-            ) : (
-              <div className="flex items-center gap-3 lg:max-w-2xl">
-                <Link
-                  to="/profile"
-                  className="hidden items-center gap-3 rounded-2xl border border-[var(--agora-border)] bg-white/80 px-4 py-2 text-sm font-medium text-[var(--agora-ink)] lg:flex"
-                >
-                  <div className="h-8 w-8 rounded-xl bg-[var(--agora-accent)]/15 text-[var(--agora-accent)] flex items-center justify-center font-semibold">
-                    {initial}
-                  </div>
-                  {user?.name ?? 'Meu perfil'}
-                </Link>
-              </div>
             )}
           </header>
 

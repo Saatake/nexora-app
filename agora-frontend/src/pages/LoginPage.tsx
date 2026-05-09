@@ -45,11 +45,12 @@ const LoginPage = () => {
 
   return (
     <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-700 via-blue-600 to-teal-400 p-4'>
-      <div className='mb-8 flex items-center text-white text-3xl font-bold tracking-tight'>
-        <div className='bg-white text-indigo-700 w-10 h-10 flex items-center justify-center rounded-lg mr-3 shadow-lg'>
-          A
-        </div>
-        Ágora
+      <div className='mb-8'>
+        <img 
+          src='/src/assets/logo-icon.png' 
+          alt='Ágora' 
+          className='h-16'
+        />
       </div>
 
       <div className='bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 md:p-10 relative'>

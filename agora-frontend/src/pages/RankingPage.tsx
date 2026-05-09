@@ -76,7 +76,7 @@ const RankingPage = () => {
 
   if (isLoading) {
     return (
-      <AppShell title="Ranking Nexora" subtitle="Celebre a excelência acadêmica da nossa comunidade">
+      <AppShell title="Ranking Ágora" subtitle="Celebre a excelência acadêmica da nossa comunidade">
         <div className="mt-8 text-center text-[var(--agora-muted)]">Carregando...</div>
       </AppShell>
     );
@@ -84,7 +84,7 @@ const RankingPage = () => {
 
   if (error) {
     return (
-      <AppShell title="Ranking Nexora" subtitle="Celebre a excelência acadêmica da nossa comunidade">
+      <AppShell title="Ranking Ágora" subtitle="Celebre a excelência acadêmica da nossa comunidade">
         <div className="mt-8 text-center text-red-500">{error}</div>
       </AppShell>
     );
