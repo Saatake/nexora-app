@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Compass,
   FolderKanban,
@@ -54,7 +54,7 @@ const AppShell = ({
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -66,7 +66,7 @@ const AppShell = ({
               <img 
                 src="/src/assets/logo-icon.png" 
                 alt="Ágora" 
-                className="h-12"
+                className="h-16"
               />
             </div>
 

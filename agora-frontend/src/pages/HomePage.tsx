@@ -45,7 +45,7 @@ const HomePage = () => {
               <img 
                 src="/src/assets/logo.png" 
                 alt="Ágora" 
-                className="h-14"
+                className="h-24"
               />
             </div>
             
@@ -233,47 +233,49 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Sobre Nós */}
+      <section id="sobre" className="bg-white py-20">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-6">Sobre Nós</h2>
+            <div className="text-lg text-gray-600 leading-relaxed space-y-4">
+              <p>
+                Somos um grupo de 4 alunos que identificou a necessidade de criar um espaço dedicado 
+                para estudantes compartilharem seus trabalhos acadêmicos e conhecimentos.
+              </p>
+              <p>
+                Nossa missão é facilitar o acesso a feedback rápido e qualificado, 
+                promovendo a evolução contínua dos projetos universitários através de uma plataforma 
+                moderna e intuitiva.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950 text-white py-12">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-              <img 
-                src="/src/assets/logo-icon.png" 
-                alt="Ágora" 
-                className="h-10"
-              />
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+            <div className="text-center md:text-left">
+              <div className="flex items-center gap-3 mb-4 justify-center md:justify-start">
+                <img 
+                  src="/src/assets/logo-icon.png" 
+                  alt="Ágora" 
+                  className="h-12"
+                />
               </div>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-sm max-w-md">
                 Plataforma acadêmica para gerenciamento de projetos universitários.
               </p>
             </div>
 
-            <div>
-              <h4 className="font-bold mb-4">Plataforma</h4>
+            <div className="text-center md:text-right">
+              <h4 className="font-bold mb-3">Plataforma</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Sobre</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Recursos</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Preços</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Suporte</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Ajuda</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contato</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookies</a></li>
+                <li><a href="#sobre" className="hover:text-white transition-colors">Sobre</a></li>
+                <li><a href="#projetos" className="hover:text-white transition-colors">Projetos</a></li>
+                <li><a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a></li>
               </ul>
             </div>
           </div>

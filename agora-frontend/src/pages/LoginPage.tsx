@@ -49,7 +49,7 @@ const LoginPage = () => {
         <img 
           src='/src/assets/logo-icon.png' 
           alt='Ágora' 
-          className='h-16'
+          className='h-24'
         />
       </div>
 
