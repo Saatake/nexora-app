@@ -254,34 +254,50 @@ const HomePage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950 text-white py-12">
+      <footer className="bg-gradient-to-br from-gray-900 via-indigo-950 to-purple-950 text-white py-16">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
-            <div className="text-center md:text-left">
-              <div className="flex items-center gap-3 mb-4 justify-center md:justify-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+            {/* Logo e descrição */}
+            <div>
+              <div className="mb-6">
                 <img 
                   src="/src/assets/logo-icon.png" 
                   alt="Ágora" 
-                  className="h-12"
+                  style={{ height: '56px', width: 'auto' }}
                 />
               </div>
-              <p className="text-gray-400 text-sm max-w-md">
-                Plataforma acadêmica para gerenciamento de projetos universitários.
+              <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
+                Plataforma acadêmica moderna para publicação, avaliação e evolução de projetos universitários.
               </p>
             </div>
 
-            <div className="text-center md:text-right">
-              <h4 className="font-bold mb-3">Plataforma</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#sobre" className="hover:text-white transition-colors">Sobre</a></li>
-                <li><a href="#projetos" className="hover:text-white transition-colors">Projetos</a></li>
-                <li><a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a></li>
+            {/* Links */}
+            <div className="md:text-right">
+              <h4 className="font-bold text-lg mb-4">Navegação</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li>
+                  <a href="#sobre" className="hover:text-white transition-colors inline-block">
+                    Sobre Nós
+                  </a>
+                </li>
+                <li>
+                  <a href="#projetos" className="hover:text-white transition-colors inline-block">
+                    Projetos em Destaque
+                  </a>
+                </li>
+                <li>
+                  <a href="#como-funciona" className="hover:text-white transition-colors inline-block">
+                    Como Funciona
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-8 text-center text-gray-400 text-sm">
-            © 2026 Ágora. Todos os direitos reservados.
+          <div className="border-t border-white/10 pt-8 text-center">
+            <p className="text-gray-400 text-sm">
+              © 2026 Ágora. Todos os direitos reservados.
+            </p>
           </div>
         </div>
       </footer>

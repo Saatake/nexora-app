@@ -35,6 +35,15 @@ const LoginPage = () => {
       const { token } = response.data;
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
       const meResponse = await api.get('/users/me');
+      
+      // Validar role
+      const userRole = meResponse.data.roleType;
+      const expectedRole = roleTab === 'Professor' ? 'Professor' : 'Estudante';
+      
+      if (userRole !== expectedRole) {
+        setError(`Esta conta é de ${userRole === 'Professor' ? 'Professor' : 'Aluno'}. Por favor, selecione a opção correta.`);
+        return;
+      }
 
       login(token, meResponse.data);
       navigate('/dashboard');
