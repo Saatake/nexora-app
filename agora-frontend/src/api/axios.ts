@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // URL da Nuvem
+  baseURL: 'agoraapp-d6agawh0bpchc5aj.eastus-01.azurewebsites.net/api', // URL da Nuvem
 });
 
 api.interceptors.request.use((config) => {
