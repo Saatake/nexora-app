@@ -2,10 +2,8 @@ import { type ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-// Pages
 import HomePage from '../pages/HomePage';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
+import AuthPage from '../pages/AuthPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ConfirmEmailPage from '../pages/ConfirmEmailPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
@@ -18,7 +16,6 @@ import RankingPage from '../pages/RankingPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectDetailsPage from '../pages/ProjectDetailsPage';
 
-// Componente para rotas protegidas
 const PrivateRoute = ({ children }: { children: ReactElement }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? children : <Navigate to="/login" />;
@@ -31,13 +28,12 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/confirmar-email" element={<ConfirmEmailPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         
-        {/* Rotas Privadas */}
         <Route 
           path="/dashboard" 
           element={
