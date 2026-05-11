@@ -120,37 +120,68 @@ public class AuthService : IAuthService
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Confirme seu email</title>
 </head>
-<body style='margin:0;padding:0;background-color:#f3f4f6;font-family:Arial, Helvetica, sans-serif;'>
-    <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background-color:#f3f4f6;padding:32px 0;'>
+<body style='margin:0;padding:0;background-color:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,""Helvetica Neue"",Arial,sans-serif;'>
+    <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background-color:#f9fafb;padding:40px 16px;'>
         <tr>
             <td align='center'>
-                <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:520px;background:#ffffff;border-radius:20px;box-shadow:0 20px 40px rgba(15,23,42,0.12);overflow:hidden;'>
+                <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:600px;background:#ffffff;border-radius:16px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:hidden;border:1px solid #e5e7eb;'>
+                    
+                    <!-- Header com gradiente verde -->
                     <tr>
-                        <td style='padding:32px 32px 8px;'>
-                            <div style='display:inline-flex;align-items:center;gap:12px;'>
-                                <div style='width:44px;height:44px;border-radius:12px;background:#4f46e5;color:#ffffff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;'>A</div>
-                                <div style='font-size:22px;font-weight:700;color:#111827;'>Agora</div>
+                        <td style='background:linear-gradient(135deg, #065f46 0%, #059669 100%);padding:32px 24px;text-align:center;'>
+                            <h1 style='margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;'>Ágora</h1>
+                            <p style='margin:8px 0 0;color:#d1fae5;font-size:14px;'>Plataforma Acadêmica</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Conteúdo -->
+                    <tr>
+                        <td style='padding:40px 32px;'>
+                            <h2 style='margin:0 0 16px;font-size:24px;font-weight:600;color:#111827;'>Confirme seu email</h2>
+                            <p style='margin:0 0 24px;color:#4b5563;font-size:16px;line-height:1.6;'>
+                                Olá, <strong>{user.Name}</strong>! 👋
+                            </p>
+                            <p style='margin:0 0 24px;color:#4b5563;font-size:16px;line-height:1.6;'>
+                                Bem-vindo à plataforma Ágora! Para começar a publicar seus projetos acadêmicos e colaborar com a comunidade, precisamos confirmar seu endereço de email.
+                            </p>
+                            
+                            <!-- Botão -->
+                            <table role='presentation' cellspacing='0' cellpadding='0' style='margin:32px 0;'>
+                                <tr>
+                                    <td style='border-radius:8px;background:#059669;'>
+                                        <a href='{confirmationLink}' style='display:inline-block;padding:14px 32px;color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;'>
+                                            Confirmar meu email
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Aviso de expiração -->
+                            <div style='background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;margin:24px 0;border-radius:4px;'>
+                                <p style='margin:0;color:#92400e;font-size:14px;line-height:1.5;'>
+                                    ⏱️ <strong>Este link expira em 24 horas</strong> por motivos de segurança.
+                                </p>
                             </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style='padding:0 32px 24px;'>
-                            <h1 style='margin:16px 0 8px;font-size:24px;color:#111827;'>Confirme seu email</h1>
-                            <p style='margin:0;color:#4b5563;font-size:15px;line-height:1.6;'>Ola, {user.Name}! Clique no botao abaixo para ativar sua conta e continuar no Agora.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style='padding:0 32px 32px;'>
-                            <a href='{confirmationLink}' style='display:inline-block;padding:12px 20px;border-radius:12px;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;'>Confirmar email</a>
-                            <p style='margin:20px 0 0;color:#6b7280;font-size:13px;line-height:1.6;'>Se o botao nao funcionar, copie e cole este link no navegador:</p>
-                            <p style='margin:8px 0 0;word-break:break-all;'>
-                                <a href='{confirmationLink}' style='color:#4f46e5;text-decoration:none;font-size:13px;'>{confirmationLink}</a>
+                            
+                            <!-- Link alternativo -->
+                            <p style='margin:24px 0 8px;color:#6b7280;font-size:13px;'>
+                                Ou copie e cole este link no navegador:
+                            </p>
+                            <p style='margin:0;padding:12px;background:#f3f4f6;border-radius:6px;word-break:break-all;font-size:12px;color:#4b5563;'>
+                                {confirmationLink}
                             </p>
                         </td>
                     </tr>
+                    
+                    <!-- Footer -->
                     <tr>
-                        <td style='padding:0 32px 24px;'>
-                            <p style='margin:0;color:#9ca3af;font-size:12px;line-height:1.6;'>Se voce nao solicitou este cadastro, ignore este email.</p>
+                        <td style='padding:24px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;'>
+                            <p style='margin:0 0 8px;color:#6b7280;font-size:13px;line-height:1.5;'>
+                                Se você não solicitou este cadastro, pode ignorar este email com segurança.
+                            </p>
+                            <p style='margin:0;color:#9ca3af;font-size:12px;'>
+                                © 2026 Ágora - Plataforma Acadêmica
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -318,37 +349,68 @@ public class AuthService : IAuthService
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Redefina sua senha</title>
 </head>
-<body style='margin:0;padding:0;background-color:#f3f4f6;font-family:Arial, Helvetica, sans-serif;'>
-    <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background-color:#f3f4f6;padding:32px 0;'>
+<body style='margin:0;padding:0;background-color:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,""Helvetica Neue"",Arial,sans-serif;'>
+    <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background-color:#f9fafb;padding:40px 16px;'>
         <tr>
             <td align='center'>
-                <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:520px;background:#ffffff;border-radius:20px;box-shadow:0 20px 40px rgba(15,23,42,0.12);overflow:hidden;'>
+                <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:600px;background:#ffffff;border-radius:16px;box-shadow:0 4px 6px rgba(0,0,0,0.05);overflow:hidden;border:1px solid #e5e7eb;'>
+                    
+                    <!-- Header com gradiente verde -->
                     <tr>
-                        <td style='padding:32px 32px 8px;'>
-                            <div style='display:inline-flex;align-items:center;gap:12px;'>
-                                <div style='width:44px;height:44px;border-radius:12px;background:#4f46e5;color:#ffffff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;'>A</div>
-                                <div style='font-size:22px;font-weight:700;color:#111827;'>Agora</div>
+                        <td style='background:linear-gradient(135deg, #065f46 0%, #059669 100%);padding:32px 24px;text-align:center;'>
+                            <h1 style='margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;'>Ágora</h1>
+                            <p style='margin:8px 0 0;color:#d1fae5;font-size:14px;'>Plataforma Acadêmica</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Conteúdo -->
+                    <tr>
+                        <td style='padding:40px 32px;'>
+                            <h2 style='margin:0 0 16px;font-size:24px;font-weight:600;color:#111827;'>Redefina sua senha</h2>
+                            <p style='margin:0 0 24px;color:#4b5563;font-size:16px;line-height:1.6;'>
+                                Olá, <strong>{name}</strong>! 🔐
+                            </p>
+                            <p style='margin:0 0 24px;color:#4b5563;font-size:16px;line-height:1.6;'>
+                                Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para criar uma nova senha.
+                            </p>
+                            
+                            <!-- Botão -->
+                            <table role='presentation' cellspacing='0' cellpadding='0' style='margin:32px 0;'>
+                                <tr>
+                                    <td style='border-radius:8px;background:#059669;'>
+                                        <a href='{resetLink}' style='display:inline-block;padding:14px 32px;color:#ffffff;text-decoration:none;font-weight:600;font-size:16px;'>
+                                            Redefinir minha senha
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Aviso de expiração -->
+                            <div style='background:#fee2e2;border-left:4px solid #dc2626;padding:16px;margin:24px 0;border-radius:4px;'>
+                                <p style='margin:0;color:#7f1d1d;font-size:14px;line-height:1.5;'>
+                                    ⚠️ <strong>Este link expira em 1 hora</strong> por motivos de segurança. Se expirar, solicite uma nova redefinição.
+                                </p>
                             </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style='padding:0 32px 24px;'>
-                            <h1 style='margin:16px 0 8px;font-size:24px;color:#111827;'>Redefina sua senha</h1>
-                            <p style='margin:0;color:#4b5563;font-size:15px;line-height:1.6;'>Ola, {name}! Clique no botao abaixo para criar uma nova senha.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style='padding:0 32px 32px;'>
-                            <a href='{resetLink}' style='display:inline-block;padding:12px 20px;border-radius:12px;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:600;'>Redefinir senha</a>
-                            <p style='margin:20px 0 0;color:#6b7280;font-size:13px;line-height:1.6;'>Se o botao nao funcionar, copie e cole este link no navegador:</p>
-                            <p style='margin:8px 0 0;word-break:break-all;'>
-                                <a href='{resetLink}' style='color:#4f46e5;text-decoration:none;font-size:13px;'>{resetLink}</a>
+                            
+                            <!-- Link alternativo -->
+                            <p style='margin:24px 0 8px;color:#6b7280;font-size:13px;'>
+                                Ou copie e cole este link no navegador:
+                            </p>
+                            <p style='margin:0;padding:12px;background:#f3f4f6;border-radius:6px;word-break:break-all;font-size:12px;color:#4b5563;'>
+                                {resetLink}
                             </p>
                         </td>
                     </tr>
+                    
+                    <!-- Footer -->
                     <tr>
-                        <td style='padding:0 32px 24px;'>
-                            <p style='margin:0;color:#9ca3af;font-size:12px;line-height:1.6;'>Se voce nao solicitou esta troca, ignore este email.</p>
+                        <td style='padding:24px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;'>
+                            <p style='margin:0 0 8px;color:#6b7280;font-size:13px;line-height:1.5;'>
+                                Se você não solicitou esta alteração, ignore este email. Sua senha permanecerá a mesma.
+                            </p>
+                            <p style='margin:0;color:#9ca3af;font-size:12px;'>
+                                © 2026 Ágora - Plataforma Acadêmica
+                            </p>
                         </td>
                     </tr>
                 </table>
