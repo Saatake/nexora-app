@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, Download, Eye, Plus, Star, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Eye, Plus, Star, Edit, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 

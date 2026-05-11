@@ -7,7 +7,6 @@ import {
   Clock,
   Download,
   Eye,
-  MessageSquare,
   Star,
   UserCircle2
 } from 'lucide-react';
