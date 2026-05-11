@@ -61,46 +61,46 @@ const ExploreProjectsPage = () => {
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
         {isLoading && Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-96 rounded-[2rem] bg-slate-100 animate-pulse" />
+          <div key={i} className="h-96 rounded-xl bg-slate-100 animate-pulse" />
         ))}
 
         {!isLoading && projects.length === 0 && (
-          <div className="rounded-[2rem] border border-dashed border-slate-200 p-8 text-sm text-[var(--agora-muted)]">Nenhum projeto encontrado.</div>
+          <div className="rounded-xl border border-dashed border-slate-200 p-8 text-sm text-[var(--agora-muted)]">Nenhum projeto encontrado.</div>
         )}
 
         {!isLoading && projects.map((project) => (
           <Link
             key={project.id}
             to={`/projects/${project.id}`}
-            className="group flex h-full flex-col rounded-[2rem] border border-[var(--agora-border)] bg-white p-6 shadow-[var(--agora-shadow)] transition hover:-translate-y-1 hover:border-[var(--agora-accent)] hover:shadow-xl"
+            className="group flex h-full flex-col rounded-xl border border-[var(--agora-border)] bg-white p-6 shadow-[var(--agora-shadow)] transition hover:-translate-y-1 hover:border-[#0a5c2f] hover:shadow-md"
           >
             <div className="flex items-start justify-between gap-4">
-              <span className="rounded-full bg-[#ede5ff] px-4 py-2 text-sm font-semibold text-[var(--agora-accent)]">
+              <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-[#0a5c2f]">
                 {project.category}
               </span>
-              <span className="flex items-center gap-1 text-xl font-semibold text-emerald-500">
-                <Star size={22} className="fill-emerald-500 text-emerald-500" />
+              <span className="flex items-center gap-1 text-xl font-semibold text-amber-500">
+                <Star size={22} className="fill-amber-500 text-amber-500" />
                 {project.averageGrade?.toFixed(1) ?? '--'}
               </span>
             </div>
 
             <div className="mt-6 space-y-4">
-              <h3 className="text-[1.55rem] font-bold leading-tight text-[var(--agora-ink)] transition group-hover:text-[var(--agora-accent)]">
+              <h3 className="text-[1.5rem] font-bold leading-tight text-[var(--agora-ink)] transition group-hover:text-[#0a5c2f]">
                 {project.title}
               </h3>
-              <p className="text-base text-slate-500">
+              <p className="text-base text-[var(--agora-muted)]">
                 {project.course ? `${project.course} • ` : ''}
                 {project.createdAt ? new Date(project.createdAt).getFullYear() : '--'}
                 {project.authorName ? ` • ${project.authorName}` : ''}
               </p>
-              <p className="text-base leading-relaxed text-slate-500 line-clamp-3">
+              <p className="text-base leading-relaxed text-[var(--agora-muted)] line-clamp-3">
                 {project.summary || project.description}
               </p>
             </div>
 
             <div className="mt-auto pt-8">
-              <div className="border-t border-slate-200 pt-5">
-                <div className="flex items-center justify-between text-base text-slate-500">
+              <div className="border-t border-[var(--agora-border)] pt-5">
+                <div className="flex items-center justify-between text-base text-[var(--agora-muted)]">
                   <span className="inline-flex items-center gap-2">
                     <Users size={18} />
                     {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}

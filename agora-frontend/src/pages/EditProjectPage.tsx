@@ -44,6 +44,8 @@ const EditProjectPage = () => {
 
   const summaryCount = useMemo(() => summary.length, [summary]);
 
+  const inputCls = 'w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400 outline-none';
+
   useEffect(() => {
     const loadProject = async () => {
       if (!id) {
@@ -170,7 +172,7 @@ const EditProjectPage = () => {
           </div>
         )}
 
-        <section className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)]">
+        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Informacoes Basicas</h2>
 
           <div className="mt-4 space-y-4">
@@ -181,7 +183,7 @@ const EditProjectPage = () => {
                 onChange={(event) => setTitle(event.target.value)}
                 required
                 placeholder="Ex: Sistema de Gestao Academica com IA"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                className={`mt-2 ${inputCls}`}
               />
             </div>
 
@@ -191,7 +193,7 @@ const EditProjectPage = () => {
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value as ProjectCategory)}
-                  className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                  className={`mt-2 ${inputCls} bg-white appearance-none`}
                 >
                   <option value="Tcc">TCC</option>
                   <option value="Upx">UPX</option>
@@ -206,7 +208,7 @@ const EditProjectPage = () => {
                 <select
                   value={course}
                   onChange={(event) => setCourse(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                  className={`mt-2 ${inputCls} bg-white appearance-none`}
                 >
                   <option value="">Selecione o curso</option>
                   {FACENS_COURSES.map((courseOption) => (
@@ -224,13 +226,13 @@ const EditProjectPage = () => {
                 value={area}
                 onChange={(event) => setArea(event.target.value)}
                 placeholder="Selecione a area"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                className={`mt-2 ${inputCls}`}
               />
             </div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)]">
+        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Equipe</h2>
 
           <div className="mt-4 space-y-4">
@@ -241,12 +243,12 @@ const EditProjectPage = () => {
                   value={memberName}
                   onChange={(event) => setMemberName(event.target.value)}
                   placeholder="Nome do integrante"
-                  className="w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                  className={inputCls}
                 />
                 <button
                   type="button"
                   onClick={handleAddMember}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm font-semibold text-[var(--agora-accent)]"
+                  className="inline-flex items-center gap-2 px-4 py-3 border border-gray-300 rounded text-sm font-semibold text-gray-600 hover:border-green-800 hover:text-green-800 transition-colors"
                 >
                   <Plus size={16} />
                   Adicionar integrante
@@ -258,7 +260,7 @@ const EditProjectPage = () => {
                   {members.map((member) => (
                     <span
                       key={member}
-                      className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-[var(--agora-ink)]"
+                      className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-[#0a5c2f] text-xs font-semibold rounded"
                     >
                       {member}
                       <button type="button" onClick={() => handleRemoveMember(member)}>
@@ -277,13 +279,13 @@ const EditProjectPage = () => {
                 onChange={(event) => setAdvisor(event.target.value)}
                 required
                 placeholder="Ex: Prof. Dr. Joao Silva"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                className={`mt-2 ${inputCls}`}
               />
             </div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)]">
+        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Descricao</h2>
 
           <div className="mt-4 space-y-4">
@@ -295,7 +297,7 @@ const EditProjectPage = () => {
                 rows={3}
                 maxLength={200}
                 placeholder="Breve resumo do projeto (maximo 200 caracteres)"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                className={`mt-2 ${inputCls} resize-none`}
               />
               <p className="mt-2 text-xs text-[var(--agora-muted)]">{summaryCount}/200 caracteres</p>
             </div>
@@ -308,13 +310,13 @@ const EditProjectPage = () => {
                 rows={6}
                 required
                 placeholder="Descreva detalhadamente seu projeto, metodologia, objetivos e resultados"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                className={`mt-2 ${inputCls} resize-none`}
               />
             </div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)]">
+        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Links e Arquivos</h2>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -324,7 +326,7 @@ const EditProjectPage = () => {
                 value={githubLink}
                 onChange={(event) => setGithubLink(event.target.value)}
                 placeholder="https://github.com/seu-projeto"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                  className={`mt-2 ${inputCls}`}
               />
             </div>
             <div>
@@ -333,18 +335,18 @@ const EditProjectPage = () => {
                 value={fileUrl}
                 onChange={(event) => setFileUrl(event.target.value)}
                 placeholder="Link do PDF (Drive, Dropbox, etc.)"
-                className="mt-2 w-full rounded-2xl border border-[var(--agora-border)] px-4 py-3 text-sm outline-none focus:border-[var(--agora-accent)]"
+                  className={`mt-2 ${inputCls}`}
               />
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-dashed border-[var(--agora-border)] bg-slate-50 px-4 py-4">
+          <div className="mt-4 border border-dashed border-gray-300 rounded px-4 py-4 hover:border-green-800 transition-colors">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-[var(--agora-ink)]">Enviar PDF</p>
                 <p className="text-xs text-[var(--agora-muted)]">Maximo 20MB. O link sera preenchido automaticamente.</p>
               </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-[var(--agora-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--agora-accent)]">
+              <label className="inline-flex cursor-pointer items-center gap-2 border border-gray-300 rounded px-4 py-2 text-sm font-semibold text-gray-600 hover:border-green-800 hover:text-green-800 transition-colors">
                 <input
                   type="file"
                   accept="application/pdf"
@@ -366,14 +368,14 @@ const EditProjectPage = () => {
           <button
             type="button"
             onClick={() => navigate('/projects')}
-            className="rounded-2xl border border-[var(--agora-border)] px-6 py-3 text-sm font-semibold text-[var(--agora-ink)]"
+            className="px-6 py-3 border border-gray-300 rounded text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded-2xl bg-[var(--agora-accent)] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="px-6 py-3 bg-[#0a5c2f] hover:bg-[#084925] disabled:bg-green-300 text-white text-sm font-bold rounded shadow transition-colors"
           >
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </button>

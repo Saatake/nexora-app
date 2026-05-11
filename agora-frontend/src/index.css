@@ -2,16 +2,18 @@
 @import "tailwindcss";
 
 :root {
-	--agora-ink: #0f172a;
-	--agora-muted: #64748b;
-	--agora-bg: #f4f7fb;
+	--agora-ink: #1a1a1a;
+	--agora-muted: #6b7280;
+	--agora-bg: #f5f6f8;
 	--agora-panel: #ffffff;
-	--agora-border: #e2e8f0;
-	--agora-accent: #0ea5a5;
-	--agora-accent-strong: #0f766e;
-	--agora-navy: #0b1427;
-	--agora-navy-soft: #111c33;
-	--agora-shadow: 0 26px 60px rgba(15, 23, 42, 0.08);
+	--agora-border: #e5e7eb;
+	--agora-accent: #0a5c2f;
+	--agora-accent-hover: #084925;
+	--agora-accent-light: #18915b;
+	--agora-accent-bg: #f0fdf4;
+	--agora-sidebar: #2b353a;
+	--agora-sidebar-soft: #232d31;
+	--agora-shadow: 0 4px 24px rgba(10, 92, 47, 0.08);
 }
 
 html, body, #root {
@@ -25,16 +27,13 @@ html, body, #root {
 }
 
 .agora-shell {
-	background-image:
-		radial-gradient(circle at top left, rgba(14, 165, 165, 0.18), transparent 45%),
-		radial-gradient(circle at 20% 60%, rgba(56, 189, 248, 0.16), transparent 45%),
-		linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 247, 251, 0.9));
+	background-color: var(--agora-bg);
 }
 
 @keyframes dashFadeUp {
 	from {
 		opacity: 0;
-		transform: translateY(14px);
+		transform: translateY(12px);
 	}
 	to {
 		opacity: 1;
@@ -43,5 +42,16 @@ html, body, #root {
 }
 
 .dash-fade {
-	animation: dashFadeUp 0.6s ease both;
+	animation: dashFadeUp 0.5s ease both;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+	width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+	background: rgba(255,255,255,0.2);
+	border-radius: 4px;
 }

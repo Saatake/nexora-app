@@ -7,7 +7,6 @@ import {
   Clock,
   Download,
   Eye,
-  MessageSquare,
   Star,
   UserCircle2
 } from 'lucide-react';
@@ -58,7 +57,7 @@ type Comment = {
   createdAt: string;
 };
 
-type TabKey = 'overview' | 'evaluations' | 'comments' | 'stats' | 'versions';
+type TabKey = 'overview' | 'evaluations' | 'comments' | 'stats';
 
 const formatCategory = (category: string) => {
   const lookup: Record<string, string> = {
@@ -242,16 +241,15 @@ const ProjectDetailsPage = () => {
   }, [project]);
 
   return (
-    <AppShell title="Detalhes do Projeto" subtitle="">
-      <div className="mt-6">
+    <AppShell title="Detalhes do Projeto" subtitle="" showSearch={false}>
+      <div className="max-w-4xl">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--agora-muted)] hover:text-[var(--agora-ink)]"
+          className="flex items-center gap-1 text-sm text-[var(--agora-muted)] hover:text-[#0a5c2f] mb-6 transition-colors"
         >
           <ChevronLeft size={16} />
           Voltar
         </button>
-      </div>
 
       {error && (
         <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -260,21 +258,21 @@ const ProjectDetailsPage = () => {
       )}
 
       {isLoading && (
-        <div className="mt-8 h-44 rounded-3xl bg-slate-100 animate-pulse" />
+        <div className="mt-8 h-44 rounded-xl bg-slate-100 animate-pulse" />
       )}
 
       {!isLoading && project && (
         <>
-          <section className="mt-8 rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)]">
+          <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6 mb-5">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded bg-green-100 text-[#0a5c2f]">
                     {formatCategory(project.category)}
                   </span>
                   <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-                      project.isApproved ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                    className={`inline-flex items-center gap-2 text-xs px-2 py-0.5 rounded-full font-medium ${
+                      project.isApproved ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                     }`}
                   >
                     {project.isApproved ? <BadgeCheck size={14} /> : <Clock size={14} />}
@@ -282,19 +280,15 @@ const ProjectDetailsPage = () => {
                   </span>
                 </div>
 
-                <h2 className="mt-4 text-2xl font-semibold text-[var(--agora-ink)]">{project.title}</h2>
+                <h2 className="mt-4 text-2xl font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                  {project.title}
+                </h2>
 
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-[var(--agora-muted)]">
                   <span className="inline-flex items-center gap-2">
                     <UserCircle2 size={16} />
                     {teamMembers.length > 0 ? teamMembers.join(', ') : project.authorName}
                   </span>
-                  {project.advisor && (
-                    <span className="inline-flex items-center gap-2">
-                      <MessageSquare size={16} />
-                      Orientador: {project.advisor}
-                    </span>
-                  )}
                   {project.course && (
                     <span className="inline-flex items-center gap-2">
                       <Calendar size={16} />
@@ -312,9 +306,8 @@ const ProjectDetailsPage = () => {
                     type="button"
                     onClick={handleDownload}
                     disabled={isDownloading || !project.fileUrl}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-[var(--agora-accent)] px-4 py-2 text-sm font-semibold text-white shadow-[var(--agora-shadow)] disabled:opacity-70"
+                    className="px-4 py-2.5 bg-[#0a5c2f] hover:bg-[#084925] disabled:bg-green-300 text-white text-sm font-semibold rounded transition-colors"
                   >
-                    <Download size={16} />
                     {isDownloading ? 'Baixando...' : 'Baixar PDF'}
                   </button>
                   <span className="inline-flex items-center gap-2 text-sm text-[var(--agora-muted)]">
@@ -328,8 +321,8 @@ const ProjectDetailsPage = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 rounded-3xl bg-emerald-500/10 px-6 py-4 text-emerald-600">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white">
+              <div className="flex items-center gap-4 rounded-xl bg-emerald-50 px-6 py-4 text-emerald-700">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0a5c2f] text-white">
                   <Star size={22} />
                 </div>
                 <div>
@@ -342,21 +335,20 @@ const ProjectDetailsPage = () => {
             </div>
           </section>
 
-          <section className="mt-8 rounded-3xl border border-[var(--agora-border)] bg-white/95 shadow-[var(--agora-shadow)]">
+          <section className="rounded-xl border border-[var(--agora-border)] bg-white shadow-[var(--agora-shadow)]">
             <div className="flex flex-wrap border-b border-[var(--agora-border)]">
               {[
                 { key: 'overview', label: 'Visao geral' },
                 { key: 'evaluations', label: 'Avaliacoes' },
                 { key: 'comments', label: 'Comentarios' },
-                { key: 'stats', label: 'Estatisticas' },
-                { key: 'versions', label: 'Versoes' }
+                { key: 'stats', label: 'Estatisticas' }
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as TabKey)}
                   className={`px-6 py-4 text-sm font-semibold transition ${
                     activeTab === tab.key
-                      ? 'text-[var(--agora-accent)] border-b-2 border-[var(--agora-accent)]'
+                      ? 'text-[#0a5c2f] border-b-2 border-[#0a5c2f]'
                       : 'text-[var(--agora-muted)] hover:text-[var(--agora-ink)]'
                   }`}
                 >
@@ -403,6 +395,20 @@ const ProjectDetailsPage = () => {
                       ))}
                     </div>
                   </div>
+
+                  {project.githubLink && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-[var(--agora-ink)]">Repositorio</h3>
+                      <a
+                        href={project.githubLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-[#0a5c2f] hover:underline"
+                      >
+                        Ver no GitHub
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -413,7 +419,7 @@ const ProjectDetailsPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowEvaluationForm(true)}
-                      className="w-full rounded-2xl border-2 border-dashed border-[var(--agora-accent)] bg-[var(--agora-accent)]/5 px-4 py-3 text-sm font-semibold text-[var(--agora-accent)] hover:bg-[var(--agora-accent)]/10 transition"
+                      className="w-full rounded border border-green-800 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800 hover:bg-green-100 transition"
                     >
                       + Avaliar este projeto
                     </button>
@@ -432,7 +438,7 @@ const ProjectDetailsPage = () => {
                   )}
                   
                   {showEvaluationForm && (
-                    <div className="rounded-2xl border border-[var(--agora-border)] bg-slate-50 p-6 space-y-4">
+                    <div className="rounded-xl border border-[var(--agora-border)] bg-slate-50 p-6 space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-base font-semibold text-[var(--agora-ink)]">Nova Avaliação</h3>
                         <button
@@ -458,7 +464,7 @@ const ProjectDetailsPage = () => {
                             max="10"
                             value={evaluationData.relevance || ''}
                             onChange={(e) => setEvaluationData({ ...evaluationData, relevance: Number(e.target.value) })}
-                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-green-800 focus:border-green-800 outline-none"
                           />
                         </div>
                         <div>
@@ -471,7 +477,7 @@ const ProjectDetailsPage = () => {
                             max="10"
                             value={evaluationData.quality || ''}
                             onChange={(e) => setEvaluationData({ ...evaluationData, quality: Number(e.target.value) })}
-                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-green-800 focus:border-green-800 outline-none"
                           />
                         </div>
                         <div>
@@ -484,7 +490,7 @@ const ProjectDetailsPage = () => {
                             max="10"
                             value={evaluationData.methodology || ''}
                             onChange={(e) => setEvaluationData({ ...evaluationData, methodology: Number(e.target.value) })}
-                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-green-800 focus:border-green-800 outline-none"
                           />
                         </div>
                         <div>
@@ -497,7 +503,7 @@ const ProjectDetailsPage = () => {
                             max="10"
                             value={evaluationData.presentation || ''}
                             onChange={(e) => setEvaluationData({ ...evaluationData, presentation: Number(e.target.value) })}
-                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-green-800 focus:border-green-800 outline-none"
                           />
                         </div>
                         <div className="sm:col-span-2">
@@ -510,7 +516,7 @@ const ProjectDetailsPage = () => {
                             max="10"
                             value={evaluationData.innovation || ''}
                             onChange={(e) => setEvaluationData({ ...evaluationData, innovation: Number(e.target.value) })}
-                            className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm"
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-green-800 focus:border-green-800 outline-none"
                           />
                         </div>
                       </div>
@@ -524,7 +530,7 @@ const ProjectDetailsPage = () => {
                           value={evaluationData.feedback}
                           onChange={(e) => setEvaluationData({ ...evaluationData, feedback: e.target.value })}
                           placeholder="Deixe um comentário sobre o projeto..."
-                          className="w-full rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm resize-none"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none focus:ring-1 focus:ring-green-800 focus:border-green-800 outline-none"
                         />
                       </div>
 
@@ -533,7 +539,7 @@ const ProjectDetailsPage = () => {
                           type="button"
                           onClick={handleSubmitEvaluation}
                           disabled={isEvaluating}
-                          className="rounded-xl bg-[var(--agora-accent)] px-6 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                          className="px-6 py-2 bg-[#0a5c2f] hover:bg-[#084925] disabled:bg-green-300 text-white text-sm font-semibold rounded transition-colors"
                         >
                           {isEvaluating ? 'Enviando...' : 'Enviar Avaliação'}
                         </button>
@@ -548,14 +554,38 @@ const ProjectDetailsPage = () => {
                   {evaluations.map((evaluation) => (
                     <div
                       key={evaluation.id}
-                      className="rounded-2xl border border-[var(--agora-border)] p-4"
+                      className="rounded-xl border border-[var(--agora-border)] p-4"
                     >
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold text-[var(--agora-ink)]">{evaluation.professorName}</p>
                         <span className="text-xs text-[var(--agora-muted)]">{formatDate(evaluation.createdAt)}</span>
                       </div>
-                      <p className="mt-2 text-sm text-[var(--agora-muted)]">{evaluation.feedback || 'Sem feedback.'}</p>
-                      <div className="mt-3 text-sm font-semibold text-emerald-600">
+
+                      <div className="mt-3 space-y-2">
+                        {[
+                          { label: 'Relevancia', value: evaluation.relevance },
+                          { label: 'Qualidade', value: evaluation.quality },
+                          { label: 'Metodologia', value: evaluation.methodology },
+                          { label: 'Apresentacao', value: evaluation.presentation },
+                          { label: 'Inovacao', value: evaluation.innovation }
+                        ].map((item) => (
+                          <div key={item.label}>
+                            <div className="flex justify-between text-xs mb-1">
+                              <span className="text-[var(--agora-muted)]">{item.label}</span>
+                              <span className="font-semibold text-[var(--agora-ink)]">{item.value.toFixed(1)}</span>
+                            </div>
+                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{ width: `${(item.value / 10) * 100}%`, backgroundColor: '#0a5c2f' }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="mt-4 text-sm text-[var(--agora-muted)]">{evaluation.feedback || 'Sem feedback.'}</p>
+                      <div className="mt-2 text-sm font-semibold text-emerald-600">
                         Nota media: {evaluation.average.toFixed(1)}
                       </div>
                     </div>
@@ -565,7 +595,7 @@ const ProjectDetailsPage = () => {
 
               {activeTab === 'comments' && (
                 <div className="space-y-4">
-                  <div className="rounded-2xl border border-[var(--agora-border)] p-4">
+                  <div className="rounded-xl border border-[var(--agora-border)] p-4">
                     <textarea
                       value={commentText}
                       onChange={(event) => setCommentText(event.target.value)}
@@ -578,7 +608,7 @@ const ProjectDetailsPage = () => {
                         type="button"
                         onClick={handleAddComment}
                         disabled={isCommenting}
-                        className="rounded-xl bg-[var(--agora-accent)] px-4 py-2 text-xs font-semibold text-white"
+                        className="px-4 py-2 bg-[#0a5c2f] hover:bg-[#084925] text-white text-xs font-semibold rounded transition-colors"
                       >
                         {isCommenting ? 'Enviando...' : 'Publicar'}
                       </button>
@@ -589,7 +619,7 @@ const ProjectDetailsPage = () => {
                     <p className="text-sm text-[var(--agora-muted)]">Sem comentarios ainda.</p>
                   )}
                   {comments.map((comment) => (
-                    <div key={comment.id} className="rounded-2xl border border-[var(--agora-border)] p-4">
+                    <div key={comment.id} className="rounded-xl border border-[var(--agora-border)] p-4">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold text-[var(--agora-ink)]">{comment.authorName}</p>
                         <span className="text-xs text-[var(--agora-muted)]">{formatDate(comment.createdAt)}</span>
@@ -602,19 +632,19 @@ const ProjectDetailsPage = () => {
 
               {activeTab === 'stats' && (
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-[var(--agora-border)] p-4 text-center">
+                  <div className="rounded-xl border border-[var(--agora-border)] p-4 text-center">
                     <p className="text-sm text-[var(--agora-muted)]">Visualizacoes</p>
                     <p className="mt-2 text-lg font-semibold text-[var(--agora-ink)]">
                       {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-[var(--agora-border)] p-4 text-center">
+                  <div className="rounded-xl border border-[var(--agora-border)] p-4 text-center">
                     <p className="text-sm text-[var(--agora-muted)]">Downloads</p>
                     <p className="mt-2 text-lg font-semibold text-[var(--agora-ink)]">
                       {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-[var(--agora-border)] p-4 text-center">
+                  <div className="rounded-xl border border-[var(--agora-border)] p-4 text-center">
                     <p className="text-sm text-[var(--agora-muted)]">Nota media</p>
                     <p className="mt-2 text-lg font-semibold text-[var(--agora-ink)]">
                       {project.averageGrade ? project.averageGrade.toFixed(1) : '--'}
@@ -623,21 +653,17 @@ const ProjectDetailsPage = () => {
                 </div>
               )}
 
-              {activeTab === 'versions' && (
-                <div className="rounded-2xl border border-dashed border-[var(--agora-border)] p-4 text-sm text-[var(--agora-muted)]">
-                  Em breve: historico de versoes.
-                </div>
-              )}
             </div>
           </section>
         </>
       )}
 
       {!isLoading && !project && (
-        <div className="mt-8 rounded-2xl border border-dashed border-[var(--agora-border)] p-6 text-sm text-[var(--agora-muted)]">
+        <div className="mt-8 rounded-xl border border-dashed border-[var(--agora-border)] p-6 text-sm text-[var(--agora-muted)]">
           Projeto nao encontrado.
         </div>
       )}
+      </div>
     </AppShell>
   );
 };

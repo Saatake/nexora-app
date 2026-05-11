@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3,
-  Clock,
   Eye,
   FolderKanban,
   LineChart,
+  Plus,
   Star,
 } from 'lucide-react';
 import api from '../api/axios';
@@ -178,25 +178,37 @@ const DashboardPage = () => {
   };
 
   const criteriaBars = [
-    { label: 'Relevancia', value: criteria.relevance, color: 'bg-[var(--agora-accent)]' },
-    { label: 'Qualidade', value: criteria.quality, color: 'bg-sky-400' },
-    { label: 'Metodo', value: criteria.methodology, color: 'bg-amber-400' },
-    { label: 'Apresentacao', value: criteria.presentation, color: 'bg-emerald-400' },
-    { label: 'Inovacao', value: criteria.innovation, color: 'bg-cyan-400' }
+    { label: 'Relevancia', value: criteria.relevance, color: '#0a5c2f' },
+    { label: 'Qualidade', value: criteria.quality, color: '#18915b' },
+    { label: 'Metodo', value: criteria.methodology, color: '#34d399' },
+    { label: 'Apresentacao', value: criteria.presentation, color: '#6ee7b7' },
+    { label: 'Inovacao', value: criteria.innovation, color: '#a7f3d0' }
   ];
 
   const displayStats = stats ?? { projectCount: 0, averageGrade: 0, totalViews: 0 };
   const name = user?.name?.split(' ')[0] ?? 'Aluno';
 
   return (
-    <AppShell title="Dashboard" subtitle={`Bem-vindo, ${name}`}>
+    <AppShell
+      title="Dashboard"
+      subtitle={`Bem-vindo de volta, ${name}`}
+      headerActions={
+        <Link
+          to="/projects/new"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#0a5c2f] hover:bg-[#084925] text-white text-sm font-semibold rounded transition-colors"
+        >
+          <Plus size={16} />
+          Novo projeto
+        </Link>
+      }
+    >
       {error && (
         <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </div>
       )}
 
-      <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           {
             label: 'Projetos publicados',
@@ -221,19 +233,17 @@ const DashboardPage = () => {
           const Icon = card.icon;
           const content = (
             <div
-              className="dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-5 shadow-[var(--agora-shadow)]"
-              style={{ animationDelay: `${index * 120}ms` }}
+              className="dash-fade bg-white border border-[var(--agora-border)] rounded-xl p-5 shadow-[var(--agora-shadow)]"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--agora-accent)]/10">
-                  <Icon className={card.accent} size={22} />
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-10 w-10 rounded bg-[var(--agora-accent-bg)] flex items-center justify-center">
+                  <Icon size={20} className="text-[#0a5c2f]" />
                 </div>
-                <span className="text-xs text-[var(--agora-muted)]">Atualizado agora</span>
+                <BarChart3 size={14} className="text-[var(--agora-muted)]" />
               </div>
-              <div className="mt-5">
-                <p className="text-3xl font-semibold text-[var(--agora-ink)]">{card.value}</p>
-                <p className="text-sm text-[var(--agora-muted)]">{card.label}</p>
-              </div>
+              <p className="text-2xl font-bold text-[var(--agora-ink)]">{card.value}</p>
+              <p className="text-sm text-[var(--agora-muted)] mt-0.5">{card.label}</p>
             </div>
           );
 
@@ -247,184 +257,134 @@ const DashboardPage = () => {
         })}
       </section>
 
-      <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
-            <div className="dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '200ms' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
-                    Evolucao das notas
-                  </h2>
-                  <p className="text-sm text-[var(--agora-muted)]">Ultimos 7 meses</p>
-                </div>
-                {trend === null ? (
-                  <div className="flex items-center gap-2 text-sm text-[var(--agora-muted)]">
-                    <LineChart size={16} />
-                    Sem comparativo
-                  </div>
-                ) : (
-                  <div
-                    className={`flex items-center gap-2 text-sm ${
-                      trend >= 0 ? 'text-emerald-600' : 'text-rose-500'
-                    }`}
-                  >
-                    <LineChart size={16} />
-                    {trend >= 0 ? '+' : ''}
-                    {trend.toFixed(1)}%
-                  </div>
-                )}
-              </div>
-
-              <div className="relative mt-6">
-                {lineChart.values.every(v => v === 0) ? (
-                  <div className="h-56 flex items-center justify-center text-sm text-slate-400">
-                    Ainda não há dados de evolução de notas
-                  </div>
-                ) : (
-                  <>
-                    <div className="pointer-events-none absolute inset-0 grid grid-rows-4 gap-0">
-                      {Array.from({ length: 4 }).map((_, index) => (
-                        <div key={`grid-${index}`} className="border-t border-dashed border-slate-200"></div>
-                      ))}
-                    </div>
-                    <svg viewBox={`0 0 ${lineChart.width} ${lineChart.height}`} className="h-56 w-full">
-                      <defs>
-                        <linearGradient id="gradeLine" x1="0" x2="1" y1="0" y2="1">
-                          <stop offset="0%" stopColor="#0ea5a5" />
-                          <stop offset="100%" stopColor="#38bdf8" />
-                        </linearGradient>
-                      </defs>
-                      <polyline
-                        fill="none"
-                        stroke="url(#gradeLine)"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        points={lineChart.points}
-                      />
-                      {lineChart.values.map((value, index) => {
-                        const x = lineChart.paddingX + index * ((lineChart.width - lineChart.paddingX * 2) / (lineChart.labels.length - 1 || 1));
-                        const y = lineChart.height - lineChart.paddingY - (value / Math.max(10, ...lineChart.values)) * (lineChart.height - lineChart.paddingY * 2);
-                        return <circle key={`point-${index}`} cx={x} cy={y} r={5} fill="#ffffff" stroke="#0ea5a5" strokeWidth="2" />;
-                      })}
-                    </svg>
-                  </>
-                )}
-              </div>
-
-              <div className="mt-4 grid grid-cols-7 text-xs text-[var(--agora-muted)]">
-                {lineChart.labels.map((label) => (
-                  <div key={label} className="text-center">
-                    {label}
-                  </div>
-                ))}
-              </div>
+      <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6">
+        <div className="dash-fade bg-white border border-[var(--agora-border)] rounded-xl p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '200ms' }}>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Evolucao das notas</h2>
+              <p className="text-xs text-[var(--agora-muted)]">Ultimos 7 meses</p>
             </div>
-
-            <div className="dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '320ms' }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
-                    Media por criterio
-                  </h2>
-                  <p className="text-sm text-[var(--agora-muted)]">Avaliacao geral dos projetos</p>
-                </div>
-                <BarChart3 size={18} className="text-[var(--agora-muted)]" />
+            {trend === null ? (
+              <div className="flex items-center gap-1 text-xs text-[var(--agora-muted)] font-medium">
+                <LineChart size={14} />
+                Sem comparativo
               </div>
-
-              <div className="mt-6 flex h-56 items-end gap-4">
-                {criteriaBars.every(bar => bar.value === 0) ? (
-                  <div className="w-full h-full flex items-center justify-center text-sm text-slate-400">
-                    Ainda não há avaliações por critério
-                  </div>
-                ) : (
-                  criteriaBars.map((bar) => (
-                    <div key={bar.label} className="flex flex-1 flex-col items-center gap-2">
-                      <div className="text-xs font-semibold text-[var(--agora-ink)]">{bar.value.toFixed(1)}</div>
-                      <div className="flex h-full w-full items-end">
-                        <div
-                          className={`w-full rounded-2xl ${bar.color}`}
-                          style={{ height: `${Math.max(8, (bar.value / 10) * 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-[var(--agora-muted)]">{bar.label}</div>
-                    </div>
-                  ))
-                )}
+            ) : (
+              <div className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                <LineChart size={14} />
+                {trend >= 0 ? '+' : ''}
+                {trend.toFixed(1)}%
               </div>
-            </div>
-          </section>
-
-      <section className="mt-8 dash-fade rounded-3xl border border-[var(--agora-border)] bg-white/90 p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '440ms' }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold" style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}>
-              Projetos recentes
-            </h2>
-            <p className="text-sm text-[var(--agora-muted)]">Ultimas publicacoes do seu portfolio</p>
+            )}
           </div>
-          <Link to="/projects" className="text-sm font-semibold text-[var(--agora-accent)]">
-            Ver todos
-          </Link>
+          <div className="relative">
+            {lineChart.values.every(v => v === 0) ? (
+              <div className="h-40 flex items-center justify-center text-sm text-slate-400">
+                Ainda nao ha dados de evolucao de notas
+              </div>
+            ) : (
+              <svg viewBox={`0 0 ${lineChart.width} ${lineChart.height}`} className="w-full h-40">
+                <defs>
+                  <linearGradient id="greenGrad" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stopColor="#0a5c2f" />
+                    <stop offset="100%" stopColor="#18915b" />
+                  </linearGradient>
+                </defs>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <line
+                    key={`grid-${i}`}
+                    x1={lineChart.paddingX}
+                    x2={lineChart.width - lineChart.paddingX}
+                    y1={lineChart.paddingY + (i * (lineChart.height - lineChart.paddingY * 2)) / 3}
+                    y2={lineChart.paddingY + (i * (lineChart.height - lineChart.paddingY * 2)) / 3}
+                    stroke="#f0f0f0"
+                    strokeWidth="1"
+                  />
+                ))}
+                <polyline fill="none" stroke="url(#greenGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={lineChart.points} />
+                {lineChart.values.map((value, index) => {
+                  const x = lineChart.paddingX + index * ((lineChart.width - lineChart.paddingX * 2) / (lineChart.labels.length - 1 || 1));
+                  const y = lineChart.height - lineChart.paddingY - (value / Math.max(10, ...lineChart.values)) * (lineChart.height - lineChart.paddingY * 2);
+                  return <circle key={`point-${index}`} cx={x} cy={y} r={4} fill="#0a5c2f" />;
+                })}
+              </svg>
+            )}
+            <div className="flex justify-between px-6 mt-1">
+              {lineChart.labels.map(label => (
+                <span key={label} className="text-xs text-[var(--agora-muted)]">{label}</span>
+              ))}
+            </div>
+          </div>
         </div>
 
-            <div className="mt-5 space-y-4">
+        <div className="dash-fade bg-white border border-[var(--agora-border)] rounded-xl p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '300ms' }}>
+          <h2 className="font-bold text-[var(--agora-ink)] mb-4" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Media por criterio</h2>
+          <div className="space-y-3">
+            {criteriaBars.every(bar => bar.value === 0) ? (
+              <div className="text-sm text-slate-400">Ainda nao ha avaliacoes por criterio</div>
+            ) : (
+              criteriaBars.map((bar) => (
+                <div key={bar.label}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-[var(--agora-muted)]">{bar.label}</span>
+                    <span className="font-semibold text-[var(--agora-ink)]">{bar.value.toFixed(1)}</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${(bar.value / 10) * 100}%`, backgroundColor: bar.color }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Projetos recentes</h2>
+          <Link to="/projects" className="text-sm text-[#0a5c2f] hover:underline font-medium">Ver todos</Link>
+        </div>
+        <div className="bg-white border border-[var(--agora-border)] rounded-xl overflow-hidden shadow-[var(--agora-shadow)]">
+          <div className="mt-5 space-y-4">
               {isLoading && (
                 <div className="space-y-3">
                   {Array.from({ length: 3 }).map((_, index) => (
-                    <div key={`skeleton-${index}`} className="h-16 rounded-2xl bg-slate-100 animate-pulse"></div>
+                    <div key={`skeleton-${index}`} className="h-16 rounded-xl bg-slate-100 animate-pulse"></div>
                   ))}
                 </div>
               )}
 
               {!isLoading && recentProjects.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-[var(--agora-muted)]">
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-[var(--agora-muted)]">
                   Nenhum projeto publicado ainda.
                 </div>
               )}
 
               {!isLoading && recentProjects.length > 0 &&
                 recentProjects.map((project) => (
-                  <div
+                  <Link
                     key={project.id}
-                    className="flex flex-col gap-3 rounded-2xl border border-[var(--agora-border)] bg-white px-4 py-4 shadow-sm transition hover:shadow-md lg:flex-row lg:items-center lg:justify-between"
+                    to={`/projects/${project.id}`}
+                    className="flex items-center justify-between px-6 py-4 hover:bg-[var(--agora-accent-bg)] transition-colors border-b border-[var(--agora-border)] last:border-b-0"
                   >
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">
-                          {formatCategory(project.category)}
-                        </span>
-                        <span className="text-xs text-[var(--agora-muted)] flex items-center gap-1">
-                          <Clock size={14} />
-                          {formatDate(project.createdAt)}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-base font-semibold text-[var(--agora-ink)]">{project.title}</p>
-                      <p className="text-sm text-[var(--agora-muted)] line-clamp-1 max-w-xl">{project.description}</p>
+                    <div className="flex items-center gap-4">
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded bg-green-100 text-[#0a5c2f]">
+                        {formatCategory(project.category)}
+                      </span>
+                      <span className="font-medium text-[var(--agora-ink)] text-sm">{project.title}</span>
                     </div>
-                    <div className="flex items-center gap-5">
-                      <div className="text-center">
-                        <p className="text-sm font-semibold text-[var(--agora-ink)]">
-                          {project.averageGrade?.toFixed(1) ?? '--'}
-                        </p>
-                        <p className="text-xs text-[var(--agora-muted)]">Media</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-semibold text-[var(--agora-ink)]">
-                          {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
-                        </p>
-                        <p className="text-xs text-[var(--agora-muted)]">Views</p>
-                      </div>
-                      <Link
-                        to={`/projects/${project.id}`}
-                        className="flex items-center gap-2 rounded-xl border border-[var(--agora-border)] px-3 py-2 text-sm font-semibold text-[var(--agora-ink)]"
-                      >
-                        Abrir
-                        <Star size={14} className="text-amber-500" />
-                      </Link>
+                    <div className="flex items-center gap-6 text-sm text-[var(--agora-muted)]">
+                      <span className="flex items-center gap-1"><Star size={13} className="text-amber-400" />{project.averageGrade?.toFixed(1) ?? '--'}</span>
+                      <span className="flex items-center gap-1"><Eye size={13} />{new Intl.NumberFormat('pt-BR').format(project.viewCount)}</span>
+                      <span className="hidden sm:block">{formatDate(project.createdAt)}</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
             </div>
+        </div>
       </section>
     </AppShell>
   );
