@@ -49,6 +49,7 @@ const AuthPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       const response = await api.post('/auth/login', { email: loginEmail, password: loginPassword });
       const { token } = response.data;
@@ -60,6 +61,7 @@ const AuthPage = () => {
       
       if (userRole !== expectedRole) {
         setError(`Esta conta é de ${userRole === 'Professor' ? 'Professor' : 'Aluno'}. Por favor, selecione a opção correta.`);
+        setLoading(false);
         return;
       }
 
@@ -67,6 +69,7 @@ const AuthPage = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(getErrorMessage(err, 'Erro ao realizar login'));
+      setLoading(false);
     }
   };
 
@@ -182,8 +185,8 @@ const AuthPage = () => {
                 <Link to='/forgot-password' className='text-gray-500 hover:text-gray-800 underline decoration-gray-400 underline-offset-2'>Esqueci a senha</Link>
               </div>
 
-              <button type='submit' className='w-full py-3 bg-[#0a5c2f] hover:bg-[#084925] text-white text-sm font-bold rounded shadow transition-colors'>
-                Entrar
+              <button type='submit' disabled={loading} className='w-full py-3 bg-[#0a5c2f] hover:bg-[#084925] disabled:bg-green-400 text-white text-sm font-bold rounded shadow transition-colors'>
+                {loading ? 'Entrando...' : 'Entrar'}
               </button>
 
               <p className='md:hidden text-center text-sm text-gray-600 mt-6'>
