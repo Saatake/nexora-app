@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft } from 'lucide-react';
 import api from '../api/axios';
 import fundoLivro from '../assets/livro-coluna.png';
+import logoIcon from '../assets/logo-icon.png';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -47,7 +48,7 @@ const ForgotPasswordPage = () => {
     >
       <div className='mb-6 relative z-10'>
         <img 
-          src='/src/assets/logo-icon.png' 
+          src={logoIcon} 
           alt='Ágora' 
           className='h-20 drop-shadow-lg'
         />

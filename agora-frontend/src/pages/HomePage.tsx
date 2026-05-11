@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Upload, Star, TrendingUp, ArrowRight, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import logo from '../assets/logo.png';
+import logoIcon from '../assets/logo-icon.png';
 
 const HomePage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,7 +48,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
-                src="/src/assets/logo.png" 
+                src={logo} 
                 alt="Ágora" 
                 className="h-16 sm:h-20 md:h-24"
               />
@@ -302,7 +304,7 @@ const HomePage = () => {
             <div>
               <div className="mb-6">
                 <img 
-                  src="/src/assets/logo-icon.png" 
+                  src={logoIcon} 
                   alt="Ágora" 
                   style={{ height: '56px', width: 'auto' }}
                 />

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle } from 'lucide-react';
 import api from '../api/axios';
 import fundoLivro from '../assets/livro-coluna.png';
+import logoIcon from '../assets/logo-icon.png';
 
 const ConfirmEmailPage = () => {
   const [searchParams] = useSearchParams();
@@ -57,7 +58,7 @@ const ConfirmEmailPage = () => {
     >
       <div className='mb-6 relative z-10'>
         <img 
-          src='/src/assets/logo-icon.png' 
+          src={logoIcon} 
           alt='Ágora' 
           className='h-20 drop-shadow-lg'
         />

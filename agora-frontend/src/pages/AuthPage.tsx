@@ -5,8 +5,9 @@ import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { FACENS_COURSES } from '../constants/facensCourses';
 
-// Import da imagem de fundo desejada
+// Import das imagens
 import fundoLivro from '../assets/livro-coluna.png';
+import logoIcon from '../assets/logo-icon.png';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -131,9 +132,9 @@ const AuthPage = () => {
 
       <div className='mb-6 relative z-10'>
         <img 
-          src='/src/assets/logo-icon.png' 
+          src={logoIcon} 
           alt='Ágora' 
-          className='h-20 drop-shadow-lg' // Aumentado o drop-shadow para destacar da imagem
+          className='h-20 drop-shadow-lg'
         />
       </div>
 

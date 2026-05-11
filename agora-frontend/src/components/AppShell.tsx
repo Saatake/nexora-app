@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import logoIcon from '../assets/logo-icon.png';
 
 type AppShellProps = {
   title: string;
@@ -68,7 +69,7 @@ const AppShell = ({
           <div>
             <div className="flex items-center gap-3 mb-10">
               <img 
-                src="/src/assets/logo-icon.png" 
+                src={logoIcon} 
                 alt="Ágora" 
                 className="h-16"
               />
@@ -130,7 +131,7 @@ const AppShell = ({
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-8">
               <img 
-                src="/src/assets/logo-icon.png" 
+                src={logoIcon} 
                 alt="Ágora" 
                 className="h-12"
               />
