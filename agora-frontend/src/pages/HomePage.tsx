@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Upload, Star, TrendingUp, ArrowRight, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo-icon.png';
 import logoIcon from '../assets/logo-icon.png';
 
 const HomePage = () => {
