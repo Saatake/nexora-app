@@ -1,6 +1,5 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using Nexora.Api.Interfaces;
 
 namespace Nexora.Api.Services;
@@ -16,25 +15,15 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        var host = _config["EmailSettings:Host"];
-        var port = int.Parse(_config["EmailSettings:Port"]!);
-        var username = _config["EmailSettings:Username"];
-        var password = _config["EmailSettings:Password"];
-        
-        var fromEmail = _config["EmailSettings:From"]; 
+        var apiKey = _config["SendGrid:ApiKey"];
+        var fromEmail = _config["SendGrid:FromEmail"] ?? "noreply@agora.app";
+        var fromName = _config["SendGrid:FromName"] ?? "Ágora App";
 
-        var message = new MimeMessage();
-        
-        message.From.Add(new MailboxAddress("Ágora App", fromEmail)); 
-        
-        message.To.Add(MailboxAddress.Parse(email));
-        message.Subject = subject;
-        message.Body = new TextPart("html") { Text = htmlMessage };
+        var client = new SendGridClient(apiKey);
+        var from = new EmailAddress(fromEmail, fromName);
+        var to = new EmailAddress(email);
+        var msg = MailHelper.CreateSingleEmail(from, to, subject, null, htmlMessage);
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync(host, port, port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(username, password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        await client.SendEmailAsync(msg);
     }
 }
