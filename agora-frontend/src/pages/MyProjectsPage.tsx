@@ -134,7 +134,7 @@ const MyProjectsPage = () => {
       headerActions={
         <Link
           to="/projects/new"
-          className="inline-flex items-center gap-2 rounded-2xl bg-[var(--agora-accent)] px-4 py-2 text-sm font-semibold text-white shadow-[var(--agora-shadow)]"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#0a5c2f] hover:bg-[#084925] text-white text-sm font-semibold rounded transition-colors"
         >
           <Plus size={16} />
           Novo Projeto
@@ -147,15 +147,15 @@ const MyProjectsPage = () => {
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="flex gap-2 flex-wrap mb-6">
         {filters.map((filter) => (
           <button
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+            className={`px-4 py-1.5 text-sm font-semibold rounded border transition-all ${
               activeFilter === filter.key
-                ? 'bg-[var(--agora-accent)] text-white'
-                : 'border border-[var(--agora-border)] bg-white text-[var(--agora-ink)] hover:border-[var(--agora-accent)]'
+                ? 'border-green-800 text-green-800 bg-green-50'
+                : 'border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400'
             }`}
           >
             {filter.label}
@@ -163,14 +163,14 @@ const MyProjectsPage = () => {
         ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {isLoading &&
           Array.from({ length: 4 }).map((_, index) => (
-            <div key={`skeleton-${index}`} className="h-44 rounded-3xl bg-slate-100 animate-pulse" />
+            <div key={`skeleton-${index}`} className="h-44 rounded-xl bg-slate-100 animate-pulse" />
           ))}
 
         {!isLoading && projects.length === 0 && (
-          <div className="rounded-3xl border border-dashed border-slate-200 p-6 text-sm text-[var(--agora-muted)]">
+          <div className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-[var(--agora-muted)]">
             Nenhum projeto encontrado.
           </div>
         )}
@@ -179,20 +179,20 @@ const MyProjectsPage = () => {
           projects.map((project) => (
             <div
               key={project.id}
-              className="relative rounded-3xl border border-[var(--agora-border)] bg-white/95 p-6 shadow-[var(--agora-shadow)] transition hover:shadow-md"
+              className="relative bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-5"
             >
               {/* Botões de ação */}
               <div className="absolute top-4 right-4 flex gap-2">
                 <button
                   onClick={(e) => handleEdit(project.id, e)}
-                  className="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition"
+                  className="h-8 w-8 rounded bg-gray-100 text-[var(--agora-muted)] flex items-center justify-center hover:text-[#0a5c2f] hover:bg-green-50 transition"
                   title="Editar"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={(e) => confirmDelete(project.id, project.title, e)}
-                  className="h-8 w-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition"
+                  className="h-8 w-8 rounded bg-gray-100 text-[var(--agora-muted)] flex items-center justify-center hover:text-red-600 hover:bg-red-50 transition"
                   title="Excluir"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -200,43 +200,26 @@ const MyProjectsPage = () => {
               </div>
 
               <Link to={`/projects/${project.id}`} className="block">
-                <div className="flex items-center justify-between pr-20">
-                  <span className="rounded-full bg-[var(--agora-accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--agora-accent)]">
+                <div className="flex items-start justify-between mb-3 pr-20">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded bg-green-100 text-[#0a5c2f]">
                     {formatCategory(project.category)}
                   </span>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      project.isApproved
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-amber-50 text-amber-600'
-                    }`}
-                  >
-                    {project.isApproved ? 'Aprovado' : 'Em avaliacao'}
-                  </span>
+                  {project.isApproved ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">Aprovado</span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Pendente</span>
+                  )}
                 </div>
 
-                <h3 className="mt-4 text-lg font-semibold text-[var(--agora-ink)]">{project.title}</h3>
-                <p className="mt-2 text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
+                <h3 className="font-bold text-[var(--agora-ink)] mb-1 leading-snug">{project.title}</h3>
+                <p className="text-sm text-[var(--agora-muted)] line-clamp-2 flex-1">{project.description}</p>
 
-                <div className="mt-5 flex items-center justify-between text-xs text-[var(--agora-muted)]">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <span className="flex items-center gap-1">
-                      <Eye size={14} />
-                      {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Download size={14} />
-                      {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {formatDate(project.createdAt)}
-                    </span>
+                <div className="mt-4 pt-4 border-t border-[var(--agora-border)] flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-[var(--agora-muted)]">
+                    <span className="flex items-center gap-1"><Star size={12} className="text-amber-400" />{project.averageGrade?.toFixed(1) ?? '--'}</span>
+                    <span className="flex items-center gap-1"><Eye size={12} />{new Intl.NumberFormat('pt-BR').format(project.viewCount)}</span>
+                    <span className="flex items-center gap-1"><Calendar size={12} />{formatDate(project.createdAt)}</span>
                   </div>
-                  <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-                    <Star size={14} />
-                    {project.averageGrade?.toFixed(1) ?? '--'}
-                  </span>
                 </div>
               </Link>
             </div>
@@ -245,24 +228,24 @@ const MyProjectsPage = () => {
 
       {/* Modal de confirmação de exclusão */}
       {deleteModal.show && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full">
-            <h3 className="text-xl font-bold text-slate-900 mb-4">Excluir Projeto</h3>
-            <p className="text-sm text-slate-600 mb-6">
-              Tem certeza que deseja excluir o projeto <strong>"{deleteModal.projectTitle}"</strong>? Esta ação não pode ser desfeita.
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-[var(--agora-ink)] mb-2">Excluir projeto</h3>
+            <p className="text-sm text-[var(--agora-muted)] mb-6">
+              Tem certeza que deseja excluir <span className="font-semibold text-[var(--agora-ink)]">"{deleteModal.projectTitle}"</span>? Esta ação não pode ser desfeita.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex gap-3">
               <button
                 onClick={() => setDeleteModal({ show: false, projectId: null, projectTitle: '' })}
                 disabled={isDeleting}
-                className="rounded-xl border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="flex-1 py-2 border border-gray-300 rounded text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-semibold transition-colors disabled:opacity-50"
               >
                 {isDeleting ? 'Excluindo...' : 'Excluir'}
               </button>

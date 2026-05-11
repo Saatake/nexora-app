@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, Star, TrendingUp, Users } from 'lucide-react';
+import { Crown, Eye, Star, TrendingUp, Users } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 
@@ -33,6 +33,8 @@ const formatViews = (count: number): string => {
   if (count >= 1000) return `${Math.floor(count / 1000)}k+`;
   return count.toString();
 };
+
+const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600'];
 
 const RankingPage = () => {
   const [topProjects, setTopProjects] = useState<RankingProject[]>([]);
@@ -91,129 +93,91 @@ const RankingPage = () => {
   }
 
   return (
-    <AppShell title="Ranking Ágora" subtitle="Celebre a excelência acadêmica da nossa comunidade">
-      <div className="mt-8 space-y-8">
-        {/* Top 10 Projetos do Semestre */}
-        <section className="rounded-3xl bg-white p-8 shadow-sm border border-slate-100">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
-              <Star className="w-7 h-7 text-emerald-600" />
+    <AppShell title="Ranking Ágora" subtitle="Celebre a excelência acadêmica da nossa comunidade" showSearch={false}>
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Projetos', value: stats?.totalProjects ?? 0, icon: TrendingUp },
+          { label: 'Média geral', value: stats?.generalAverage?.toFixed(1) ?? '0.0', icon: Star },
+          { label: 'Visualizações', value: formatViews(stats?.totalViews ?? 0), icon: Eye },
+          { label: 'Estudantes', value: stats?.totalStudents ?? 0, icon: Users },
+        ].map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <div key={index} className="bg-white border border-[var(--agora-border)] rounded-xl p-4 shadow-[var(--agora-shadow)] text-center">
+              <Icon size={20} className="mx-auto mb-2 text-[#0a5c2f]" />
+              <p className="text-xl font-bold text-[var(--agora-ink)]">{item.value}</p>
+              <p className="text-xs text-[var(--agora-muted)]">{item.label}</p>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Top 10 Projetos do Semestre</h2>
-              <p className="text-sm text-slate-500">Os trabalhos mais bem avaliados de 2024</p>
-            </div>
+          );
+        })}
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--agora-border)] flex items-center gap-2">
+            <Crown size={18} className="text-[#0a5c2f]" />
+            <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Melhores projetos</h2>
           </div>
-
-          <div className="space-y-4">
-            {topProjects.length === 0 ? (
-              <p className="text-center text-slate-400 py-8">Nenhum projeto avaliado ainda</p>
-            ) : (
-              topProjects.map((project) => (
-                <Link
-                  key={project.projectId}
-                  to={`/projects/${project.projectId}`}
-                  className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                    {project.position}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 truncate">{project.title}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
-                      <span>{project.authorName}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{project.viewCount} views</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-600 font-bold text-xl">
-                    <Star className="w-5 h-5 fill-emerald-600" />
-                    <span>{project.averageGrade.toFixed(1)}</span>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Top 5 Alunos */}
-          <section className="rounded-3xl bg-white p-8 shadow-sm border border-slate-100">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
-                <TrendingUp className="w-7 h-7 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">Top 5 Alunos</h2>
-                <p className="text-sm text-slate-500">Maiores médias gerais</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {topStudents.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">Nenhum aluno avaliado ainda</p>
-              ) : (
-                topStudents.slice(0, 5).map((student) => (
-                  <Link
-                    key={student.studentId}
-                    to={`/profile/${student.studentId}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {student.position}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900">{student.name}</h3>
-                      <p className="text-sm text-slate-500">{student.course}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{student.projectCount} projetos</p>
-                    </div>
-                    <div className="flex items-center gap-2 text-emerald-600 font-bold text-lg">
-                      <Star className="w-4 h-4 fill-emerald-600" />
-                      <span>{student.averageGrade.toFixed(1)}</span>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </section>
+          {topProjects.length === 0 ? (
+            <p className="text-center text-[var(--agora-muted)] py-8">Nenhum projeto avaliado ainda</p>
+          ) : (
+            topProjects.map((project, index) => (
+              <Link
+                key={project.projectId}
+                to={`/projects/${project.projectId}`}
+                className={`flex items-center gap-4 px-6 py-4 hover:bg-[var(--agora-accent-bg)] transition-colors ${index < topProjects.length - 1 ? 'border-b border-[var(--agora-border)]' : ''}`}
+              >
+                <span className={`text-lg font-bold w-6 text-center flex-shrink-0 ${medalColors[index] ?? 'text-[var(--agora-muted)]'}`}>
+                  {project.position <= 3 ? '●' : project.position}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-[var(--agora-ink)] truncate">{project.title}</p>
+                  <p className="text-xs text-[var(--agora-muted)]">{project.authorName}</p>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-[var(--agora-muted)]">
+                  <span className="inline-flex items-center gap-1"><Eye size={12} />{project.viewCount}</span>
+                </div>
+                <div className="flex items-center gap-1 text-sm font-bold text-amber-500 flex-shrink-0">
+                  <Star size={13} fill="currentColor" />
+                  {project.averageGrade.toFixed(1)}
+                </div>
+              </Link>
+            ))
+          )}
         </div>
 
-        {/* Estatísticas Gerais */}
-        {stats && (
-          <section className="rounded-3xl bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-500 p-8 text-white shadow-lg">
-
-            <div className="text-center mb-8 flex flex-col items-center">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 backdrop-blur-sm">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold">Estatísticas Gerais</h2>
-              <p className="text-purple-100 mt-2">Panorama da plataforma em 2026</p>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-5xl font-bold mb-2">{stats.totalProjects}</div>
-                <div className="text-purple-100">Projetos Publicados</div>
-              </div>
-              <div className="text-center">
-                <div className="text-5xl font-bold mb-2">{stats.generalAverage.toFixed(1)}</div>
-                <div className="text-purple-100">Média Geral</div>
-              </div>
-              <div className="text-center">
-                <div className="text-5xl font-bold mb-2">{formatViews(stats.totalViews)}</div>
-                <div className="text-purple-100">Visualizações</div>
-              </div>
-              <div className="text-center">
-                <div className="text-5xl font-bold mb-2">{stats.totalStudents}</div>
-                <div className="text-purple-100">Participantes Ativos</div>
-              </div>
-            </div>
-          </section>
-        )}
+        <div className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--agora-border)] flex items-center gap-2">
+            <Users size={18} className="text-[#0a5c2f]" />
+            <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Melhores alunos</h2>
+          </div>
+          {topStudents.length === 0 ? (
+            <p className="text-center text-[var(--agora-muted)] py-8">Nenhum aluno avaliado ainda</p>
+          ) : (
+            topStudents.map((student, index) => (
+              <Link
+                key={student.studentId}
+                to={`/profile/${student.studentId}`}
+                className={`flex items-center gap-4 px-6 py-4 hover:bg-[var(--agora-accent-bg)] transition-colors ${index < topStudents.length - 1 ? 'border-b border-[var(--agora-border)]' : ''}`}
+              >
+                <span className={`text-lg font-bold w-6 text-center flex-shrink-0 ${medalColors[index] ?? 'text-[var(--agora-muted)]'}`}>
+                  {student.position <= 3 ? '●' : student.position}
+                </span>
+                <div className="h-8 w-8 rounded bg-[#0a5c2f] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  {student.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-[var(--agora-ink)] truncate">{student.name}</p>
+                  <p className="text-xs text-[var(--agora-muted)] truncate">{student.course}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-sm font-bold text-[#0a5c2f]">{student.averageGrade.toFixed(1)}</p>
+                  <p className="text-xs text-[var(--agora-muted)]">{student.projectCount} proj.</p>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
       </div>
     </AppShell>
   );

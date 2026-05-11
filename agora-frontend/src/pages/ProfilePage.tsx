@@ -228,7 +228,7 @@ const ProfilePage = () => {
 
         {/* Cabeçalho com foto e info */}
         <section className="relative">
-          <div className="rounded-3xl bg-white shadow-sm border border-slate-100 px-8 py-8">
+          <div className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] px-8 py-8">
             {/* Foto de perfil */}
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-6">
@@ -240,7 +240,7 @@ const ProfilePage = () => {
                       className="h-full w-full rounded-3xl object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-5xl">
+                    <div className="h-full w-full rounded-3xl bg-[#0a5c2f] flex items-center justify-center text-white font-bold text-5xl">
                       {initial}
                     </div>
                   )}
@@ -249,7 +249,7 @@ const ProfilePage = () => {
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploadingPhoto}
-                      className="absolute bottom-0 right-0 h-10 w-10 rounded-xl bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 shadow-lg disabled:opacity-50"
+                      className="absolute bottom-0 right-0 h-10 w-10 rounded-xl bg-[#0a5c2f] text-white flex items-center justify-center hover:bg-[#084925] shadow-lg disabled:opacity-50"
                       title="Alterar foto"
                     >
                       {isUploadingPhoto ? '...' : <Upload className="w-5 h-5" />}
@@ -265,8 +265,8 @@ const ProfilePage = () => {
                 </div>
                 
                 <div>
-                  <h2 className="text-3xl font-bold text-slate-900">{profile.name}</h2>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
+                  <h2 className="text-3xl font-bold text-[var(--agora-ink)]">{profile.name}</h2>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-[var(--agora-muted)]">
                     <span className="inline-flex items-center gap-1">
                       <UserCircle2 className="w-4 h-4" />
                       {currentUser?.roleType === 'Professor' ? 'Professor' : 'Aluno'}
@@ -286,7 +286,7 @@ const ProfilePage = () => {
               {isOwnProfile && (
                 <button
                   onClick={handleEditProfile}
-                  className="rounded-2xl bg-white border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-xl bg-white border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-600 hover:border-green-800 hover:text-green-800"
                 >
                   ✏️ Editar Perfil
                 </button>
@@ -295,23 +295,23 @@ const ProfilePage = () => {
 
             {/* Bio */}
             <div className="mt-6">
-              <p className="text-slate-600">{profile.bio || 'Sem bio cadastrada.'}</p>
+              <p className="text-[var(--agora-muted)]">{profile.bio || 'Sem bio cadastrada.'}</p>
             </div>
 
             {/* Stats - apenas para próprio perfil */}
             {isOwnProfile && profile.projectCount !== undefined && (
               <div className="mt-6 grid grid-cols-3 gap-6">
-                <div className="rounded-2xl bg-purple-50 p-6 text-center">
-                  <div className="text-4xl font-bold text-purple-600">{profile.projectCount}</div>
-                  <div className="mt-1 text-sm text-slate-600">Projetos</div>
+                <div className="rounded-xl bg-green-50 p-6 text-center">
+                  <div className="text-4xl font-bold text-[#0a5c2f]">{profile.projectCount}</div>
+                  <div className="mt-1 text-sm text-[var(--agora-muted)]">Projetos</div>
                 </div>
-                <div className="rounded-2xl bg-emerald-50 p-6 text-center">
+                <div className="rounded-xl bg-emerald-50 p-6 text-center">
                   <div className="text-4xl font-bold text-emerald-600">{profile.averageGrade?.toFixed(1) || '0.0'}</div>
-                  <div className="mt-1 text-sm text-slate-600">Média Geral</div>
+                  <div className="mt-1 text-sm text-[var(--agora-muted)]">Média Geral</div>
                 </div>
-                <div className="rounded-2xl bg-blue-50 p-6 text-center">
-                  <div className="text-4xl font-bold text-blue-600">{profile.totalViews || 0}</div>
-                  <div className="mt-1 text-sm text-slate-600">Visualizações</div>
+                <div className="rounded-xl bg-slate-50 p-6 text-center">
+                  <div className="text-4xl font-bold text-[var(--agora-ink)]">{profile.totalViews || 0}</div>
+                  <div className="mt-1 text-sm text-[var(--agora-muted)]">Visualizações</div>
                 </div>
               </div>
             )}
@@ -322,8 +322,8 @@ const ProfilePage = () => {
           {/* Coluna principal */}
           <div className="lg:col-span-2 space-y-8">
             {/* Projetos Publicados */}
-            <section className="rounded-3xl bg-white p-8 shadow-sm border border-slate-100">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Projetos Publicados</h3>
+            <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+              <h3 className="text-xl font-bold text-[var(--agora-ink)] mb-6">Projetos Publicados</h3>
               
               {projects.length === 0 ? (
                 <p className="text-center text-slate-400 py-8">Nenhum projeto publicado ainda</p>
@@ -333,14 +333,14 @@ const ProfilePage = () => {
                     <Link
                       key={project.id}
                       to={`/projects/${project.id}`}
-                      className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors"
+                      className="flex items-center gap-4 p-5 rounded-xl border border-[var(--agora-border)] bg-white hover:bg-[var(--agora-accent-bg)] transition-colors"
                     >
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <div className="w-14 h-14 rounded-2xl bg-[#0a5c2f] flex items-center justify-center flex-shrink-0">
                         <BookOpen className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900 truncate">{project.title}</h4>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
+                        <h4 className="font-semibold text-[var(--agora-ink)] truncate">{project.title}</h4>
+                        <div className="flex items-center gap-3 mt-1 text-sm text-[var(--agora-muted)]">
                           <span>{formatCategory(project.category)}</span>
                           <span>•</span>
                           <span>{new Date(project.createdAt).getFullYear()}</span>
@@ -363,13 +363,13 @@ const ProfilePage = () => {
           <div className="space-y-8">
             {/* Áreas de Interesse */}
             {profile.interests && profile.interests.trim() && (
-              <section className="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
-                <h3 className="text-lg font-bold text-slate-900 mb-4">Áreas de Interesse</h3>
+              <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+                <h3 className="text-lg font-bold text-[var(--agora-ink)] mb-4">Áreas de Interesse</h3>
                 <div className="space-y-2">
                   {profile.interests.split(',').map((interest, index) => (
                     <div
                       key={index}
-                      className="rounded-xl bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 break-words"
+                      className="rounded-xl bg-green-100 px-4 py-2 text-sm font-medium text-[#0a5c2f] break-words"
                     >
                       {interest.trim()}
                     </div>
@@ -379,9 +379,9 @@ const ProfilePage = () => {
             )}
 
             {/* Contato */}
-            <section className="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Contato</h3>
-              <div className="flex items-center gap-3 text-sm text-slate-600">
+            <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+              <h3 className="text-lg font-bold text-[var(--agora-ink)] mb-4">Contato</h3>
+              <div className="flex items-center gap-3 text-sm text-[var(--agora-muted)]">
                 <Mail className="w-5 h-5" />
                 <span>{profile.email}</span>
               </div>
@@ -392,9 +392,9 @@ const ProfilePage = () => {
         {/* Modal de Edição */}
         {isEditing && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-slate-900">Editar Perfil</h3>
+                <h3 className="text-2xl font-bold text-[var(--agora-ink)]">Editar Perfil</h3>
                 <button
                   onClick={() => setIsEditing(false)}
                   className="text-slate-400 hover:text-slate-600"
@@ -410,7 +410,7 @@ const ProfilePage = () => {
                     type="text"
                     value={editData.name}
                     onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm"
+                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm"
                   />
                 </div>
 
@@ -420,7 +420,7 @@ const ProfilePage = () => {
                     type="text"
                     value={editData.course}
                     onChange={(e) => setEditData({ ...editData, course: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm"
+                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm"
                   />
                 </div>
 
@@ -430,7 +430,7 @@ const ProfilePage = () => {
                     rows={4}
                     value={editData.bio}
                     onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm resize-none"
+                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm resize-none"
                   />
                 </div>
 
@@ -442,7 +442,7 @@ const ProfilePage = () => {
                     type="text"
                     value={editData.interests}
                     onChange={(e) => setEditData({ ...editData, interests: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm"
+                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -451,14 +451,14 @@ const ProfilePage = () => {
                 <button
                   onClick={() => setIsEditing(false)}
                   disabled={isSaving}
-                  className="rounded-xl border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSaveProfile}
                   disabled={isSaving}
-                  className="rounded-xl bg-purple-600 px-6 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50"
+                  className="rounded bg-[#0a5c2f] px-6 py-2 text-sm font-semibold text-white hover:bg-[#084925] disabled:opacity-50"
                 >
                   {isSaving ? 'Salvando...' : 'Salvar'}
                 </button>
