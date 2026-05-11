@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Upload, Star, TrendingUp, ArrowRight } from 'lucide-react';
+import { Upload, Star, TrendingUp, ArrowRight, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 const HomePage = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const featuredProjects = [
     {
       id: 1,
@@ -39,16 +42,17 @@ const HomePage = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
                 src="/src/assets/logo.png" 
                 alt="Ágora" 
-                className="h-24"
+                className="h-16 sm:h-20 md:h-24"
               />
             </div>
             
+            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-8">
               <a href="#sobre" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">
                 Sobre
@@ -61,13 +65,50 @@ const HomePage = () => {
               </a>
             </nav>
 
-            <Link 
-              to="/login" 
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              Entrar
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link 
+                to="/login" 
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 sm:px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm sm:text-base"
+              >
+                Entrar
+              </Link>
+
+              {/* Mobile Menu Button */}
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Nav */}
+          {isMobileMenuOpen && (
+            <nav className="md:hidden mt-4 pb-4 space-y-2 border-t pt-4">
+              <a 
+                href="#sobre" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-indigo-600 transition-colors font-medium py-2"
+              >
+                Sobre
+              </a>
+              <a 
+                href="#projetos" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-indigo-600 transition-colors font-medium py-2"
+              >
+                Projetos
+              </a>
+              <a 
+                href="#como-funciona" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block text-gray-600 hover:text-indigo-600 transition-colors font-medium py-2"
+              >
+                Como Funciona
+              </a>
+            </nav>
+          )}
         </div>
       </header>
 
