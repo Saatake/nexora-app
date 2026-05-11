@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import api from '../api/axios';
+import fundoLivro from '../assets/livro-coluna.png';
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState(searchParams.get('email') || '');
-  const [token, setToken] = useState(searchParams.get('token') || '');
+  const token = searchParams.get('token') || ''; // Token oculto, pego da URL
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ const ResetPasswordPage = () => {
     try {
       const response = await api.post('/auth/reset-password', {
         email,
-        token,
+        token, // Usa o token da URL
         newPassword
       });
       setSuccess(response.data?.message || 'Senha redefinida com sucesso!');
@@ -47,17 +49,21 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-700 via-blue-600 to-teal-400 p-4'>
-      <div className='mb-8 flex items-center text-white text-3xl font-bold tracking-tight'>
-        <div className='bg-white text-indigo-700 w-10 h-10 flex items-center justify-center rounded-lg mr-3 shadow-lg'>
-          A
-        </div>
-        Agora
+    <div 
+      className='min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat'
+      style={{ backgroundImage: `url(${fundoLivro})` }}
+    >
+      <div className='mb-6 relative z-10'>
+        <img 
+          src='/src/assets/logo-icon.png' 
+          alt='Ágora' 
+          className='h-20 drop-shadow-lg'
+        />
       </div>
 
-      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 md:p-10'>
-        <div className='text-center mb-8'>
-          <h1 className='text-3xl font-extrabold text-gray-900'>Nova senha</h1>
+      <div className='relative z-10 w-full max-w-md bg-white rounded-xl shadow-2xl p-8 md:p-10'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900'>Nova senha</h1>
           <p className='text-sm text-gray-500 mt-2'>Defina sua nova senha para continuar.</p>
         </div>
 
@@ -66,7 +72,6 @@ const ResetPasswordPage = () => {
 
         <form onSubmit={handleSubmit} className='space-y-5'>
           <div className='space-y-1'>
-            <label className='text-sm font-semibold text-gray-700'>Email</label>
             <div className='relative'>
               <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                 <Mail className='h-5 w-5 text-gray-400' />
@@ -77,51 +82,45 @@ const ResetPasswordPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                className='pl-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400'
               />
             </div>
           </div>
 
           <div className='space-y-1'>
-            <label className='text-sm font-semibold text-gray-700'>Token</label>
-            <input
-              type='text'
-              placeholder='Cole o token recebido por email'
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              required
-              className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
-            />
-          </div>
-
-          <div className='space-y-1'>
-            <label className='text-sm font-semibold text-gray-700'>Nova senha</label>
             <div className='relative'>
               <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                 <Lock className='h-5 w-5 text-gray-400' />
               </div>
               <input
-                type='password'
-                placeholder='••••••••'
+                type={showPassword ? 'text' : 'password'}
+                placeholder='Nova senha'
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
-                className='pl-10 w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium text-gray-800 placeholder-gray-400'
+                className='pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400'
               />
+              <button 
+                type='button' 
+                onClick={() => setShowPassword((s) => !s)} 
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'
+              >
+                {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+              </button>
             </div>
           </div>
 
           <button
             type='submit'
             disabled={loading}
-            className='w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-bold rounded-xl shadow-lg transition-colors'
+            className='w-full py-3 bg-[#0a5c2f] hover:bg-[#084925] disabled:bg-green-400 text-white text-sm font-bold rounded shadow transition-colors'
           >
             {loading ? 'Salvando...' : 'Redefinir senha'}
           </button>
         </form>
 
         <p className='text-center text-sm text-gray-600 mt-6'>
-          Lembrou a senha? <Link to='/login' className='font-bold text-indigo-600 hover:text-indigo-500'>Entrar</Link>
+          Lembrou a senha? <Link to='/login' className='font-bold text-[#0a5c2f]'>Entrar</Link>
         </p>
       </div>
     </div>
