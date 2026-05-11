@@ -21,9 +21,8 @@ public class EmailService : IEmailService
         var username = _config["EmailSettings:Username"];
         var password = _config["EmailSettings:Password"];
         
-        // troquei porque o gmail bloqueou o envio de emails por suspeita de spam
         var fromEmail = _config["EmailSettings:From"]; 
-    
+
         var message = new MimeMessage();
         
         message.From.Add(new MailboxAddress("Ágora App", fromEmail)); 
@@ -38,3 +37,4 @@ public class EmailService : IEmailService
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }
+}
