@@ -20,9 +20,14 @@ public class EmailService : IEmailService
         var port = int.Parse(_config["EmailSettings:Port"]!);
         var username = _config["EmailSettings:Username"];
         var password = _config["EmailSettings:Password"];
+        
+        // troquei porque o gmail bloqueou o envio de emails por suspeita de spam
+        var fromEmail = _config["EmailSettings:From"]; 
 
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Ágora App", username));
+        
+        message.From.Add(new MailboxAddress("Ágora App", fromEmail)); 
+        
         message.To.Add(MailboxAddress.Parse(email));
         message.Subject = subject;
         message.Body = new TextPart("html") { Text = htmlMessage };
@@ -33,4 +38,3 @@ public class EmailService : IEmailService
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }
-}
