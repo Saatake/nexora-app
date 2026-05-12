@@ -91,8 +91,9 @@ const AppShell = ({
       <div className="flex min-h-screen">
         {/* Sidebar Desktop */}
         <aside className="hidden lg:flex w-60 flex-shrink-0 flex-col bg-[var(--agora-sidebar)] text-white p-6 sticky top-0 h-screen">
-          <div className="mb-8">
-            <img src={logoIcon} alt="Ágora" className="h-12" />
+          {/* Logo Centralizado */}
+          <div className="mb-8 flex justify-center w-full">
+            <img src={logoIcon} alt="Ágora" className="h-12 object-contain" />
           </div>
 
           <nav className="space-y-1 flex-1">
@@ -133,9 +134,13 @@ const AppShell = ({
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="flex items-center justify-between mb-8">
-            <img src={logoIcon} alt="Ágora" className="h-10" />
-            <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/70 hover:text-white">
+          {/* Logo Centralizado Mobile */}
+          <div className="flex items-center justify-center mb-8 relative">
+            <img src={logoIcon} alt="Ágora" className="h-10 object-contain" />
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="absolute right-0 text-white/70 hover:text-white"
+            >
               <X size={22} />
             </button>
           </div>
