@@ -55,7 +55,6 @@ public class ProjectService : IProjectService
             ImageUrl = created.ImageUrl,
             Category = created.Category.ToString(),
             AuthorId = created.UserId,
-            IsApproved = created.IsApproved,
             CreatedAt = created.CreatedAt
         };
     }
@@ -80,7 +79,6 @@ public class ProjectService : IProjectService
             Category = p.Category.ToString(),
             AuthorId = p.UserId,
             AuthorName = p.User?.Name ?? "Anônimo",
-            IsApproved = p.IsApproved,
             CreatedAt = p.CreatedAt
         });
     }
@@ -211,7 +209,6 @@ public class ProjectService : IProjectService
             FileUrl = p.FileUrl,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
-            IsApproved = p.IsApproved,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
             AverageGrade = avgGrade,

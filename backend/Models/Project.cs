@@ -39,7 +39,6 @@ public class Project
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public bool IsApproved { get; set; } = false;
 
     public int ViewCount { get; set; } = 0;
     public int DownloadCount { get; set; } = 0;
