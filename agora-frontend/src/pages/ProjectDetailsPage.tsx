@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  BadgeCheck,
   Calendar,
   ChevronLeft,
-  Clock,
   Download,
   Eye,
   ExternalLink,
@@ -35,7 +33,6 @@ type Project = {
   downloadCount: number;
   averageGrade?: number | null;
   createdAt: string;
-  isApproved: boolean;
 };
 
 type Evaluation = {
@@ -205,7 +202,7 @@ const ProjectDetailsPage = () => {
 
   return (
     <AppShell title="" subtitle="" showSearch={false}>
-      <div className="max-w-6xl">
+      <div>
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-1 text-sm text-[var(--agora-muted)] hover:text-[var(--agora-accent)] mb-6 transition-colors"
@@ -239,12 +236,7 @@ const ProjectDetailsPage = () => {
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--agora-accent-bg)] text-[var(--agora-accent)]">
                     {formatCategory(project.category)}
                   </span>
-                  <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-semibold ${
-                    project.isApproved ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {project.isApproved ? <BadgeCheck size={13} /> : <Clock size={13} />}
-                    {project.isApproved ? 'Aprovado' : 'Em avaliação'}
-                  </span>
+
                   {project.averageGrade != null && (
                     <span className="ml-auto inline-flex items-center gap-1.5 text-xl font-bold text-amber-500">
                       <Star size={20} className="fill-amber-400 text-amber-400" />
@@ -287,17 +279,7 @@ const ProjectDetailsPage = () => {
                   >
                     {isDownloading ? 'Baixando...' : 'Baixar PDF'}
                   </button>
-                  {project.githubLink && (
-                    <a
-                      href={project.githubLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--agora-border)] rounded-lg text-sm font-semibold text-[var(--agora-ink)] hover:border-[var(--agora-accent)] hover:text-[var(--agora-accent)] transition-colors"
-                    >
-                      <ExternalLink size={16} />
-                      Ver no GitHub
-                    </a>
-                  )}
+
                 </div>
               </div>
             </div>
