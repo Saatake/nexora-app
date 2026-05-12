@@ -233,7 +233,7 @@ const DashboardPage = () => {
           const Icon = card.icon;
           const content = (
             <div
-              className="dash-fade bg-white border border-[var(--agora-border)] rounded-xl p-5 shadow-[var(--agora-shadow)]"
+              className="dash-fade bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl p-5 shadow-[var(--agora-shadow)]"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -258,7 +258,7 @@ const DashboardPage = () => {
       </section>
 
       <section className="mt-6 grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6">
-        <div className="dash-fade bg-white border border-[var(--agora-border)] rounded-xl p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '200ms' }}>
+        <div className="dash-fade bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '200ms' }}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Evolucao das notas</h2>
@@ -279,7 +279,7 @@ const DashboardPage = () => {
           </div>
           <div className="relative">
             {lineChart.values.every(v => v === 0) ? (
-              <div className="h-40 flex items-center justify-center text-sm text-slate-400">
+              <div className="h-40 flex items-center justify-center text-sm text-[var(--agora-muted)]">
                 Ainda nao ha dados de evolucao de notas
               </div>
             ) : (
@@ -317,11 +317,11 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="dash-fade bg-white border border-[var(--agora-border)] rounded-xl p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '300ms' }}>
+        <div className="dash-fade bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl p-6 shadow-[var(--agora-shadow)]" style={{ animationDelay: '300ms' }}>
           <h2 className="font-bold text-[var(--agora-ink)] mb-4" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Media por criterio</h2>
           <div className="space-y-3">
             {criteriaBars.every(bar => bar.value === 0) ? (
-              <div className="text-sm text-slate-400">Ainda nao ha avaliacoes por criterio</div>
+              <div className="text-sm text-[var(--agora-muted)]">Ainda nao ha avaliacoes por criterio</div>
             ) : (
               criteriaBars.map((bar) => (
                 <div key={bar.label}>
@@ -347,7 +347,7 @@ const DashboardPage = () => {
           <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Projetos recentes</h2>
           <Link to="/projects" className="text-sm text-[#0a5c2f] hover:underline font-medium">Ver todos</Link>
         </div>
-        <div className="bg-white border border-[var(--agora-border)] rounded-xl overflow-hidden shadow-[var(--agora-shadow)]">
+        <div className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl overflow-hidden shadow-[var(--agora-shadow)]">
           <div className="mt-5 space-y-4">
               {isLoading && (
                 <div className="space-y-3">

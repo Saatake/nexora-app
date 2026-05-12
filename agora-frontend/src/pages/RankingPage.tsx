@@ -103,7 +103,7 @@ const RankingPage = () => {
         ].map((item, index) => {
           const Icon = item.icon;
           return (
-            <div key={index} className="bg-white border border-[var(--agora-border)] rounded-xl p-4 shadow-[var(--agora-shadow)] text-center">
+            <div key={index} className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl p-4 shadow-[var(--agora-shadow)] text-center">
               <Icon size={20} className="mx-auto mb-2 text-[#0a5c2f]" />
               <p className="text-xl font-bold text-[var(--agora-ink)]">{item.value}</p>
               <p className="text-xs text-[var(--agora-muted)]">{item.label}</p>
@@ -113,7 +113,7 @@ const RankingPage = () => {
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] overflow-hidden">
+        <div className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--agora-border)] flex items-center gap-2">
             <Crown size={18} className="text-[#0a5c2f]" />
             <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Melhores projetos</h2>
@@ -146,7 +146,7 @@ const RankingPage = () => {
           )}
         </div>
 
-        <div className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] overflow-hidden">
+        <div className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--agora-border)] flex items-center gap-2">
             <Users size={18} className="text-[#0a5c2f]" />
             <h2 className="font-bold text-[var(--agora-ink)]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Melhores alunos</h2>

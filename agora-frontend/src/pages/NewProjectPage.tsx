@@ -34,7 +34,7 @@ const NewProjectPage = () => {
 
   const summaryCount = useMemo(() => summary.length, [summary]);
 
-  const inputCls = 'w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400 outline-none';
+  const inputCls = 'w-full px-4 py-3 border border-[var(--agora-border)] rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400 outline-none';
 
   const handleAddMember = () => {
     const trimmed = memberName.trim();
@@ -141,7 +141,7 @@ const NewProjectPage = () => {
           </div>
         )}
 
-        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+        <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Informacoes Basicas</h2>
 
           <div className="mt-4 space-y-4">
@@ -162,7 +162,7 @@ const NewProjectPage = () => {
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value as ProjectCategory)}
-                  className={`mt-2 ${inputCls} bg-white appearance-none`}
+                  className={`mt-2 ${inputCls} bg-[var(--agora-panel)] appearance-none`}
                 >
                   <option value="Tcc">TCC</option>
                   <option value="Upx">UPX</option>
@@ -177,7 +177,7 @@ const NewProjectPage = () => {
                 <select
                   value={course}
                   onChange={(event) => setCourse(event.target.value)}
-                  className={`mt-2 ${inputCls} bg-white appearance-none`}
+                  className={`mt-2 ${inputCls} bg-[var(--agora-panel)] appearance-none`}
                 >
                   <option value="">Selecione o curso</option>
                   {FACENS_COURSES.map((courseOption) => (
@@ -201,7 +201,7 @@ const NewProjectPage = () => {
           </div>
         </section>
 
-        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+        <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Equipe</h2>
 
           <div className="mt-4 space-y-4">
@@ -217,7 +217,7 @@ const NewProjectPage = () => {
                 <button
                   type="button"
                   onClick={handleAddMember}
-                  className="inline-flex items-center gap-2 px-4 py-3 border border-gray-300 rounded text-sm font-semibold text-gray-600 hover:border-green-800 hover:text-green-800 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-3 border border-[var(--agora-border)] rounded text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800 transition-colors"
                 >
                   <Plus size={16} />
                   Adicionar integrante
@@ -254,7 +254,7 @@ const NewProjectPage = () => {
           </div>
         </section>
 
-        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+        <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Descricao</h2>
 
           <div className="mt-4 space-y-4">
@@ -285,7 +285,7 @@ const NewProjectPage = () => {
           </div>
         </section>
 
-        <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+        <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
           <h2 className="text-lg font-semibold">Links e Arquivos</h2>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -335,13 +335,13 @@ const NewProjectPage = () => {
             )}
           </div>
 
-          <div className="mt-4 border border-dashed border-gray-300 rounded px-4 py-4 hover:border-green-800 transition-colors">
+          <div className="mt-4 border border-dashed border-[var(--agora-border)] rounded px-4 py-4 hover:border-green-800 transition-colors">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-[var(--agora-ink)]">Enviar PDF</p>
                 <p className="text-xs text-[var(--agora-muted)]">Maximo 20MB. O link sera preenchido automaticamente.</p>
               </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 border border-gray-300 rounded px-4 py-2 text-sm font-semibold text-gray-600 hover:border-green-800 hover:text-green-800 transition-colors">
+              <label className="inline-flex cursor-pointer items-center gap-2 border border-[var(--agora-border)] rounded px-4 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800 transition-colors">
                 <input
                   type="file"
                   accept="application/pdf"
