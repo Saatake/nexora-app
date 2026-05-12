@@ -7,7 +7,7 @@ import {
   Clock,
   Download,
   Eye,
-  Github,
+  ExternalLink,
   MessageSquare,
   Star,
   UserCircle2
@@ -294,7 +294,7 @@ const ProjectDetailsPage = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--agora-border)] rounded-lg text-sm font-semibold text-[var(--agora-ink)] hover:border-[var(--agora-accent)] hover:text-[var(--agora-accent)] transition-colors"
                     >
-                      <Github size={16} />
+                      <ExternalLink size={16} />
                       Ver no GitHub
                     </a>
                   )}
@@ -399,7 +399,7 @@ const ProjectDetailsPage = () => {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--agora-accent)] hover:underline"
                       >
-                        <Github size={15} />
+                        <ExternalLink size={15} />
                         Ver no GitHub
                       </a>
                     )}
