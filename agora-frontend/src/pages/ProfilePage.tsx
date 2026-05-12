@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { BookOpen, Calendar, Mail, Star, UserCircle2, Upload } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
+import ImageCropModal from '../components/ImageCropModal';
 import { useAuth } from '../contexts/AuthContext';
 
 type UserProfile = {
@@ -56,6 +57,7 @@ const ProfilePage = () => {
     interests: ''
   });
   const [error, setError] = useState('');
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   const isOwnProfile = !id || id === currentUser?.id;
   const userId = id || currentUser?.id;
@@ -152,23 +154,30 @@ const ProfilePage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validar tamanho (5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError('A imagem deve ter no máximo 5MB.');
       return;
     }
 
-    // Validar tipo
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setError('Envie uma imagem JPG, PNG ou WEBP.');
       return;
     }
 
+    // Open crop modal instead of direct upload
+    const reader = new FileReader();
+    reader.onload = (e) => setCropSrc(e.target?.result as string);
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
+  const handlePhotoCropConfirm = async (blob: Blob) => {
+    setCropSrc(null);
     setIsUploadingPhoto(true);
     setError('');
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', blob, 'photo.jpg');
 
       const uploadResponse = await api.post('/uploads/profile-photo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -218,6 +227,7 @@ const ProfilePage = () => {
   }
 
   return (
+    <>
     <AppShell title="" subtitle="" showSearch={false}>
       <div className="mt-8 space-y-8">
         {error && (
@@ -468,6 +478,16 @@ const ProfilePage = () => {
         )}
       </div>
     </AppShell>
+
+    {cropSrc && (
+      <ImageCropModal
+        imageSrc={cropSrc}
+        aspect={1}
+        onConfirm={handlePhotoCropConfirm}
+        onCancel={() => setCropSrc(null)}
+      />
+    )}
+  </>
   );
 };
 
