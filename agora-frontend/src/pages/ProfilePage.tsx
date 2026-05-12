@@ -86,7 +86,7 @@ const ProfilePage = () => {
         // Buscar projetos
         const projectsResponse = isOwnProfile
           ? await api.get('/projects/me', { params: { page: 1, pageSize: 10 } })
-          : { data: { items: [] } };
+          : await api.get(`/projects/user/${userId}`, { params: { page: 1, pageSize: 10 } });
 
         if (!isMounted) return;
 
@@ -238,7 +238,7 @@ const ProfilePage = () => {
 
         {/* Cabeçalho com foto e info */}
         <section className="relative">
-          <div className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] px-8 py-8">
+          <div className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] px-8 py-8">
             {/* Foto de perfil */}
             <div className="relative flex items-center justify-between">
               <div className="flex items-center gap-6">
@@ -296,7 +296,7 @@ const ProfilePage = () => {
               {isOwnProfile && (
                 <button
                   onClick={handleEditProfile}
-                  className="rounded-xl bg-white border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-600 hover:border-green-800 hover:text-green-800"
+                  className="rounded-xl bg-[var(--agora-panel)] border border-[var(--agora-border)] px-6 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800"
                 >
                   ✏️ Editar Perfil
                 </button>
@@ -332,18 +332,18 @@ const ProfilePage = () => {
           {/* Coluna principal */}
           <div className="lg:col-span-2 space-y-8">
             {/* Projetos Publicados */}
-            <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+            <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
               <h3 className="text-xl font-bold text-[var(--agora-ink)] mb-6">Projetos Publicados</h3>
               
               {projects.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">Nenhum projeto publicado ainda</p>
+                <p className="text-center text-[var(--agora-muted)] py-8">Nenhum projeto publicado ainda</p>
               ) : (
                 <div className="space-y-4">
                   {projects.map((project) => (
                     <Link
                       key={project.id}
                       to={`/projects/${project.id}`}
-                      className="flex items-center gap-4 p-5 rounded-xl border border-[var(--agora-border)] bg-white hover:bg-[var(--agora-accent-bg)] transition-colors"
+                      className="flex items-center gap-4 p-5 rounded-xl border border-[var(--agora-border)] bg-[var(--agora-panel)] hover:bg-[var(--agora-accent-bg)] transition-colors"
                     >
                       <div className="w-14 h-14 rounded-2xl bg-[#0a5c2f] flex items-center justify-center flex-shrink-0">
                         <BookOpen className="w-7 h-7 text-white" />
@@ -373,7 +373,7 @@ const ProfilePage = () => {
           <div className="space-y-8">
             {/* Áreas de Interesse */}
             {profile.interests && profile.interests.trim() && (
-              <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+              <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
                 <h3 className="text-lg font-bold text-[var(--agora-ink)] mb-4">Áreas de Interesse</h3>
                 <div className="space-y-2">
                   {profile.interests.split(',').map((interest, index) => (
@@ -389,7 +389,7 @@ const ProfilePage = () => {
             )}
 
             {/* Contato */}
-            <section className="bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+            <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
               <h3 className="text-lg font-bold text-[var(--agora-ink)] mb-4">Contato</h3>
               <div className="flex items-center gap-3 text-sm text-[var(--agora-muted)]">
                 <Mail className="w-5 h-5" />
@@ -402,12 +402,12 @@ const ProfilePage = () => {
         {/* Modal de Edição */}
         {isEditing && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-[var(--agora-panel)] rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-[var(--agora-ink)]">Editar Perfil</h3>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="text-slate-400 hover:text-slate-600"
+                  className="text-[var(--agora-muted)] hover:text-[var(--agora-muted)]"
                 >
                   ✕
                 </button>
@@ -415,44 +415,44 @@ const ProfilePage = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nome</label>
+                  <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Nome</label>
                   <input
                     type="text"
                     value={editData.name}
                     onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                    className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Curso</label>
+                  <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Curso</label>
                   <input
                     type="text"
                     value={editData.course}
                     onChange={(e) => setEditData({ ...editData, course: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                    className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Bio</label>
+                  <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Bio</label>
                   <textarea
                     rows={4}
                     value={editData.bio}
                     onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm resize-none"
+                    className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">
                     Áreas de Interesse (separadas por vírgula)
                   </label>
                   <input
                     type="text"
                     value={editData.interests}
                     onChange={(e) => setEditData({ ...editData, interests: e.target.value })}
-                    className="w-full rounded border border-gray-300 px-4 py-2 text-sm"
+                    className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
                   />
                 </div>
               </div>
@@ -461,7 +461,7 @@ const ProfilePage = () => {
                 <button
                   onClick={() => setIsEditing(false)}
                   disabled={isSaving}
-                  className="rounded border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded border border-[var(--agora-border)] px-6 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:bg-[var(--agora-bg)] disabled:opacity-50"
                 >
                   Cancelar
                 </button>
