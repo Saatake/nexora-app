@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Eye, Star, Users } from 'lucide-react';
+import { Download, Eye, Star } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import api from '../api/axios';
 
@@ -15,7 +15,16 @@ type Project = {
   averageGrade?: number | null;
   viewCount: number;
   downloadCount: number;
+  imageUrl?: string | null;
   createdAt: string;
+};
+
+const formatCategory = (category: string) => {
+  const lookup: Record<string, string> = {
+    Tcc: 'TCC', Upx: 'UPX', IniciacaoCientifica: 'IC',
+    Relatorio: 'Relatório', ProjetoEscrito: 'Projeto escrito'
+  };
+  return lookup[category] ?? category;
 };
 
 const ExploreProjectsPage = () => {
@@ -59,55 +68,70 @@ const ExploreProjectsPage = () => {
         </p>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {isLoading && Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-96 rounded-xl bg-slate-100 animate-pulse" />
+          <div key={i} className="h-72 rounded-2xl bg-[var(--agora-border)] animate-pulse" />
         ))}
 
         {!isLoading && projects.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-200 p-8 text-sm text-[var(--agora-muted)]">Nenhum projeto encontrado.</div>
+          <div className="rounded-xl border border-dashed border-[var(--agora-border)] p-8 text-sm text-[var(--agora-muted)]">Nenhum projeto encontrado.</div>
         )}
 
         {!isLoading && projects.map((project) => (
           <Link
             key={project.id}
             to={`/projects/${project.id}`}
-            className="group flex h-full flex-col rounded-xl border border-[var(--agora-border)] bg-white p-6 shadow-[var(--agora-shadow)] transition hover:-translate-y-1 hover:border-[#0a5c2f] hover:shadow-md"
+            className="group flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] overflow-hidden transition hover:-translate-y-1 hover:border-[var(--agora-accent)] hover:shadow-md"
           >
-            <div className="flex items-start justify-between gap-4">
-              <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-[#0a5c2f]">
-                {project.category}
-              </span>
-              <span className="flex items-center gap-1 text-xl font-semibold text-amber-500">
-                <Star size={22} className="fill-amber-500 text-amber-500" />
-                {project.averageGrade?.toFixed(1) ?? '--'}
-              </span>
+            {/* Cover image */}
+            <div className="h-40 w-full bg-[var(--agora-bg)] overflow-hidden flex-shrink-0">
+              {project.imageUrl ? (
+                <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-4xl font-black text-[var(--agora-border)] select-none">
+                    {project.title.charAt(0)}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="mt-6 space-y-4">
-              <h3 className="text-[1.5rem] font-bold leading-tight text-[var(--agora-ink)] transition group-hover:text-[#0a5c2f]">
+            <div className="flex flex-col flex-1 p-5">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--agora-accent-bg)] text-[var(--agora-accent)]">
+                  {formatCategory(project.category)}
+                </span>
+                {project.averageGrade != null && (
+                  <span className="flex items-center gap-1 text-base font-bold text-amber-500 flex-shrink-0">
+                    <Star size={16} className="fill-amber-400 text-amber-400" />
+                    {project.averageGrade.toFixed(1)}
+                  </span>
+                )}
+              </div>
+
+              <h3 className="text-base font-bold leading-snug text-[var(--agora-ink)] group-hover:text-[var(--agora-accent)] transition-colors mb-2 line-clamp-2">
                 {project.title}
               </h3>
-              <p className="text-base text-[var(--agora-muted)]">
-                {project.course ? `${project.course} • ` : ''}
-                {project.createdAt ? new Date(project.createdAt).getFullYear() : '--'}
-                {project.authorName ? ` • ${project.authorName}` : ''}
-              </p>
-              <p className="text-base leading-relaxed text-[var(--agora-muted)] line-clamp-3">
+
+              <p className="text-sm leading-relaxed text-[var(--agora-muted)] line-clamp-2 flex-1">
                 {project.summary || project.description}
               </p>
-            </div>
 
-            <div className="mt-auto pt-8">
-              <div className="border-t border-[var(--agora-border)] pt-5">
-                <div className="flex items-center justify-between text-base text-[var(--agora-muted)]">
-                  <span className="inline-flex items-center gap-2">
-                    <Users size={18} />
-                    {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <Eye size={18} />
+              <div className="mt-4 pt-4 border-t border-[var(--agora-border)] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full bg-[var(--agora-accent)] flex items-center justify-center text-white font-bold text-xs">
+                    {(project.authorName ?? 'A').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-[var(--agora-muted)] truncate max-w-[120px]">{project.authorName}</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-[var(--agora-muted)]">
+                  <span className="inline-flex items-center gap-1">
+                    <Eye size={13} />
                     {new Intl.NumberFormat('pt-BR').format(project.viewCount)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Download size={13} />
+                    {new Intl.NumberFormat('pt-BR').format(project.downloadCount)}
                   </span>
                 </div>
               </div>

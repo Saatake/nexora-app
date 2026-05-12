@@ -14,6 +14,7 @@ type Project = {
   downloadCount: number;
   createdAt: string;
   isApproved: boolean;
+  imageUrl?: string | null;
 };
 
 type PagedResponse<T> = {
@@ -163,7 +164,7 @@ const MyProjectsPage = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading &&
           Array.from({ length: 4 }).map((_, index) => (
             <div key={`skeleton-${index}`} className="h-44 rounded-xl bg-slate-100 animate-pulse" />
@@ -179,49 +180,63 @@ const MyProjectsPage = () => {
           projects.map((project) => (
             <div
               key={project.id}
-              className="relative bg-white border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-5"
+              className="relative flex flex-col bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl shadow-[var(--agora-shadow)] overflow-hidden"
             >
-              {/* Botões de ação */}
-              <div className="absolute top-4 right-4 flex gap-2">
-                <button
-                  onClick={(e) => handleEdit(project.id, e)}
-                  className="h-8 w-8 rounded bg-gray-100 text-[var(--agora-muted)] flex items-center justify-center hover:text-[#0a5c2f] hover:bg-green-50 transition"
-                  title="Editar"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => confirmDelete(project.id, project.title, e)}
-                  className="h-8 w-8 rounded bg-gray-100 text-[var(--agora-muted)] flex items-center justify-center hover:text-red-600 hover:bg-red-50 transition"
-                  title="Excluir"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Cover image */}
+              <Link to={`/projects/${project.id}`} className="block h-36 bg-[var(--agora-bg)] overflow-hidden flex-shrink-0">
+                {project.imageUrl ? (
+                  <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-4xl font-black text-[var(--agora-border)] select-none">
+                      {project.title.charAt(0)}
+                    </div>
+                  </div>
+                )}
+              </Link>
 
-              <Link to={`/projects/${project.id}`} className="block">
-                <div className="flex items-start justify-between mb-3 pr-20">
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded bg-green-100 text-[#0a5c2f]">
-                    {formatCategory(project.category)}
-                  </span>
-                  {project.isApproved ? (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">Aprovado</span>
-                  ) : (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Pendente</span>
-                  )}
+              <div className="p-5 flex flex-col flex-1">
+                {/* Botões de ação */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--agora-accent-bg)] text-[var(--agora-accent)]">
+                      {formatCategory(project.category)}
+                    </span>
+                    {project.isApproved ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">Aprovado</span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Pendente</span>
+                    )}
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={(e) => handleEdit(project.id, e)}
+                      className="h-8 w-8 rounded-lg bg-[var(--agora-bg)] text-[var(--agora-muted)] flex items-center justify-center hover:text-[var(--agora-accent)] hover:bg-[var(--agora-accent-bg)] transition"
+                      title="Editar"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => confirmDelete(project.id, project.title, e)}
+                      className="h-8 w-8 rounded-lg bg-[var(--agora-bg)] text-[var(--agora-muted)] flex items-center justify-center hover:text-red-600 hover:bg-red-50 transition"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
-                <h3 className="font-bold text-[var(--agora-ink)] mb-1 leading-snug">{project.title}</h3>
-                <p className="text-sm text-[var(--agora-muted)] line-clamp-2 flex-1">{project.description}</p>
+                <Link to={`/projects/${project.id}`} className="block flex-1">
+                  <h3 className="font-bold text-[var(--agora-ink)] mb-1 leading-snug line-clamp-2">{project.title}</h3>
+                  <p className="text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
 
-                <div className="mt-4 pt-4 border-t border-[var(--agora-border)] flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-[var(--agora-muted)]">
+                  <div className="mt-4 pt-4 border-t border-[var(--agora-border)] flex items-center gap-3 text-xs text-[var(--agora-muted)]">
                     <span className="flex items-center gap-1"><Star size={12} className="text-amber-400" />{project.averageGrade?.toFixed(1) ?? '--'}</span>
                     <span className="flex items-center gap-1"><Eye size={12} />{new Intl.NumberFormat('pt-BR').format(project.viewCount)}</span>
                     <span className="flex items-center gap-1"><Calendar size={12} />{formatDate(project.createdAt)}</span>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             </div>
           ))}
       </div>
@@ -229,7 +244,7 @@ const MyProjectsPage = () => {
       {/* Modal de confirmação de exclusão */}
       {deleteModal.show && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full">
+          <div className="bg-[var(--agora-panel)] rounded-xl shadow-2xl p-6 max-w-sm w-full">
             <h3 className="font-bold text-[var(--agora-ink)] mb-2">Excluir projeto</h3>
             <p className="text-sm text-[var(--agora-muted)] mb-6">
               Tem certeza que deseja excluir <span className="font-semibold text-[var(--agora-ink)]">"{deleteModal.projectTitle}"</span>? Esta ação não pode ser desfeita.
