@@ -12,7 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import logoIcon from '../assets/logo-icon.png';
+import logoIcon from '../assets/logo.png';
 
 type AppShellProps = {
   title: string;
