@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, X } from 'lucide-react';
+import { Image, Plus, X } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
+import ImageCropModal from '../components/ImageCropModal';
 import { FACENS_COURSES } from '../constants/facensCourses';
 
 type ProjectCategory = 'Tcc' | 'Upx' | 'IniciacaoCientifica' | 'Relatorio' | 'ProjetoEscrito';
@@ -18,6 +19,7 @@ type Project = {
   teamMembers?: string;
   githubLink: string;
   fileUrl: string;
+  imageUrl?: string;
   category: string;
 };
 
@@ -39,6 +41,10 @@ const EditProjectPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -68,6 +74,8 @@ const EditProjectPage = () => {
         setCourse(project.course || '');
         setArea(project.area || '');
         setAdvisor(project.advisor || '');
+        setImageUrl(project.imageUrl || '');
+        if (project.imageUrl) setCoverPreview(project.imageUrl);
         
         if (project.teamMembers) {
           setMembers(project.teamMembers.split(',').map(m => m.trim()).filter(Boolean));
@@ -91,6 +99,37 @@ const EditProjectPage = () => {
 
   const handleRemoveMember = (member: string) => {
     setMembers((prev) => prev.filter((item) => item !== member));
+  };
+
+  const handleCoverFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setUploadError('Imagem deve ser JPG, PNG ou WEBP.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => setCropSrc(e.target?.result as string);
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
+  const handleCropConfirm = async (blob: Blob) => {
+    setCropSrc(null);
+    const previewUrl = URL.createObjectURL(blob);
+    setCoverPreview(previewUrl);
+    setIsUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', blob, 'cover.jpg');
+      const response = await api.post('/uploads/project-cover', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setImageUrl(response.data.url ?? '');
+    } catch {
+      setUploadError('Não foi possível enviar a imagem de capa.');
+      setCoverPreview(null);
+    } finally {
+      setIsUploadingCover(false);
+    }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,16 +174,9 @@ const EditProjectPage = () => {
 
     try {
       await api.put(`/projects/${id}`, {
-        title,
-        description,
-        summary,
-        course,
-        area,
-        advisor,
+        title, description, summary, course, area, advisor,
         teamMembers: members.join(', '),
-        githubLink,
-        fileUrl,
-        category
+        githubLink, fileUrl, imageUrl, category
       });
       navigate('/projects');
     } catch (err: any) {
@@ -340,6 +372,32 @@ const EditProjectPage = () => {
             </div>
           </div>
 
+          <div className="mt-4 border border-dashed border-[var(--agora-border)] rounded-xl px-4 py-4 hover:border-[var(--agora-accent)] transition-colors">
+            <p className="text-sm font-semibold text-[var(--agora-ink)] mb-1">Imagem de capa (opcional)</p>
+            <p className="text-xs text-[var(--agora-muted)] mb-3">Adicione uma imagem para o card do projeto. Máx 5MB.</p>
+            {coverPreview ? (
+              <div className="relative h-36 rounded-lg overflow-hidden mb-3">
+                <img src={coverPreview} alt="Capa" className="w-full h-full object-cover" />
+                {isUploadingCover && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm">Enviando...</div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setCoverPreview(null); setImageUrl(''); }}
+                  className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <label className="inline-flex cursor-pointer items-center gap-2 border border-[var(--agora-border)] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:border-[var(--agora-accent)] hover:text-[var(--agora-accent)] transition-colors">
+                <Image size={16} />
+                Selecionar imagem
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleCoverFileSelected} className="hidden" />
+              </label>
+            )}
+          </div>
+
           <div className="mt-4 border border-dashed border-gray-300 rounded px-4 py-4 hover:border-green-800 transition-colors">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -381,6 +439,15 @@ const EditProjectPage = () => {
           </button>
         </div>
       </form>
+
+      {cropSrc && (
+        <ImageCropModal
+          imageSrc={cropSrc}
+          aspect={16 / 9}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
     </AppShell>
   );
 };
