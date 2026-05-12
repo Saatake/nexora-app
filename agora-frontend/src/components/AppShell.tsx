@@ -9,9 +9,12 @@ import {
   Trophy,
   User2,
   Menu,
-  X
+  X,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import logoIcon from '../assets/logo.png';
 
 type AppShellProps = {
@@ -32,6 +35,7 @@ const AppShell = ({
   showSearch = true
 }: AppShellProps) => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const initial = user?.name?.trim()?.charAt(0).toUpperCase() ?? 'A';
 
@@ -178,7 +182,16 @@ const AppShell = ({
                   {title}
                 </h1>
               </div>
-              {headerActions && <div className="flex items-center gap-3">{headerActions}</div>}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center justify-center h-9 w-9 rounded border border-[var(--agora-border)] bg-[var(--agora-panel)] text-[var(--agora-muted)] hover:text-[var(--agora-ink)] transition-colors"
+                  title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+                >
+                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                </button>
+                {headerActions && <div className="flex items-center gap-3">{headerActions}</div>}
+              </div>
             </div>
 
             {showSearch && (
@@ -190,7 +203,7 @@ const AppShell = ({
                     onChange={(e) => setQuery(e.target.value)}
                     type="text"
                     placeholder={searchPlaceholder}
-                    className="w-full rounded border border-[var(--agora-border)] bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition focus:ring-1 focus:ring-[var(--agora-accent)] focus:border-[var(--agora-accent)]"
+                    className="w-full rounded border border-[var(--agora-border)] bg-[var(--agora-input-bg)] pl-10 pr-4 py-2.5 text-sm outline-none transition focus:ring-1 focus:ring-[var(--agora-accent)] focus:border-[var(--agora-accent)] text-[var(--agora-ink)]"
                   />
                 </div>
                 <button
