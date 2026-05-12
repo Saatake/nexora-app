@@ -50,6 +50,13 @@ public class UserController : ControllerBase
         return Ok(result.Data);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> SearchUsers([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var users = await _userService.SearchUsersAsync(search, page, pageSize);
+        return Ok(users);
+    }
+
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequestDto model)
     {

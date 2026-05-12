@@ -68,4 +68,35 @@ public class UserService : IUserService
 
         return new UserResult { Succeeded = true, Message = "senha alterada com sucesso!" };
     }
+
+    public Task<IEnumerable<UserResponseDto>> SearchUsersAsync(string? search, int page, int pageSize)
+    {
+        var query = _userManager.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.ToLower();
+            query = query.Where(u => u.Name.ToLower().Contains(term)
+                                  || (u.Course != null && u.Course.ToLower().Contains(term)));
+        }
+
+        var users = query
+            .OrderBy(u => u.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new UserResponseDto
+            {
+                Id = u.Id,
+                Email = u.Email!,
+                Name = u.Name,
+                Course = u.Course ?? string.Empty,
+                Bio = u.Bio ?? string.Empty,
+                PhotoUrl = u.PhotoUrl,
+                Interests = u.Interests,
+                RoleType = u.RoleType.ToString()
+            })
+            .AsEnumerable();
+
+        return Task.FromResult(users);
+    }
 }
