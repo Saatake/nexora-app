@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - agoraapp
 
 on:
@@ -12,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
-
     steps:
       - uses: actions/checkout@v4
 
@@ -24,31 +18,32 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
-        working-directory: ./backend
+        # Adicionei os parâmetros extras aqui para ignorar aquele erro de curinga (**/*.cs)
+        run: dotnet build backend/backend.csproj --configuration Release /p:EnableDefaultCompileItems=true /p:EnableDefaultEmbeddedResourceItems=false
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
-        working-directory: ./backend
+        # Publicando em uma pasta chamada 'publish-output'
+        run: dotnet publish backend/backend.csproj -c Release -o ./publish-output
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ./publish-output
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./publish-output # Especifica onde baixar
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -58,10 +53,8 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4DC2DB86D4BA466FB83BE35E4E57DAF2 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'agoraapp'
           slot-name: 'Production'
-          package: .
-          
+          package: ./publish-output
