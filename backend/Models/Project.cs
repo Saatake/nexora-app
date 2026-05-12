@@ -44,6 +44,9 @@ public class Project
     public int ViewCount { get; set; } = 0;
     public int DownloadCount { get; set; } = 0;
 
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
     [Required]
     public string UserId { get; set; } = string.Empty;
 

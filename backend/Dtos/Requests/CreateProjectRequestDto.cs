@@ -32,6 +32,9 @@ public class CreateProjectRequestDto
 
     public string FileUrl { get; set; } = string.Empty;
 
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }
 }
@@ -64,6 +67,9 @@ public class UpdateProjectRequestDto
     public string GithubLink { get; set; } = string.Empty;
 
     public string FileUrl { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
 
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }

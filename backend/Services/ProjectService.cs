@@ -32,6 +32,7 @@ public class ProjectService : IProjectService
             TeamMembers = request.TeamMembers,
             GithubLink = request.GithubLink,
             FileUrl = request.FileUrl,
+            ImageUrl = request.ImageUrl,
             Category = request.Category,
             UserId = userId,
             CreatedAt = DateTime.UtcNow
@@ -51,7 +52,9 @@ public class ProjectService : IProjectService
             TeamMembers = created.TeamMembers,
             GithubLink = created.GithubLink,
             FileUrl = created.FileUrl,
+            ImageUrl = created.ImageUrl,
             Category = created.Category.ToString(),
+            AuthorId = created.UserId,
             IsApproved = created.IsApproved,
             CreatedAt = created.CreatedAt
         };
@@ -73,7 +76,9 @@ public class ProjectService : IProjectService
             TeamMembers = p.TeamMembers,
             GithubLink = p.GithubLink,
             FileUrl = p.FileUrl,
+            ImageUrl = p.ImageUrl,
             Category = p.Category.ToString(),
+            AuthorId = p.UserId,
             AuthorName = p.User?.Name ?? "Anônimo",
             IsApproved = p.IsApproved,
             CreatedAt = p.CreatedAt
@@ -137,6 +142,7 @@ public class ProjectService : IProjectService
         project.TeamMembers = model.TeamMembers;
         project.GithubLink = model.GithubLink;
         project.FileUrl = model.FileUrl;
+        project.ImageUrl = model.ImageUrl;
         project.Category = model.Category;
 
         await _projectRepository.UpdateAsync(project);

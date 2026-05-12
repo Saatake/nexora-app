@@ -12,7 +12,9 @@ public class ProjectResponseDto
     public string? TeamMembers { get; set; }
     public string GithubLink { get; set; } = string.Empty;
     public string FileUrl { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public string Category { get; set; } = string.Empty;
+    public string AuthorId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
     public bool IsApproved { get; set; }
     public int ViewCount { get; set; }
