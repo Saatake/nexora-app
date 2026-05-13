@@ -1,73 +1,164 @@
-# Ágora - Plataforma Acadêmica
+# Ágora — Plataforma Acadêmica
 
-O Ágora é uma plataforma digital voltada à publicação de projetos acadêmicos, permitindo que estudantes compartilhem seus trabalhos e recebam feedbacks de professores e outros alunos, promovendo interação e desenvolvimento contínuo.
+> Plataforma digital para publicação e acompanhamento de projetos acadêmicos, desenvolvida como projeto da disciplina de Desenvolvimento Web na **Facens**.
 
-## Objetivo
+---
 
-O principal objetivo do Ágora é centralizar a publicação e o acompanhamento de projetos acadêmicos, facilitando a comunicação entre os participantes do ambiente universitário e incentivando a melhoria contínua dos trabalhos.
+## Sobre o Projeto
 
+O **Ágora** é uma plataforma onde estudantes universitários podem publicar seus projetos acadêmicos, receber feedbacks de professores e interagir com outros alunos. O objetivo é centralizar e dar visibilidade aos trabalhos produzidos dentro da universidade, promovendo uma cultura de melhoria contínua e colaboração.
 
-## Video Pitch
+🎥 **Video Pitch:** [Assistir no YouTube](https://www.youtube.com/watch?v=TGFyxHVJmjs)
 
-Link: https://www.youtube.com/watch?v=TGFyxHVJmjs
+---
 
 ## Público-Alvo
 
--  Estudantes universitários (principal público usuário)
--  Professores (mentores e avaliadores)
--  Recrutadores (observação de talentos e projetos)
+- **Estudantes universitários** — publicam e acompanham seus projetos
+- **Professores** — fornecem feedback e avaliam os trabalhos
+- **Recrutadores** — descobrem talentos e projetos relevantes
 
-## Problema
+---
 
-Atualmente, estudantes enfrentam dificuldades para:
+## Funcionalidades
 
-- Obter feedback qualificado sobre seus projetos
-- Compartilhar seus trabalhos fora do ambiente da sala de aula
-- Manter um acompanhamento contínuo com professores
-- Ter visibilidade para seus projetos acadêmicos
+- Cadastro e autenticação de usuários (estudantes e professores) com confirmação por e-mail
+- Publicação de projetos acadêmicos com imagens e links
+- Sistema de comentários e avaliações
+- Dashboard pessoal com resumo de atividades
+- Exploração e busca de projetos de outros usuários
+- Ranking de projetos mais avaliados
+- Edição de perfil com foto
+- Recuperação de senha por e-mail
 
-##  Solução
-
-O Ágora propõe uma plataforma onde:
-
-- Estudantes podem publicar seus projetos acadêmicos
-- Professores podem fornecer feedback e acompanhar o progresso
-- Alunos podem comentar e interagir entre si
-- Projetos ganham mais visibilidade dentro e fora do ambiente acadêmico
-
-##  Funcionalidades
-
--  Cadastro de usuários (estudantes e professores)
--  Publicação de projetos acadêmicos
--  Sistema de comentários e feedback
--  Acompanhamento por professores
--  Sistema de busca e filtragem de projetos
-
-## Diferenciais
-
-- Foco em projetos acadêmicos (não apenas networking)
-- Incentivo ao feedback contínuo e melhoria dos trabalhos
-- Aproximação entre alunos e professores fora da sala de aula
-- Possibilidade de exposição de projetos para recrutadores
+---
 
 ## Tecnologias Utilizadas
 
-- HTML
-- CSS
-- JavaScript
-- (Adicionar outras tecnologias, se aplicável)
+### Frontend
+| Tecnologia | Descrição |
+|---|---|
+| React 19 | Biblioteca principal de UI |
+| TypeScript | Tipagem estática |
+| Vite | Bundler e servidor de desenvolvimento |
+| Tailwind CSS v4 | Estilização utilitária |
+| React Router DOM v7 | Roteamento |
+| Axios | Requisições HTTP |
+| Lucide React | Biblioteca de ícones |
+| React Easy Crop | Recorte de imagens no upload |
+
+### Backend
+| Tecnologia | Descrição |
+|---|---|
+| ASP.NET Core (.NET 10) | Framework web |
+| Entity Framework Core | ORM para acesso ao banco de dados |
+| PostgreSQL (Neon) | Banco de dados relacional em nuvem |
+| ASP.NET Identity | Gerenciamento de usuários e roles |
+| JWT Bearer | Autenticação via tokens |
+| Azure Blob Storage | Armazenamento de imagens e arquivos |
+| SendGrid + MailKit | Envio de e-mails transacionais |
+| Swagger / OpenAPI | Documentação da API |
+
+### Infraestrutura & DevOps
+| Tecnologia | Descrição |
+|---|---|
+| Azure Static Web Apps | Hospedagem do frontend |
+| Azure App Service | Hospedagem do backend |
+| GitHub Actions | CI/CD automatizado |
+
+---
 
 ## Estrutura do Projeto
 
-(Adicionar estrutura conforme organização dos arquivos)
+```
+nexora-app/
+├── agora-frontend/         # Frontend principal (React + Vite)
+│   ├── src/
+│   │   ├── api/            # Configuração do Axios
+│   │   ├── components/     # Componentes reutilizáveis
+│   │   ├── contexts/       # Contextos de Auth e Tema
+│   │   ├── pages/          # Páginas da aplicação
+│   │   └── routes/         # Definição de rotas
+│   └── public/
+├── backend/                # API REST (ASP.NET Core)
+│   ├── Controllers/        # Endpoints da API
+│   ├── Services/           # Lógica de negócio
+│   ├── Models/             # Entidades do banco
+│   ├── Dtos/               # Objetos de transferência de dados
+│   ├── Repositories/       # Acesso a dados
+│   ├── Migrations/         # Migrações do banco de dados
+│   └── Middlewares/        # Middlewares customizados
+├── frontend/               # Versão alternativa (Next.js)
+├── Tarefas/                # Documentação e entregas da disciplina
+└── .github/workflows/      # Pipelines de CI/CD
+```
 
-## Como Executar
+---
 
-(Adicionar instruções de execução)
+## Como Executar Localmente
+
+### Pré-requisitos
+
+- [Node.js](https://nodejs.org/) v18+
+- [.NET SDK 10](https://dotnet.microsoft.com/download)
+- PostgreSQL ou acesso a um banco Neon
+
+### Frontend
+
+```bash
+cd agora-frontend
+npm install
+npm run dev
+```
+
+A aplicação estará disponível em `http://localhost:5173`.
+
+### Backend
+
+1. Copie o arquivo de configuração de exemplo e preencha as variáveis:
+
+```bash
+cp backend/appsettings.example.json backend/appsettings.json
+# Edite o appsettings.json com suas credenciais
+```
+
+2. Execute as migrações e inicie o servidor:
+
+```bash
+cd backend
+dotnet restore
+dotnet ef database update
+dotnet run
+```
+
+A API estará disponível em `http://localhost:5000`.  
+A documentação Swagger ficará em `http://localhost:5000/swagger`.
+
+---
+
+## Deploy
+
+| Serviço | URL |
+|---|---|
+| Frontend | Azure Static Web Apps |
+| Backend (API) | Azure App Service — `agoraapp` |
+
+O deploy é feito automaticamente via **GitHub Actions** a cada push na branch `main`.
+
+---
+
+## Integrantes
+
+| Nome | GitHub |
+|---|---|
+| Diego Carvalho | [@diegocdg04](mailto:diegocdg04@gmail.com) |
+| Edson Satake | [@Saatake](https://github.com/Saatake) |
+| Felipe Brito | [@] |
+| Rafael Rocha | [@] |
+
+---
 
 ## Licença
 
-(Adicionar licença, ex: MIT)
+Este projeto foi desenvolvido para fins acadêmicos na **Facens — Faculdade de Engenharia de Sorocaba**.
 
-## Contato
-diegocdg04@gmail.com
