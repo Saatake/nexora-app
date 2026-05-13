@@ -155,8 +155,8 @@ O deploy é feito automaticamente via **GitHub Actions** a cada push na branch `
 |---|---|
 | Diego Carvalho | [@diegocdg04](https://github.com/Diegao-ship-it) |
 | Edson Satake | [@Saatake](https://github.com/Saatake) |
-| Felipe Brito | [@](https://github.com/Felupx) |
-| Rafael Rocha | [@](https://github.com/dev-RafaelRocha) |
+| Felipe Brito | [@Felupx](https://github.com/Felupx) |
+| Rafael Rocha | [@dev-RafaelRocha](https://github.com/dev-RafaelRocha) |
 
 ---
 
