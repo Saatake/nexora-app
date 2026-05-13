@@ -4,11 +4,13 @@
 
 ---
 
+**Link do Ágora:** https://victorious-sand-036efd210.7.azurestaticapps.net  
+
 ## Sobre o Projeto
 
 O **Ágora** é uma plataforma onde estudantes universitários podem publicar seus projetos acadêmicos, receber feedbacks de professores e interagir com outros alunos. O objetivo é centralizar e dar visibilidade aos trabalhos produzidos dentro da universidade, promovendo uma cultura de melhoria contínua e colaboração.
 
-🎥 **Video Pitch:** [Assistir no YouTube](https://www.youtube.com/watch?v=TGFyxHVJmjs)
+ **Video Pitch:** [Assistir no YouTube](https://www.youtube.com/watch?v=TGFyxHVJmjs)
 
 ---
 
@@ -151,10 +153,10 @@ O deploy é feito automaticamente via **GitHub Actions** a cada push na branch `
 
 | Nome | GitHub |
 |---|---|
-| Diego Carvalho | [@diegocdg04](mailto:diegocdg04@gmail.com) |
+| Diego Carvalho | [@diegocdg04](https://github.com/Diegao-ship-it) |
 | Edson Satake | [@Saatake](https://github.com/Saatake) |
-| Felipe Brito | [@] |
-| Rafael Rocha | [@] |
+| Felipe Brito | [@](https://github.com/Felupx) |
+| Rafael Rocha | [@](https://github.com/dev-RafaelRocha) |
 
 ---
 
