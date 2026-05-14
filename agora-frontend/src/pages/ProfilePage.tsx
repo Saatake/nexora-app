@@ -298,7 +298,7 @@ const ProfilePage = () => {
                   onClick={handleEditProfile}
                   className="self-start sm:self-auto rounded-xl bg-[var(--agora-panel)] border border-[var(--agora-border)] px-4 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800"
                 >
-                  Editar Perfil
+                  ✏️ Editar Perfil
                 </button>
               )}
             </div>
@@ -319,8 +319,8 @@ const ProfilePage = () => {
                   <div className="text-2xl sm:text-4xl font-bold text-emerald-600">{profile.averageGrade?.toFixed(1) || '0.0'}</div>
                   <div className="mt-1 text-xs sm:text-sm text-[var(--agora-muted)]">Média Geral</div>
                 </div>
-                <div className="rounded-xl bg-slate-50 p-3 sm:p-6 text-center">
-                  <div className="text-2xl sm:text-4xl font-bold text-[var(--agora-ink)]">{profile.totalViews || 0}</div>
+                <div className="rounded-xl bg-green-50 p-3 sm:p-6 text-center">
+                  <div className="text-2xl sm:text-4xl font-bold text-[#0a5c2f]">{profile.totalViews || 0}</div>
                   <div className="mt-1 text-xs sm:text-sm text-[var(--agora-muted)]">Visualizações</div>
                 </div>
               </div>
