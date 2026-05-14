@@ -9,6 +9,29 @@ import { FACENS_COURSES } from '../constants/facensCourses';
 import fundoLivro from '../assets/livro-coluna.png';
 import logoIcon from '../assets/logo-icon.png';
 
+const passwordRequirements = [
+  {
+    label: 'No mínimo 6 caracteres',
+    test: (password: string) => password.length >= 6
+  },
+  {
+    label: 'Uma letra maiúscula',
+    test: (password: string) => /[A-Z]/.test(password)
+  },
+  {
+    label: 'Uma letra minúscula',
+    test: (password: string) => /[a-z]/.test(password)
+  },
+  {
+    label: 'Um número',
+    test: (password: string) => /\d/.test(password)
+  },
+  {
+    label: 'Um símbolo',
+    test: (password: string) => /[^A-Za-z0-9]/.test(password)
+  }
+];
+
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
 
@@ -93,6 +116,10 @@ const AuthPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const unmetPasswordRequirements = passwordRequirements
+    .filter((requirement) => !requirement.test(formData.password))
+    .map((requirement) => requirement.label.toLowerCase());
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -100,6 +127,11 @@ const AuthPage = () => {
     setLoading(true);
     if (formData.password !== confirmPassword) {
       setError('As senhas nao coincidem.');
+      setLoading(false);
+      return;
+    }
+    if (unmetPasswordRequirements.length > 0) {
+      setError(`A senha precisa ter ${unmetPasswordRequirements.join(', ')}.`);
       setLoading(false);
       return;
     }
@@ -241,6 +273,27 @@ const AuthPage = () => {
                     {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
                   </button>
                 </div>
+              </div>
+
+              <div className='rounded-lg border border-green-100 bg-green-50/70 p-3'>
+                <p className='text-xs font-semibold text-gray-700 mb-2'>A senha precisa ter:</p>
+                <ul className='grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs'>
+                  {passwordRequirements.map((requirement) => {
+                    const isMet = requirement.test(formData.password);
+                    return (
+                      <li
+                        key={requirement.label}
+                        className={`flex items-center gap-2 ${isMet ? 'text-green-800' : 'text-gray-500'}`}
+                      >
+                        <span
+                          aria-hidden='true'
+                          className={`h-2 w-2 rounded-full ${isMet ? 'bg-green-700' : 'bg-gray-300'}`}
+                        />
+                        {requirement.label}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
 
               <div className='relative'>
