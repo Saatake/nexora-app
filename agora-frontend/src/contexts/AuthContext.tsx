@@ -1,24 +1,6 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import api from '../api/axios';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  course?: string;
-  bio?: string;
-  roleType?: string;
-}
-
-interface AuthContextData {
-  user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+import { AuthContext, type User } from './AuthContextCore';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -56,5 +38,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

@@ -106,7 +106,7 @@ const NewProjectPage = () => {
 
       setFileUrl(response.data.url ?? '');
       setUploadedFileName(response.data.fileName ?? file.name);
-    } catch (err) {
+    } catch {
       setUploadError('Nao foi possivel enviar o arquivo.');
     } finally {
       setIsUploading(false);
@@ -125,7 +125,7 @@ const NewProjectPage = () => {
         githubLink, fileUrl, imageUrl, category
       });
       navigate('/projects');
-    } catch (err) {
+    } catch {
       setError('Nao foi possivel publicar o projeto.');
     } finally {
       setIsSaving(false);

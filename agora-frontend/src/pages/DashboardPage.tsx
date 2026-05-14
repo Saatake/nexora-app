@@ -9,7 +9,7 @@ import {
   Star,
 } from 'lucide-react';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import AppShell from '../components/AppShell';
 
 type DashboardStats = {
@@ -120,7 +120,7 @@ const DashboardPage = () => {
         setStats(statsResponse.data);
         setCharts(chartsResponse.data);
         setRecentProjects(sorted);
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setError('Nao foi possivel carregar os dados do dashboard.');
         }

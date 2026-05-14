@@ -13,8 +13,9 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import type { LucideIcon } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 import logoIcon from '../assets/logo.png';
 
 type AppShellProps = {
@@ -25,6 +26,45 @@ type AppShellProps = {
   children: React.ReactNode;
   showSearch?: boolean;
 };
+
+type NavItem = {
+  label: string;
+  icon: LucideIcon;
+  to: string;
+};
+
+const navItems: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutGrid, to: '/dashboard' },
+  { label: 'Meus projetos', icon: FolderKanban, to: '/projects' },
+  { label: 'Explorar projetos', icon: Compass, to: '/explore' },
+  { label: 'Ranking', icon: Trophy, to: '/ranking' },
+  { label: 'Perfil', icon: User2, to: '/profile' }
+];
+
+const NavLinks = ({ onClick }: { onClick?: () => void }) => (
+  <>
+    {navItems.map((item) => {
+      const Icon = item.icon;
+      return (
+        <NavLink
+          key={item.label}
+          to={item.to}
+          onClick={onClick}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded transition-all ${
+              isActive
+                ? 'bg-[#0a5c2f] text-white'
+                : 'text-white/65 hover:text-white hover:bg-white/10'
+            }`
+          }
+        >
+          <Icon size={17} />
+          {item.label}
+        </NavLink>
+      );
+    })}
+  </>
+);
 
 const AppShell = ({
   title,
@@ -52,43 +92,10 @@ const AppShell = ({
     navigate(`/explore?search=${encodeURIComponent(q)}`);
   };
 
-  const navItems = [
-    { label: 'Dashboard', icon: LayoutGrid, to: '/dashboard' },
-    { label: 'Meus projetos', icon: FolderKanban, to: '/projects' },
-    { label: 'Explorar projetos', icon: Compass, to: '/explore' },
-    { label: 'Ranking', icon: Trophy, to: '/ranking' },
-    { label: 'Perfil', icon: User2, to: '/profile' }
-  ];
-
   const handleLogout = () => {
     logout();
     navigate('/');
   };
-
-  const NavLinks = ({ onClick }: { onClick?: () => void }) => (
-    <>
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        return (
-          <NavLink
-            key={item.label}
-            to={item.to}
-            onClick={onClick}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded transition-all ${
-                isActive
-                  ? 'bg-[#0a5c2f] text-white'
-                  : 'text-white/65 hover:text-white hover:bg-white/10'
-              }`
-            }
-          >
-            <Icon size={17} />
-            {item.label}
-          </NavLink>
-        );
-      })}
-    </>
-  );
 
   return (
     <div className="min-h-screen agora-shell text-[var(--agora-ink)]">
@@ -143,6 +150,7 @@ const AppShell = ({
             <img src={logoIcon} alt="Ágora" className="h-10 object-contain" />
             <button 
               onClick={() => setIsMobileMenuOpen(false)} 
+              aria-label="Fechar menu"
               className="absolute right-0 text-white/70 hover:text-white"
             >
               <X size={22} />
@@ -166,6 +174,7 @@ const AppShell = ({
           {/* Hamburger Mobile */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Abrir menu"
             className="lg:hidden mb-4 p-2 rounded bg-[var(--agora-sidebar)] text-white transition-colors"
           >
             <Menu size={22} />
@@ -185,6 +194,7 @@ const AppShell = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleTheme}
+                  aria-label={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
                   className="flex items-center justify-center h-9 w-9 rounded border border-[var(--agora-border)] bg-[var(--agora-panel)] text-[var(--agora-muted)] hover:text-[var(--agora-ink)] transition-colors"
                   title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
                 >

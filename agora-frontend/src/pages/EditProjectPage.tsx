@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Image, Plus, X } from 'lucide-react';
 import api from '../api/axios';
+import { getErrorMessage } from '../api/errors';
 import AppShell from '../components/AppShell';
 import ImageCropModal from '../components/ImageCropModal';
 import { FACENS_COURSES } from '../constants/facensCourses';
@@ -80,7 +81,7 @@ const EditProjectPage = () => {
         if (project.teamMembers) {
           setMembers(project.teamMembers.split(',').map(m => m.trim()).filter(Boolean));
         }
-      } catch (err: any) {
+      } catch {
         setError('Não foi possível carregar o projeto.');
       } finally {
         setIsLoading(false);
@@ -160,7 +161,7 @@ const EditProjectPage = () => {
 
       setFileUrl(response.data.url ?? '');
       setUploadedFileName(response.data.fileName ?? file.name);
-    } catch (err) {
+    } catch {
       setUploadError('Nao foi possivel enviar o arquivo.');
     } finally {
       setIsUploading(false);
@@ -179,9 +180,8 @@ const EditProjectPage = () => {
         githubLink, fileUrl, imageUrl, category
       });
       navigate('/projects');
-    } catch (err: any) {
-      const message = err.response?.data?.message || 'Não foi possível atualizar o projeto.';
-      setError(message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Não foi possível atualizar o projeto.'));
     } finally {
       setIsSaving(false);
     }

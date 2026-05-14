@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 type Project = {
   id: number;

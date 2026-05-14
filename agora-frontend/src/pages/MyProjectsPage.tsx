@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Eye, Plus, Star, Edit, Trash2 } from 'lucide-react';
 import api from '../api/axios';
+import { getErrorMessage } from '../api/errors';
 import AppShell from '../components/AppShell';
 
 type Project = {
@@ -83,7 +84,7 @@ const MyProjectsPage = () => {
 
         if (!isMounted) return;
         setProjects(response.data.items ?? []);
-      } catch (err) {
+      } catch {
         if (isMounted) setError('Nao foi possivel carregar seus projetos.');
       } finally {
         if (isMounted) setIsLoading(false);
@@ -108,9 +109,8 @@ const MyProjectsPage = () => {
       // Remover projeto da lista
       setProjects(projects.filter(p => p.id !== deleteModal.projectId));
       setDeleteModal({ show: false, projectId: null, projectTitle: '' });
-    } catch (err: any) {
-      const message = err.response?.data?.message || 'Não foi possível excluir o projeto.';
-      setError(message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Não foi possível excluir o projeto.'));
     } finally {
       setIsDeleting(false);
     }

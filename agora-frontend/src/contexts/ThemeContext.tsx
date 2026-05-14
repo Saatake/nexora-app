@@ -1,16 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
-
-interface ThemeContextData {
-  theme: Theme;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextData>({
-  theme: 'light',
-  toggleTheme: () => {}
-});
+import { useEffect, useState, type ReactNode } from 'react';
+import { ThemeContext, type Theme } from './ThemeContextCore';
 
 const darkVars: Record<string, string> = {
   '--agora-ink': '#f0f0f0',
@@ -67,5 +56,3 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     </ThemeContext.Provider>
   );
 };
-
-export const useTheme = () => useContext(ThemeContext);

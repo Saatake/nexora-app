@@ -7,8 +7,6 @@ import {
   Menu, 
   X, 
   Library, 
-  Edit3, 
-  Trash2, 
   Eye, 
   Calendar 
 } from 'lucide-react';
@@ -91,6 +89,8 @@ const HomePage = () => {
 
               <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+                aria-expanded={isMobileMenuOpen}
                 className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
               >
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -171,14 +171,6 @@ const HomePage = () => {
                   }`}>
                     {project.rating}
                   </span>
-                  <div className="flex gap-1">
-                    <button className="p-1.5 bg-gray-50 text-gray-400 rounded hover:text-[#0a5c2f] hover:bg-gray-100 transition-colors">
-                      <Edit3 size={18} />
-                    </button>
-                    <button className="p-1.5 bg-gray-50 text-gray-400 rounded hover:text-red-600 hover:bg-gray-100 transition-colors">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
                 </div>
               </div>
 

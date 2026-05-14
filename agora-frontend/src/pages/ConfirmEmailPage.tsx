@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle } from 'lucide-react';
 import api from '../api/axios';
+import { getErrorMessage } from '../api/errors';
 import fundoLivro from '../assets/livro-coluna.png';
 import logoIcon from '../assets/logo-icon.png';
 
@@ -12,20 +13,6 @@ const ConfirmEmailPage = () => {
 
   const email = searchParams.get('email');
   const token = searchParams.get('token');
-
-  const getErrorMessage = (err: any, fallback: string) => {
-    const data = err?.response?.data;
-    if (typeof data?.message === 'string') {
-      return data.message;
-    }
-    if (Array.isArray(data?.errors)) {
-      return data.errors.join(', ');
-    }
-    if (data?.errors && typeof data.errors === 'object') {
-      return Object.values(data.errors).flat().join(', ');
-    }
-    return fallback;
-  };
 
   useEffect(() => {
     const confirmEmail = async () => {
@@ -42,7 +29,7 @@ const ConfirmEmailPage = () => {
         });
         setStatus('success');
         setMessage(response.data?.message || 'Email confirmado com sucesso!');
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus('error');
         setMessage(getErrorMessage(err, 'Nao foi possivel confirmar o email.'));
       }

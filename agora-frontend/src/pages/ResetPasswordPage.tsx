@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import api from '../api/axios';
+import { getErrorMessage } from '../api/errors';
 import fundoLivro from '../assets/livro-coluna.png';
 import logoIcon from '../assets/logo-icon.png';
 
@@ -14,25 +15,18 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const getErrorMessage = (err: any, fallback: string) => {
-    const data = err?.response?.data;
-    if (typeof data?.message === 'string') {
-      return data.message;
-    }
-    if (Array.isArray(data?.errors)) {
-      return data.errors.join(', ');
-    }
-    if (data?.errors && typeof data.errors === 'object') {
-      return Object.values(data.errors).flat().join(', ');
-    }
-    return fallback;
-  };
+  const hasResetToken = Boolean(token);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (!hasResetToken) {
+      setError('Link invalido. Solicite um novo link de recuperacao.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -42,7 +36,7 @@ const ResetPasswordPage = () => {
         newPassword
       });
       setSuccess(response.data?.message || 'Senha redefinida com sucesso!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(getErrorMessage(err, 'Erro ao redefinir senha'));
     } finally {
       setLoading(false);
@@ -68,6 +62,11 @@ const ResetPasswordPage = () => {
           <p className='text-sm text-gray-500 mt-2'>Defina sua nova senha para continuar.</p>
         </div>
 
+        {!hasResetToken && (
+          <div className='mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center'>
+            Link invalido. Solicite um novo link de recuperacao.
+          </div>
+        )}
         {error && <div className='mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center'>{error}</div>}
         {success && <div className='mb-4 text-sm text-emerald-700 bg-emerald-100 p-3 rounded-lg text-center'>{success}</div>}
 
@@ -83,6 +82,7 @@ const ResetPasswordPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={!hasResetToken}
                 className='pl-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400'
               />
             </div>
@@ -99,11 +99,14 @@ const ResetPasswordPage = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
+                disabled={!hasResetToken}
                 className='pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400'
               />
               <button 
                 type='button' 
                 onClick={() => setShowPassword((s) => !s)} 
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                disabled={!hasResetToken}
                 className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'
               >
                 {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
@@ -113,7 +116,7 @@ const ResetPasswordPage = () => {
 
           <button
             type='submit'
-            disabled={loading}
+            disabled={loading || !hasResetToken}
             className='w-full py-3 bg-[#0a5c2f] hover:bg-[#084925] disabled:bg-green-400 text-white text-sm font-bold rounded shadow transition-colors'
           >
             {loading ? 'Salvando...' : 'Redefinir senha'}

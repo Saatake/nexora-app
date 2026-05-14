@@ -60,7 +60,7 @@ const RankingPage = () => {
         setTopProjects(projectsResponse.data);
         setTopStudents(studentsResponse.data);
         setStats(statsResponse.data);
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setError('Não foi possível carregar os dados do ranking.');
         }

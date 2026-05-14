@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User, BookOpen, PenSquare, ArrowRight, ArrowLeft, Library } from 'lucide-react';
 import api from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
+import { getErrorMessage } from '../api/errors';
+import { useAuth } from '../hooks/useAuth';
 import { FACENS_COURSES } from '../constants/facensCourses';
 
 // Import das imagens
@@ -37,15 +38,6 @@ const AuthPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // --- LÓGICA DE LOGIN (INALTERADA) ---
-  const getErrorMessage = (err: any, fallback: string) => {
-    const data = err?.response?.data;
-    if (typeof data?.message === 'string') { return data.message; }
-    if (Array.isArray(data?.errors)) { return data.errors.join(', '); }
-    if (data?.errors && typeof data.errors === 'object') { return Object.values(data.errors).flat().join(', '); }
-    return fallback;
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -67,7 +59,7 @@ const AuthPage = () => {
 
       login(token, meResponse.data);
       navigate('/dashboard');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(getErrorMessage(err, 'Erro ao realizar login'));
       setLoading(false);
     }
@@ -110,7 +102,7 @@ const AuthPage = () => {
         setIsLogin(true);
         setSuccess('');
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message = getErrorMessage(err, 'Erro ao realizar cadastro');
       setError(normalizeRegisterErrors(message));
     } finally {
@@ -175,7 +167,12 @@ const AuthPage = () => {
                     <Lock className='h-5 w-5 text-gray-400' />
                   </div>
                   <input type={showPassword ? 'text' : 'password'} placeholder='Senha' value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required className='pl-10 pr-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400' />
-                  <button type='button' onClick={() => setShowPassword((s) => !s)} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'>
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'
+                  >
                     {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
                   </button>
                 </div>
@@ -237,7 +234,12 @@ const AuthPage = () => {
                 </div>
                 <div className='relative'>
                   <input type={showPassword ? 'text' : 'password'} name='confirmPassword' placeholder='Repita a senha' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className='pl-4 pr-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400' />
-                  <button type='button' onClick={() => setShowPassword((s) => !s)} className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'>
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword((s) => !s)}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500'
+                  >
                     {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
                   </button>
                 </div>

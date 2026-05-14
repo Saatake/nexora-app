@@ -2,9 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BookOpen, Calendar, Mail, Star, UserCircle2, Upload } from 'lucide-react';
 import api from '../api/axios';
+import { getErrorMessage } from '../api/errors';
 import AppShell from '../components/AppShell';
 import ImageCropModal from '../components/ImageCropModal';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 type UserProfile = {
   id: string;
@@ -78,7 +79,7 @@ const ProfilePage = () => {
           try {
             const statsResponse = await api.get('/dashboard/stats');
             stats = statsResponse.data;
-          } catch (err) {
+          } catch {
             // Stats opcionais, não bloqueia
           }
         }
@@ -98,7 +99,7 @@ const ProfilePage = () => {
         });
 
         setProjects(projectsResponse.data?.items || []);
-      } catch (err) {
+      } catch {
         if (isMounted) {
           setError('Não foi possível carregar o perfil.');
         }
@@ -142,9 +143,8 @@ const ProfilePage = () => {
       });
       
       setIsEditing(false);
-    } catch (err: any) {
-      const message = err.response?.data?.message || 'Não foi possível atualizar o perfil.';
-      setError(message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Não foi possível atualizar o perfil.'));
     } finally {
       setIsSaving(false);
     }
@@ -200,9 +200,8 @@ const ProfilePage = () => {
         ...profile!,
         ...profileResponse.data
       });
-    } catch (err: any) {
-      const message = err.response?.data?.message || 'Não foi possível fazer upload da foto.';
-      setError(message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Não foi possível fazer upload da foto.'));
     } finally {
       setIsUploadingPhoto(false);
     }
