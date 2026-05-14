@@ -230,7 +230,7 @@ const AuthPage = () => {
 
         {/* --- PAINEL DE CADASTRO (INALTERADO) --- */}
         <div className={`absolute top-0 left-0 md:left-auto md:right-0 w-full md:w-1/2 h-full bg-white p-8 md:p-10 overflow-y-auto custom-scrollbar transition-transform duration-700 ease-in-out z-10 ${!isLogin ? 'translate-x-0 opacity-100 pointer-events-auto' : 'translate-x-full opacity-0 pointer-events-none md:translate-x-0 md:opacity-100 md:pointer-events-auto'}`}>
-          <div className='flex flex-col h-full justify-center max-w-sm mx-auto'>
+          <div className='flex flex-col min-h-full justify-start max-w-sm mx-auto py-2'>
             <h1 className='text-3xl font-bold text-gray-900 mb-6'>Criar conta</h1>
 
             <div className='flex gap-4 mb-6'>
