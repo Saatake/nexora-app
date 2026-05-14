@@ -298,7 +298,7 @@ const ProfilePage = () => {
                   onClick={handleEditProfile}
                   className="self-start sm:self-auto rounded-xl bg-[var(--agora-panel)] border border-[var(--agora-border)] px-4 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800"
                 >
-                  ✏️ Editar Perfil
+                  Editar Perfil
                 </button>
               )}
             </div>
