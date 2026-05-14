@@ -34,7 +34,7 @@ const NewProjectPage = () => {
 
   const summaryCount = useMemo(() => summary.length, [summary]);
 
-  const inputCls = 'w-full px-4 py-3 border border-[var(--agora-border)] rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400 outline-none';
+  const inputCls = 'w-full px-4 py-3 border border-[var(--agora-border)] rounded bg-[var(--agora-input-bg)] focus:ring-1 focus:ring-[var(--agora-accent)] focus:border-[var(--agora-accent)] transition-all font-medium text-[var(--agora-ink)] placeholder:text-[var(--agora-muted)] outline-none';
 
   const handleAddMember = () => {
     const trimmed = memberName.trim();
@@ -162,7 +162,7 @@ const NewProjectPage = () => {
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value as ProjectCategory)}
-                  className={`mt-2 ${inputCls} bg-[var(--agora-panel)] appearance-none`}
+                  className={`mt-2 ${inputCls} appearance-none`}
                 >
                   <option value="Tcc">TCC</option>
                   <option value="Upx">UPX</option>
@@ -177,7 +177,7 @@ const NewProjectPage = () => {
                 <select
                   value={course}
                   onChange={(event) => setCourse(event.target.value)}
-                  className={`mt-2 ${inputCls} bg-[var(--agora-panel)] appearance-none`}
+                  className={`mt-2 ${inputCls} appearance-none`}
                 >
                   <option value="">Selecione o curso</option>
                   {FACENS_COURSES.map((courseOption) => (
