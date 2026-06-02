@@ -34,7 +34,7 @@ public class ExceptionMiddleware
 
             object response;
 
-            // 🔥 MODO DESENVOLVIMENTO (MOSTRA TUDO)
+            // dev (expositivo)
             if (_env.IsDevelopment())
             {
                 response = new
@@ -44,7 +44,7 @@ public class ExceptionMiddleware
                     stackTrace = ex.StackTrace
                 };
             }
-            // 🔒 MODO PRODUÇÃO (GENÉRICO)
+            // prod (genérico)
             else
             {
                 response = new

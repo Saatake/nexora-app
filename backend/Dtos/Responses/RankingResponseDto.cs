@@ -18,6 +18,8 @@ public class RankingStudentDto
     public string Course { get; set; } = string.Empty;
     public double AverageGrade { get; set; }
     public int ProjectCount { get; set; }
+    // adicionado pra facilitar a exibição o perfil
+    public string ProfilePictureUrl { get; set; } = string.Empty;
 }
 
 public class GeneralStatsDto

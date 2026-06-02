@@ -20,6 +20,7 @@ type RankingStudent = {
   course: string;
   averageGrade: number;
   projectCount: number;
+  profilePictureUrl: string;
 };
 
 type GeneralStats = {
@@ -164,7 +165,7 @@ const RankingPage = () => {
                   {student.position <= 3 ? '●' : student.position}
                 </span>
                 <div className="h-8 w-8 rounded bg-[#0a5c2f] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {student.name.charAt(0)}
+                  { student.profilePictureUrl ? <img src={student.profilePictureUrl} alt={student.name} className="h-full w-full object-cover rounded" /> : student.name.charAt(0).toUpperCase() }
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-[var(--agora-ink)] truncate">{student.name}</p>
