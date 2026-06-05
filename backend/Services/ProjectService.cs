@@ -34,6 +34,7 @@ public class ProjectService : IProjectService
             FileUrl = request.FileUrl,
             ImageUrl = request.ImageUrl,
             Category = request.Category,
+            IsPrivate = request.IsPrivate,
             UserId = userId,
             CreatedAt = DateTime.UtcNow
         };
@@ -54,6 +55,7 @@ public class ProjectService : IProjectService
             FileUrl = created.FileUrl,
             ImageUrl = created.ImageUrl,
             Category = created.Category.ToString(),
+            IsPrivate = created.IsPrivate,
             AuthorId = created.UserId,
             CreatedAt = created.CreatedAt
         };
@@ -77,6 +79,7 @@ public class ProjectService : IProjectService
             FileUrl = p.FileUrl,
             ImageUrl = p.ImageUrl,
             Category = p.Category.ToString(),
+            IsPrivate = p.IsPrivate,
             AuthorId = p.UserId,
             AuthorName = p.User?.Name ?? "Anônimo",
             CreatedAt = p.CreatedAt
@@ -142,6 +145,7 @@ public class ProjectService : IProjectService
         project.FileUrl = model.FileUrl;
         project.ImageUrl = model.ImageUrl;
         project.Category = model.Category;
+        project.IsPrivate = model.IsPrivate;
 
         await _projectRepository.UpdateAsync(project);
 
@@ -214,6 +218,7 @@ public class ProjectService : IProjectService
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
             AverageGrade = avgGrade,
+            IsPrivate = p.IsPrivate,
             CreatedAt = p.CreatedAt
         };
     }

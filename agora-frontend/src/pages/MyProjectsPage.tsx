@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, Eye, Plus, Star, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Eye, Plus, Star, Edit, Trash2, Lock } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 
@@ -14,6 +14,7 @@ type Project = {
   downloadCount: number;
   createdAt: string;
   isApproved: boolean;
+  isPrivate: boolean;
   imageUrl?: string | null;
 };
 
@@ -99,12 +100,12 @@ const MyProjectsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteModal.projectId) return;
-    
+
     setIsDeleting(true);
     setError('');
     try {
       await api.delete(`/projects/${deleteModal.projectId}`);
-      
+
       // Remover projeto da lista
       setProjects(projects.filter(p => p.id !== deleteModal.projectId));
       setDeleteModal({ show: false, projectId: null, projectTitle: '' });
@@ -153,11 +154,10 @@ const MyProjectsPage = () => {
           <button
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            className={`px-4 py-1.5 text-sm font-semibold rounded border transition-all ${
-              activeFilter === filter.key
-                ? 'border-green-800 text-green-800 bg-green-50'
-                : 'border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400'
-            }`}
+            className={`px-4 py-1.5 text-sm font-semibold rounded border transition-all ${activeFilter === filter.key
+              ? 'border-green-800 text-green-800 bg-green-50'
+              : 'border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400'
+              }`}
           >
             {filter.label}
           </button>
@@ -227,8 +227,16 @@ const MyProjectsPage = () => {
                 </div>
 
                 <Link to={`/projects/${project.id}`} className="block flex-1">
-                  <h3 className="font-bold text-[var(--agora-ink)] mb-1 leading-snug line-clamp-2">{project.title}</h3>
-                  <p className="text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
+                  <div className="flex items-start gap-2 mb-1">
+                    <h3 className="font-bold text-[var(--agora-ink)] leading-snug line-clamp-2 flex-1">
+                      {project.title}
+                    </h3>
+                    {project.isPrivate && (
+                      <div title="Projeto Privado" className="mt-1">
+                        <Lock size={16} className="text-gray-400" />
+                      </div>
+                    )}
+                  </div>                  <p className="text-sm text-[var(--agora-muted)] line-clamp-2">{project.description}</p>
 
                   <div className="mt-4 pt-4 border-t border-[var(--agora-border)] flex items-center gap-3 text-xs text-[var(--agora-muted)]">
                     <span className="flex items-center gap-1"><Star size={12} className="text-amber-400" />{project.averageGrade?.toFixed(1) ?? '--'}</span>

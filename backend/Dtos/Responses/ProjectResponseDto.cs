@@ -20,4 +20,5 @@ public class ProjectResponseDto
     public int DownloadCount { get; set; }
     public double? AverageGrade { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsPrivate { get; set; }
 }

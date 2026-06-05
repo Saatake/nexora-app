@@ -37,6 +37,8 @@ public class CreateProjectRequestDto
 
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }
+
+    public bool IsPrivate { get; set; } = false;
 }
 
 public class UpdateProjectRequestDto
@@ -73,4 +75,6 @@ public class UpdateProjectRequestDto
 
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }
+
+    public bool IsPrivate { get; set; } = false;
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Image, Plus, X } from 'lucide-react';
+import { Image, Plus, X, Lock } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 import ImageCropModal from '../components/ImageCropModal';
@@ -21,6 +21,7 @@ type Project = {
   fileUrl: string;
   imageUrl?: string;
   category: string;
+  isPrivate?: boolean;
 };
 
 const EditProjectPage = () => {
@@ -45,6 +46,7 @@ const EditProjectPage = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -75,8 +77,10 @@ const EditProjectPage = () => {
         setArea(project.area || '');
         setAdvisor(project.advisor || '');
         setImageUrl(project.imageUrl || '');
+        setIsPrivate(project.isPrivate || false);
+
         if (project.imageUrl) setCoverPreview(project.imageUrl);
-        
+
         if (project.teamMembers) {
           setMembers(project.teamMembers.split(',').map(m => m.trim()).filter(Boolean));
         }
@@ -176,7 +180,8 @@ const EditProjectPage = () => {
       await api.put(`/projects/${id}`, {
         title, description, summary, course, area, advisor,
         teamMembers: members.join(', '),
-        githubLink, fileUrl, imageUrl, category
+        githubLink, fileUrl, imageUrl, category,
+        isPrivate
       });
       navigate('/projects');
     } catch (err: any) {
@@ -358,7 +363,7 @@ const EditProjectPage = () => {
                 value={githubLink}
                 onChange={(event) => setGithubLink(event.target.value)}
                 placeholder="https://github.com/seu-projeto"
-                  className={`mt-2 ${inputCls}`}
+                className={`mt-2 ${inputCls}`}
               />
             </div>
             <div>
@@ -367,7 +372,7 @@ const EditProjectPage = () => {
                 value={fileUrl}
                 onChange={(event) => setFileUrl(event.target.value)}
                 placeholder="Link do PDF (Drive, Dropbox, etc.)"
-                  className={`mt-2 ${inputCls}`}
+                className={`mt-2 ${inputCls}`}
               />
             </div>
           </div>
@@ -419,6 +424,26 @@ const EditProjectPage = () => {
               <p className="mt-3 text-xs text-[var(--agora-muted)]">Arquivo enviado: {uploadedFileName}</p>
             )}
             {uploadError && <p className="mt-2 text-xs text-rose-600">{uploadError}</p>}
+          </div>
+        </section>
+
+        <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+          <div className="flex items-start gap-3">
+            <input
+              id="isPrivate"
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-[#0a5c2f] focus:ring-[#0a5c2f] cursor-pointer"
+            />
+            <div className="text-sm">
+              <label htmlFor="isPrivate" className="font-semibold text-[var(--agora-ink)] cursor-pointer text-base">
+                <Lock size={16} className="text-gray-400 inline-block mr-1" /> Tornar projeto privado
+              </label>
+              <p className="text-[var(--agora-muted)] mt-1">
+                Ao ativar esta opção, o projeto não aparecerá nos feeds públicos, buscas ou rankings. Apenas você poderá visualizá-lo.
+              </p>
+            </div>
           </div>
         </section>
 

@@ -54,4 +54,6 @@ public class Project
 
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
+
+    public bool IsPrivate { get; set; } = false;
 }

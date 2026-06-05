@@ -24,7 +24,11 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<IEnumerable<Project>> GetAllAsync()
     {
-        return await _context.Projects.Include(p => p.User).OrderByDescending(p => p.CreatedAt).ToListAsync();
+        return await _context.Projects
+        .Include(p => p.User)
+        .Where(p => !p.IsPrivate)
+        .OrderByDescending(p => p.CreatedAt)
+        .ToListAsync();
     }
 
     public async Task<(IEnumerable<Project> Items, int TotalCount)> GetFilteredAsync(
@@ -34,6 +38,7 @@ public class ProjectRepository : IProjectRepository
         var query = _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
+            .Where(p => !p.IsPrivate)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))

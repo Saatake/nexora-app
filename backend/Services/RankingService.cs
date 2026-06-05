@@ -20,7 +20,7 @@ public class RankingService : IRankingService
         var projects = await _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
-            .Where(p => p.Evaluations.Any())
+            .Where(p => p.Evaluations.Any() && !p.isPrivate)
             .ToListAsync();
 
         return projects
@@ -48,7 +48,7 @@ public class RankingService : IRankingService
         var projects = await _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
-            .Where(p => p.Evaluations.Any() && p.User != null && p.User.RoleType == UserRole.Estudante)
+            .Where(p => p.Evaluations.Any() && p.User != null && p.User.RoleType == UserRole.Estudante && !p.IsPrivate)
             .ToListAsync();
 
         return projects
@@ -75,11 +75,15 @@ public class RankingService : IRankingService
 
     public async Task<GeneralStatsDto> GetGeneralStatsAsync()
     {
-        var totalProjects = await _context.Projects.CountAsync();
-        var totalViews = await _context.Projects.SumAsync(p => p.ViewCount);
+        var totalProjects = await _context.Projects.CountAsync(p => !p.IsPrivate);
+        var totalViews = await _context.Projects.Where(p => !p.IsPrivate).SumAsync(p => p.ViewCount);
         var totalStudents = await _context.Users.CountAsync(u => u.RoleType == UserRole.Estudante);
 
-        var evaluations = await _context.Evaluations.ToListAsync();
+        var evaluations = await _context.Evaluations
+        .Include(e => e.Project)
+        .Where(e => !e.Project.IsPrivate)
+        .ToListAsync();
+        
         var generalAverage = evaluations.Any()
             ? Math.Round(evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2)
             : 0;
