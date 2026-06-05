@@ -64,7 +64,7 @@ public class RankingService : IRankingService
                     Course = user.Course,
                     AverageGrade = Math.Round(allEvals.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2),
                     ProjectCount = g.Count(),
-                    ProfilePictureUrl = user.ProfilePictureUrl
+                    ProfilePictureUrl = user.PhotoUrl ?? string.Empty
                 };
             })
             .OrderByDescending(s => s.AverageGrade)

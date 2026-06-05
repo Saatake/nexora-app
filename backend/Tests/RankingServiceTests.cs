@@ -22,7 +22,7 @@ public class RankingServiceTests
                 Name = "Alice",
                 Course = "Computer Science",
                 RoleType = UserRole.Estudante,
-                ProfilePictureUrl = "http://example.com/photo.jpg"
+                PhotoUrl = "http://example.com/photo.jpg"
             });
 
             context.Projects.Add(new Project

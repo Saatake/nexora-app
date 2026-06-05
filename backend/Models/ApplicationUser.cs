@@ -11,5 +11,4 @@ public class ApplicationUser : IdentityUser
     public string? PhotoUrl { get; set; }
     public string? Interests { get; set; }
     public UserRole RoleType { get; set; }
-    public string? ProfilePictureUrl { get; set; }
 }
