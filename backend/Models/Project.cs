@@ -55,5 +55,6 @@ public class Project
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
 
+    // indica se o projeto é privado ou público
     public bool IsPrivate { get; set; } = false;
 }
