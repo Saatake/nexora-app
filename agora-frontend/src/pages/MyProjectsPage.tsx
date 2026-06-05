@@ -13,7 +13,6 @@ type Project = {
   viewCount: number;
   downloadCount: number;
   createdAt: string;
-  isApproved: boolean;
   isPrivate: boolean;
   imageUrl?: string | null;
 };
@@ -202,11 +201,6 @@ const MyProjectsPage = () => {
                     <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--agora-accent-bg)] text-[var(--agora-accent)]">
                       {formatCategory(project.category)}
                     </span>
-                    {project.isApproved ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">Aprovado</span>
-                    ) : (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Pendente</span>
-                    )}
                   </div>
                   <div className="flex gap-1.5">
                     <button
