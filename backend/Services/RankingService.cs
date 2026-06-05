@@ -20,7 +20,7 @@ public class RankingService : IRankingService
         var projects = await _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
-            .Where(p => p.Evaluations.Any() && !p.isPrivate)
+            .Where(p => p.Evaluations.Any() && !p.IsPrivate)
             .ToListAsync();
 
         return projects
