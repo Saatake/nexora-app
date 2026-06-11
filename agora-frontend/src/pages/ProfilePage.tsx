@@ -90,10 +90,16 @@ const ProfilePage = () => {
           ? await api.get('/projects/me', { params: { page: 1, pageSize: 10 } })
           : await api.get(`/projects/user/${userId}`, { params: { page: 1, pageSize: 10 } });
 
-        // Buscar colaborações
-        const collaborationsResponse = isOwnProfile
-          ? await api.get('/projects/me/collaborations', { params: { page: 1, pageSize: 10 } })
-          : await api.get(`/projects/user/${userId}/collaborations`, { params: { page: 1, pageSize: 10 } });
+        // Buscar colaborações (opcional — endpoint pode não estar disponível ainda)
+        let collaborations: Project[] = [];
+        try {
+          const collaborationsResponse = isOwnProfile
+            ? await api.get('/projects/me/collaborations', { params: { page: 1, pageSize: 10 } })
+            : await api.get(`/projects/user/${userId}/collaborations`, { params: { page: 1, pageSize: 10 } });
+          collaborations = collaborationsResponse.data?.items || [];
+        } catch {
+          // endpoint opcional, não bloqueia
+        }
 
         if (!isMounted) return;
 
@@ -105,7 +111,7 @@ const ProfilePage = () => {
         });
 
         setProjects(projectsResponse.data?.items || []);
-        setCollaboratedProjects(collaborationsResponse.data?.items || []);
+        setCollaboratedProjects(collaborations);
       } catch (err) {
         if (isMounted) {
           setError('Não foi possível carregar o perfil.');

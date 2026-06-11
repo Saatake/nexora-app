@@ -8,7 +8,8 @@ import {
   ExternalLink,
   MessageSquare,
   Star,
-  UserCircle2
+  UserCircle2,
+  X
 } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
@@ -111,6 +112,7 @@ const ProjectDetailsPage = () => {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
   const [showAllEvals, setShowAllEvals] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
   const [evaluationData, setEvaluationData] = useState({
     relevance: 0, quality: 0, methodology: 0, presentation: 0, innovation: 0, feedback: ''
   });
@@ -267,23 +269,7 @@ const ProjectDetailsPage = () => {
                     >
                       {project.authorName}
                     </Link>
-                    {project.collaborators && project.collaborators.length > 0 && (
-                      <>
-                        {project.collaborators.map(c => (
-                          <span key={c.id}>
-                            ,{' '}
-                            <Link
-                              to={`/profile/${c.id}`}
-                              className="hover:text-[var(--agora-accent)] hover:underline transition-colors"
-                            >
-                              {c.name}
-                            </Link>
-                          </span>
-                        ))}
-                      </>
-                    )}
                   </span>
-                  {project.course && <span>{project.course}</span>}
                   <span className="inline-flex items-center gap-1.5">
                     <Calendar size={15} />
                     {formatDate(project.createdAt)}
@@ -396,55 +382,41 @@ const ProjectDetailsPage = () => {
                         <p className="font-semibold text-[var(--agora-ink)]">{project.area}</p>
                       </div>
                     )}
+                    {project.course && (
+                      <div>
+                        <p className="text-[var(--agora-muted)] text-xs mb-0.5">Curso</p>
+                        <p className="font-semibold text-[var(--agora-ink)]">{project.course}</p>
+                      </div>
+                    )}
+                    {/* Equipe compacta com avatares + botão modal */}
                     {(project.collaborators && project.collaborators.length > 0) && (
                       <div>
                         <p className="text-[var(--agora-muted)] text-xs mb-2">Equipe</p>
-                        <div className="space-y-2">
-                          {/* Autor */}
-                          <Link
-                            to={`/profile/${project.authorId}`}
-                            className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-[var(--agora-accent-bg)] transition-colors"
-                          >
-                            {project.collaborators.find(c => c.id === project.authorId)?.photoUrl ? (
-                              <img
-                                src={project.collaborators.find(c => c.id === project.authorId)!.photoUrl!}
-                                alt={project.authorName}
-                                className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="h-8 w-8 rounded-full bg-[#0a5c2f] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                {project.authorName.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-xs font-semibold text-[var(--agora-ink)] truncate">{project.authorName}</p>
-                              {project.course && <p className="text-xs text-[var(--agora-muted)] truncate">{project.course}</p>}
-                            </div>
-                          </Link>
-                          {/* Colaboradores */}
-                          {project.collaborators.map(c => (
-                            <Link
-                              key={c.id}
-                              to={`/profile/${c.id}`}
-                              className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-[var(--agora-accent-bg)] transition-colors"
-                            >
-                              {c.photoUrl ? (
-                                <img
-                                  src={c.photoUrl}
-                                  alt={c.name}
-                                  className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                                />
-                              ) : (
-                                <div className="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                  {c.name.charAt(0).toUpperCase()}
+                        <div className="flex items-center gap-3">
+                          <div className="flex -space-x-2">
+                            {[{ id: project.authorId, name: project.authorName, photoUrl: undefined as string | null | undefined },
+                              ...(project.collaborators ?? [])]
+                              .slice(0, 4)
+                              .map((m, i) => (
+                                <div
+                                  key={m.id}
+                                  className="h-7 w-7 rounded-full border-2 border-[var(--agora-panel)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden"
+                                  style={{ zIndex: 4 - i, background: i === 0 ? '#0a5c2f' : '#059669' }}
+                                >
+                                  {m.photoUrl
+                                    ? <img src={m.photoUrl} alt={m.name} className="h-full w-full object-cover" />
+                                    : m.name.charAt(0).toUpperCase()
+                                  }
                                 </div>
-                              )}
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-[var(--agora-ink)] truncate">{c.name}</p>
-                                {c.course && <p className="text-xs text-[var(--agora-muted)] truncate">{c.course}</p>}
-                              </div>
-                            </Link>
-                          ))}
+                              ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowMembersModal(true)}
+                            className="text-xs font-semibold text-[var(--agora-accent)] hover:underline"
+                          >
+                            Ver membros
+                          </button>
                         </div>
                       </div>
                     )}
@@ -623,6 +595,57 @@ const ProjectDetailsPage = () => {
         {!isLoading && !project && (
           <div className="mt-8 rounded-xl border border-dashed border-[var(--agora-border)] p-6 text-sm text-[var(--agora-muted)]">
             Projeto não encontrado.
+          </div>
+        )}
+
+        {/* Modal de membros */}
+        {showMembersModal && project && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setShowMembersModal(false)}>
+            <div className="w-full max-w-sm rounded-2xl bg-[var(--agora-panel)] shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--agora-border)]">
+                <h3 className="text-base font-bold text-[var(--agora-ink)]">Membros do projeto</h3>
+                <button onClick={() => setShowMembersModal(false)} className="text-[var(--agora-muted)] hover:text-[var(--agora-ink)] transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-4 space-y-2 max-h-80 overflow-y-auto">
+                {/* Autor */}
+                <Link
+                  to={`/profile/${project.authorId}`}
+                  onClick={() => setShowMembersModal(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--agora-accent-bg)] transition-colors"
+                >
+                  <div className="h-10 w-10 rounded-full bg-[#0a5c2f] flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+                    {project.authorName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[var(--agora-ink)] truncate">{project.authorName}</p>
+                    {project.course && <p className="text-xs text-[var(--agora-muted)] truncate">{project.course}</p>}
+                    <span className="text-xs text-[var(--agora-accent)] font-medium">Autor</span>
+                  </div>
+                </Link>
+                {/* Colaboradores */}
+                {project.collaborators?.map(c => (
+                  <Link
+                    key={c.id}
+                    to={`/profile/${c.id}`}
+                    onClick={() => setShowMembersModal(false)}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--agora-accent-bg)] transition-colors"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+                      {c.photoUrl
+                        ? <img src={c.photoUrl} alt={c.name} className="h-full w-full object-cover" />
+                        : c.name.charAt(0).toUpperCase()
+                      }
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[var(--agora-ink)] truncate">{c.name}</p>
+                      {c.course && <p className="text-xs text-[var(--agora-muted)] truncate">{c.course}</p>}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
