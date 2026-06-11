@@ -52,7 +52,7 @@ public class AiReviewService : IAiReviewService
         try
         {
             var googleAi = new GoogleAI(_apiKey);
-            var model = googleAi.GenerativeModel("gemini-1.5-flash");
+            var model = googleAi.GenerativeModel("gemini-2.5-flash-lite");
             var response = await model.GenerateContent(prompt);
             var raw = response.Text?.Trim() ?? string.Empty;
 
