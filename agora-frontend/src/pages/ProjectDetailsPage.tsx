@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Calendar,
   ChevronLeft,
@@ -13,6 +13,13 @@ import {
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 import { useAuth } from '../contexts/AuthContext';
+
+type Collaborator = {
+  id: string;
+  name: string;
+  photoUrl?: string | null;
+  course?: string | null;
+};
 
 type Project = {
   id: number;
@@ -33,6 +40,7 @@ type Project = {
   downloadCount: number;
   averageGrade?: number | null;
   createdAt: string;
+  collaborators?: Collaborator[];
 };
 
 type Evaluation = {
@@ -253,7 +261,27 @@ const ProjectDetailsPage = () => {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-[var(--agora-muted)] mb-5">
                   <span className="inline-flex items-center gap-1.5">
                     <UserCircle2 size={15} />
-                    {teamMembers.length > 0 ? teamMembers.join(', ') : project.authorName}
+                    <Link
+                      to={`/profile/${project.authorId}`}
+                      className="hover:text-[var(--agora-accent)] hover:underline transition-colors"
+                    >
+                      {project.authorName}
+                    </Link>
+                    {project.collaborators && project.collaborators.length > 0 && (
+                      <>
+                        {project.collaborators.map(c => (
+                          <span key={c.id}>
+                            ,{' '}
+                            <Link
+                              to={`/profile/${c.id}`}
+                              className="hover:text-[var(--agora-accent)] hover:underline transition-colors"
+                            >
+                              {c.name}
+                            </Link>
+                          </span>
+                        ))}
+                      </>
+                    )}
                   </span>
                   {project.course && <span>{project.course}</span>}
                   <span className="inline-flex items-center gap-1.5">
@@ -368,7 +396,59 @@ const ProjectDetailsPage = () => {
                         <p className="font-semibold text-[var(--agora-ink)]">{project.area}</p>
                       </div>
                     )}
-                    {teamMembers.length > 0 && (
+                    {(project.collaborators && project.collaborators.length > 0) && (
+                      <div>
+                        <p className="text-[var(--agora-muted)] text-xs mb-2">Equipe</p>
+                        <div className="space-y-2">
+                          {/* Autor */}
+                          <Link
+                            to={`/profile/${project.authorId}`}
+                            className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-[var(--agora-accent-bg)] transition-colors"
+                          >
+                            {project.collaborators.find(c => c.id === project.authorId)?.photoUrl ? (
+                              <img
+                                src={project.collaborators.find(c => c.id === project.authorId)!.photoUrl!}
+                                alt={project.authorName}
+                                className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-[#0a5c2f] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                {project.authorName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[var(--agora-ink)] truncate">{project.authorName}</p>
+                              {project.course && <p className="text-xs text-[var(--agora-muted)] truncate">{project.course}</p>}
+                            </div>
+                          </Link>
+                          {/* Colaboradores */}
+                          {project.collaborators.map(c => (
+                            <Link
+                              key={c.id}
+                              to={`/profile/${c.id}`}
+                              className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-[var(--agora-accent-bg)] transition-colors"
+                            >
+                              {c.photoUrl ? (
+                                <img
+                                  src={c.photoUrl}
+                                  alt={c.name}
+                                  className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                  {c.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-[var(--agora-ink)] truncate">{c.name}</p>
+                                {c.course && <p className="text-xs text-[var(--agora-muted)] truncate">{c.course}</p>}
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {(!project.collaborators || project.collaborators.length === 0) && teamMembers.length > 0 && (
                       <div>
                         <p className="text-[var(--agora-muted)] text-xs mb-0.5">Equipe</p>
                         <p className="font-semibold text-[var(--agora-ink)]">{teamMembers.join(', ')}</p>

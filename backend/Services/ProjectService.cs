@@ -228,7 +228,8 @@ public class ProjectService : IProjectService
                 {
                     Id = c.UserId,
                     Name = c.User!.Name,
-                    PhotoUrl = c.User.PhotoUrl
+                    PhotoUrl = c.User.PhotoUrl,
+                    Course = c.User.Course
                 }).ToList() ?? new()
         };
     }
