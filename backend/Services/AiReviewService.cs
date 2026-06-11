@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Mscc.GenerativeAI;
+using Mscc.GenerativeAI.Types;
 using Nexora.Api.Data;
 using Nexora.Api.Dtos.Responses;
 using Nexora.Api.Interfaces;
@@ -12,11 +13,13 @@ public class AiReviewService : IAiReviewService
 {
     private readonly AppDbContext _context;
     private readonly string _apiKey;
+    private readonly HttpClient _httpClient;
 
-    public AiReviewService(AppDbContext context, IConfiguration configuration)
+    public AiReviewService(AppDbContext context, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         _context = context;
         _apiKey = configuration["Gemini:ApiKey"] ?? throw new InvalidOperationException("Gemini:ApiKey não configurado.");
+        _httpClient = httpClientFactory.CreateClient();
     }
 
     public async Task<AiReviewResult> ReviewProjectAsync(int projectId)
@@ -27,16 +30,24 @@ public class AiReviewService : IAiReviewService
         if (project == null)
             return new AiReviewResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
 
-        var prompt = $$$"""
+        var textPrompt = $$$"""
             Você é um avaliador acadêmico especializado. Avalie o projeto acadêmico abaixo com notas de 0 a 10 em 5 critérios.
+            O documento completo do projeto foi anexado — use-o como principal fonte de análise.
 
-            Projeto:
+            Metadados do projeto:
             - Título: {{{project.Title}}}
             - Categoria: {{{project.Category}}}
             - Curso: {{{project.Course ?? "não informado"}}}
             - Área: {{{project.Area ?? "não informada"}}}
             - Resumo: {{{project.Summary ?? "não informado"}}}
             - Descrição: {{{project.Description}}}
+
+            Critérios de avaliação:
+            1. Relevância (relevance): pertinência do tema e impacto potencial
+            2. Qualidade (quality): rigor técnico, profundidade e embasamento teórico
+            3. Metodologia (methodology): clareza e adequação da metodologia utilizada
+            4. Apresentação (presentation): organização, clareza e qualidade da escrita
+            5. Inovação (innovation): originalidade e contribuição nova ao campo
 
             Responda SOMENTE com um JSON válido neste formato exato, sem markdown, sem texto adicional:
             {
@@ -45,7 +56,7 @@ public class AiReviewService : IAiReviewService
               "methodology": <nota 0-10>,
               "presentation": <nota 0-10>,
               "innovation": <nota 0-10>,
-              "feedback": "<parágrafo em português com análise construtiva de 2-3 frases>"
+              "feedback": "<análise construtiva em português de 3-4 frases destacando pontos fortes e sugestões de melhoria>"
             }
             """;
 
@@ -53,7 +64,31 @@ public class AiReviewService : IAiReviewService
         {
             var googleAi = new GoogleAI(_apiKey);
             var model = googleAi.GenerativeModel("gemini-2.5-flash-lite");
-            var response = await model.GenerateContent(prompt);
+
+            GenerateContentResponse response;
+
+            // tenta enviar o PDF como inline data para análise mais profunda
+            if (!string.IsNullOrWhiteSpace(project.FileUrl))
+            {
+                try
+                {
+                    var pdfBytes = await _httpClient.GetByteArrayAsync(project.FileUrl);
+                    var pdfBase64 = Convert.ToBase64String(pdfBytes);
+
+                    var request = new GenerateContentRequest(textPrompt);
+                    request.AddPart(new InlineData { MimeType = "application/pdf", Data = pdfBase64 });
+                    response = await model.GenerateContent(request);
+                }
+                catch
+                {
+                    // fallback: sem o PDF, analisa só pelos metadados
+                    response = await model.GenerateContent(textPrompt);
+                }
+            }
+            else
+            {
+                response = await model.GenerateContent(textPrompt);
+            }
             var raw = response.Text?.Trim() ?? string.Empty;
 
             // remover blocos de markdown caso venham
