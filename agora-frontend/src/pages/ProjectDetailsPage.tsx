@@ -15,6 +15,16 @@ import api from '../api/axios';
 import AppShell from '../components/AppShell';
 import { useAuth } from '../contexts/AuthContext';
 
+type AiReview = {
+  relevance: number;
+  quality: number;
+  methodology: number;
+  presentation: number;
+  innovation: number;
+  average: number;
+  feedback: string;
+};
+
 type Collaborator = {
   id: string;
   name: string;
@@ -113,6 +123,8 @@ const ProjectDetailsPage = () => {
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
   const [showAllEvals, setShowAllEvals] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [aiReview, setAiReview] = useState<AiReview | null>(null);
+  const [isAiReviewing, setIsAiReviewing] = useState(false);
   const [evaluationData, setEvaluationData] = useState({
     relevance: 0, quality: 0, methodology: 0, presentation: 0, innovation: 0, feedback: ''
   });
@@ -210,6 +222,20 @@ const ProjectDetailsPage = () => {
 
   const latestEval = evaluations.length > 0 ? evaluations[evaluations.length - 1] : null;
 
+  const handleAiReview = async () => {
+    if (!projectId) return;
+    setIsAiReviewing(true);
+    setError('');
+    try {
+      const res = await api.post<AiReview>(`/projects/${projectId}/ai-review`);
+      setAiReview(res.data);
+    } catch {
+      setError('Não foi possível gerar a avaliação com IA.');
+    } finally {
+      setIsAiReviewing(false);
+    }
+  };
+
   return (
     <AppShell title="" subtitle="" showSearch={false}>
       <div>
@@ -293,6 +319,16 @@ const ProjectDetailsPage = () => {
                   >
                     {isDownloading ? 'Baixando...' : 'Baixar PDF'}
                   </button>
+                  {user?.id === project.authorId && (
+                    <button
+                      type="button"
+                      onClick={handleAiReview}
+                      disabled={isAiReviewing}
+                      className="px-5 py-2.5 border border-[var(--agora-border)] bg-[var(--agora-panel)] hover:border-violet-400 hover:text-violet-600 disabled:opacity-50 text-[var(--agora-muted)] text-sm font-semibold rounded-lg transition-colors"
+                    >
+                      {isAiReviewing ? 'Analisando...' : '✨ Avaliar com IA'}
+                    </button>
+                  )}
 
                 </div>
               </div>
@@ -313,6 +349,39 @@ const ProjectDetailsPage = () => {
                   <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Descrição</h2>
                   <p className="text-sm text-[var(--agora-muted)] leading-relaxed whitespace-pre-line">{project.description}</p>
                 </div>
+
+                {/* Resultado da avaliação IA */}
+                {aiReview && (
+                  <div className="rounded-2xl border border-violet-200 bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-base font-bold text-[var(--agora-ink)] flex items-center gap-2">
+                        ✨ Avaliação por IA
+                        <span className="text-xs font-normal text-[var(--agora-muted)]">sugestão automática</span>
+                      </h2>
+                      <span className="text-2xl font-bold text-violet-600">{aiReview.average.toFixed(1)}</span>
+                    </div>
+                    <div className="space-y-2.5 mb-4">
+                      {([
+                        ['Relevância', aiReview.relevance],
+                        ['Qualidade', aiReview.quality],
+                        ['Metodologia', aiReview.methodology],
+                        ['Apresentação', aiReview.presentation],
+                        ['Inovação', aiReview.innovation],
+                      ] as [string, number][]).map(([label, value]) => (
+                        <div key={label}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-[var(--agora-muted)]">{label}</span>
+                            <span className="font-semibold text-[var(--agora-ink)]">{value.toFixed(1)}</span>
+                          </div>
+                          <div className="h-1.5 bg-[var(--agora-border)] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-violet-500" style={{ width: `${(value / 10) * 100}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-[var(--agora-muted)] leading-relaxed border-t border-[var(--agora-border)] pt-4">{aiReview.feedback}</p>
+                  </div>
+                )}
 
                 {/* Comentários */}
                 <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">

@@ -12,10 +12,12 @@ namespace Nexora.Api.Controllers;
 public class ProjectController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly IAiReviewService _aiReviewService;
 
-    public ProjectController(IProjectService projectService)
+    public ProjectController(IProjectService projectService, IAiReviewService aiReviewService)
     {
         _projectService = projectService;
+        _aiReviewService = aiReviewService;
     }
 
     [HttpPost]
@@ -170,5 +172,17 @@ public class ProjectController : ControllerBase
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
         return Ok(new { fileUrl = result.Message });
+    }
+
+    [HttpPost("{id}/ai-review")]
+    [Authorize]
+    public async Task<IActionResult> AiReview(int id)
+    {
+        var result = await _aiReviewService.ReviewProjectAsync(id);
+
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
+
+        return Ok(result.Data);
     }
 }
