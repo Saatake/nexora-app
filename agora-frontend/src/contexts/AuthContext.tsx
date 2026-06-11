@@ -8,6 +8,7 @@ interface User {
   course?: string;
   bio?: string;
   roleType?: string;
+  photoUrl?: string;
 }
 
 interface AuthContextData {

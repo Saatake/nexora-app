@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   Moon,
-  Sun
+  Sun,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -75,10 +76,9 @@ const AppShell = ({
             to={item.to}
             onClick={onClick}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded transition-all ${
-                isActive
-                  ? 'bg-[#0a5c2f] text-white'
-                  : 'text-white/65 hover:text-white hover:bg-white/10'
+              `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded transition-all ${isActive
+                ? 'bg-[#0a5c2f] text-white'
+                : 'text-white/65 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -112,14 +112,32 @@ const AppShell = ({
               <LogOut size={17} />
               Sair
             </button>
-            <div className="flex items-center gap-3 bg-white/10 px-3 py-2.5 rounded">
-              <div className="h-8 w-8 rounded bg-[#0a5c2f] flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
-                {initial}
+            <div
+              onClick={() => navigate('/profile')}
+              className="group flex items-center gap-3 p-3 mt-2 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300 shadow-sm"
+            >
+              {user?.photoUrl ? (
+                <img
+                  src={user.photoUrl}
+                  alt={user.name}
+                  className="h-10 w-10 rounded-full object-cover border-2 border-transparent group-hover:border-[#0a5c2f] transition-all flex-shrink-0"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#0a5c2f] to-[#063b1e] flex items-center justify-center text-sm font-bold text-white shadow-inner flex-shrink-0 border-2 border-transparent group-hover:border-white/20 transition-all">
+                  {initial}
+                </div>
+              )}
+
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-white truncate transition-colors">
+                  {user?.name ?? 'Aluno Agora'}
+                </p>
+                <p className="text-xs text-white/50 truncate group-hover:text-white/70 transition-colors">
+                  {user?.course ?? 'Sem curso'}
+                </p>
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{user?.name ?? 'Aluno Agora'}</p>
-                <p className="text-xs text-white/50 truncate">{user?.course ?? 'Aluno'}</p>
-              </div>
+
+              <ChevronRight size={18} className="text-white/30 group-hover:text-white/80 transition-colors flex-shrink-0 transform group-hover:translate-x-0.5" />
             </div>
           </div>
         </aside>
@@ -134,15 +152,14 @@ const AppShell = ({
 
         {/* Sidebar Mobile */}
         <aside
-          className={`fixed top-0 left-0 bottom-0 w-60 bg-[var(--agora-sidebar)] text-white p-6 z-50 transform transition-transform duration-300 lg:hidden ${
-            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`fixed top-0 left-0 bottom-0 w-60 bg-[var(--agora-sidebar)] text-white p-6 z-50 transform transition-transform duration-300 lg:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           {/* Logo Centralizado Mobile */}
           <div className="flex items-center justify-center mb-8 relative">
             <img src={logoIcon} alt="Ágora" className="h-10 object-contain" />
-            <button 
-              onClick={() => setIsMobileMenuOpen(false)} 
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
               className="absolute right-0 text-white/70 hover:text-white"
             >
               <X size={22} />
