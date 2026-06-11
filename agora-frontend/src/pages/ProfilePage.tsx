@@ -45,6 +45,7 @@ const ProfilePage = () => {
   const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [collaboratedProjects, setCollaboratedProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,6 +90,11 @@ const ProfilePage = () => {
           ? await api.get('/projects/me', { params: { page: 1, pageSize: 10 } })
           : await api.get(`/projects/user/${userId}`, { params: { page: 1, pageSize: 10 } });
 
+        // Buscar colaborações
+        const collaborationsResponse = isOwnProfile
+          ? await api.get('/projects/me/collaborations', { params: { page: 1, pageSize: 10 } })
+          : await api.get(`/projects/user/${userId}/collaborations`, { params: { page: 1, pageSize: 10 } });
+
         if (!isMounted) return;
 
         setProfile({
@@ -99,6 +105,7 @@ const ProfilePage = () => {
         });
 
         setProjects(projectsResponse.data?.items || []);
+        setCollaboratedProjects(collaborationsResponse.data?.items || []);
       } catch (err) {
         if (isMounted) {
           setError('Não foi possível carregar o perfil.');
@@ -375,6 +382,40 @@ const ProfilePage = () => {
                   </div>
                 )}
               </section>
+
+              {/* Colaborações */}
+              {collaboratedProjects.length > 0 && (
+                <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
+                  <h3 className="text-xl font-bold text-[var(--agora-ink)] mb-6">Colaborações</h3>
+                  <div className="space-y-4">
+                    {collaboratedProjects.map((project) => (
+                      <Link
+                        key={project.id}
+                        to={`/projects/${project.id}`}
+                        className="flex items-center gap-4 p-5 rounded-xl border border-[var(--agora-border)] bg-[var(--agora-panel)] hover:bg-[var(--agora-accent-bg)] transition-colors"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center flex-shrink-0">
+                          <BookOpen className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-[var(--agora-ink)] truncate">{project.title}</h4>
+                          <div className="flex items-center gap-3 mt-1 text-sm text-[var(--agora-muted)]">
+                            <span>{formatCategory(project.category)}</span>
+                            <span>•</span>
+                            <span>{new Date(project.createdAt).getFullYear()}</span>
+                          </div>
+                        </div>
+                        {project.averageGrade && (
+                          <div className="flex items-center gap-2 text-emerald-600 font-bold text-lg">
+                            <Star className="w-5 h-5 fill-emerald-600" />
+                            <span>{project.averageGrade.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
 
             {/* Sidebar */}

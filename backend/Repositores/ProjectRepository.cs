@@ -26,6 +26,7 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects
         .Include(p => p.User)
+        .Include(p => p.Collaborators).ThenInclude(c => c.User)
         .Where(p => !p.IsPrivate)
         .OrderByDescending(p => p.CreatedAt)
         .ToListAsync();
@@ -38,6 +39,7 @@ public class ProjectRepository : IProjectRepository
         var query = _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
+            .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Where(p => !p.IsPrivate)
             .AsQueryable();
 
@@ -75,6 +77,7 @@ public class ProjectRepository : IProjectRepository
         var query = _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
+            .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Where(p => p.UserId == userId)
             .AsQueryable();
 
@@ -89,11 +92,28 @@ public class ProjectRepository : IProjectRepository
         return (items, totalCount);
     }
 
+    public async Task<(IEnumerable<Project> Items, int TotalCount)> GetCollaboratedAsync(string userId, int page, int pageSize)
+    {
+        var query = _context.ProjectCollaborators
+            .Where(pc => pc.UserId == userId)
+            .Select(pc => pc.Project!)
+            .Include(p => p.User)
+            .Include(p => p.Evaluations)
+            .Include(p => p.Collaborators).ThenInclude(c => c.User)
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        return (items, totalCount);
+    }
+
     public async Task<Project?> GetByIdAsync(int id)
     {
         return await _context.Projects
             .Include(p => p.User)
             .Include(p => p.Evaluations)
+            .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -106,6 +126,26 @@ public class ProjectRepository : IProjectRepository
     public async Task DeleteAsync(Project project)
     {
         _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task SetCollaboratorsAsync(int projectId, List<string> userIds)
+    {
+        var existing = await _context.ProjectCollaborators
+            .Where(pc => pc.ProjectId == projectId)
+            .ToListAsync();
+
+        _context.ProjectCollaborators.RemoveRange(existing);
+
+        foreach (var userId in userIds.Distinct())
+        {
+            _context.ProjectCollaborators.Add(new ProjectCollaborator
+            {
+                ProjectId = projectId,
+                UserId = userId
+            });
+        }
+
         await _context.SaveChangesAsync();
     }
 }

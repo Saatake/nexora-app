@@ -61,6 +61,21 @@ public class ProjectController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("me/collaborations")]
+    [Authorize]
+    public async Task<IActionResult> GetMyCollaborations([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
+        var result = await _projectService.GetCollaboratedProjectsAsync(userId, page, pageSize);
+        return Ok(result);
+    }
+
     [HttpGet("user/{userId}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetByUser(string userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -70,6 +85,18 @@ public class ProjectController : ControllerBase
         if (pageSize > 50) pageSize = 50;
 
         var result = await _projectService.GetMyProjectsAsync(userId, null, page, pageSize);
+        return Ok(result);
+    }
+
+    [HttpGet("user/{userId}/collaborations")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCollaborationsByUser(string userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
+        var result = await _projectService.GetCollaboratedProjectsAsync(userId, page, pageSize);
         return Ok(result);
     }
 

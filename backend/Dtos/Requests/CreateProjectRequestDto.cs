@@ -39,6 +39,8 @@ public class CreateProjectRequestDto
     public ProjectCategory Category { get; set; }
 
     public bool IsPrivate { get; set; } = false;
+
+    public List<string> CollaboratorIds { get; set; } = new();
 }
 
 public class UpdateProjectRequestDto
@@ -77,4 +79,6 @@ public class UpdateProjectRequestDto
     public ProjectCategory Category { get; set; }
 
     public bool IsPrivate { get; set; } = false;
+
+    public List<string> CollaboratorIds { get; set; } = new();
 }

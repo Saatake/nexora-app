@@ -21,4 +21,5 @@ public class ProjectResponseDto
     public double? AverageGrade { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsPrivate { get; set; }
+    public List<CollaboratorDto> Collaborators { get; set; } = new();
 }

@@ -41,24 +41,11 @@ public class ProjectService : IProjectService
 
         var created = await _projectRepository.CreateAsync(project);
 
-        return new ProjectResponseDto
-        {
-            Id = created.Id,
-            Title = created.Title,
-            Description = created.Description,
-            Summary = created.Summary,
-            Course = created.Course,
-            Area = created.Area,
-            Advisor = created.Advisor,
-            TeamMembers = created.TeamMembers,
-            GithubLink = created.GithubLink,
-            FileUrl = created.FileUrl,
-            ImageUrl = created.ImageUrl,
-            Category = created.Category.ToString(),
-            IsPrivate = created.IsPrivate,
-            AuthorId = created.UserId,
-            CreatedAt = created.CreatedAt
-        };
+        if (request.CollaboratorIds.Count > 0)
+            await _projectRepository.SetCollaboratorsAsync(created.Id, request.CollaboratorIds);
+
+        var full = await _projectRepository.GetByIdAsync(created.Id);
+        return MapToDto(full!);
     }
 
     public async Task<IEnumerable<ProjectResponseDto>> GetFeedAsync()
@@ -148,8 +135,10 @@ public class ProjectService : IProjectService
         project.IsPrivate = model.IsPrivate;
 
         await _projectRepository.UpdateAsync(project);
+        await _projectRepository.SetCollaboratorsAsync(project.Id, model.CollaboratorIds);
 
-        return new ProjectResult { Succeeded = true, Message = "projeto atualizado com sucesso!", Data = MapToDto(project) };
+        var updated = await _projectRepository.GetByIdAsync(project.Id);
+        return new ProjectResult { Succeeded = true, Message = "projeto atualizado com sucesso!", Data = MapToDto(updated!) };
     }
 
     public async Task<ProjectResult> DeleteAsync(int id, string userId)
@@ -176,6 +165,19 @@ public class ProjectService : IProjectService
         await _projectRepository.UpdateAsync(project);
 
         return new ProjectResult { Succeeded = true, Message = "visualização registrada." };
+    }
+
+    public async Task<PagedResponseDto<ProjectResponseDto>> GetCollaboratedProjectsAsync(string userId, int page, int pageSize)
+    {
+        var (items, totalCount) = await _projectRepository.GetCollaboratedAsync(userId, page, pageSize);
+
+        return new PagedResponseDto<ProjectResponseDto>
+        {
+            Items = items.Select(MapToDto),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<ProjectResult> GetDownloadAsync(int id)
@@ -219,7 +221,15 @@ public class ProjectService : IProjectService
             DownloadCount = p.DownloadCount,
             AverageGrade = avgGrade,
             IsPrivate = p.IsPrivate,
-            CreatedAt = p.CreatedAt
+            CreatedAt = p.CreatedAt,
+            Collaborators = p.Collaborators?
+                .Where(c => c.User != null)
+                .Select(c => new CollaboratorDto
+                {
+                    Id = c.UserId,
+                    Name = c.User!.Name,
+                    PhotoUrl = c.User.PhotoUrl
+                }).ToList() ?? new()
         };
     }
 }

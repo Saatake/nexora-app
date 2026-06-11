@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Image, Plus, X, Lock } from 'lucide-react';
+import { Image, X, Lock } from 'lucide-react';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 import ImageCropModal from '../components/ImageCropModal';
+import UserTagInput, { type CollaboratorUser } from '../components/UserTagInput';
 import { FACENS_COURSES } from '../constants/facensCourses';
+import { useAuth } from '../contexts/AuthContext';
 
 type ProjectCategory = 'Tcc' | 'Upx' | 'IniciacaoCientifica' | 'Relatorio' | 'ProjetoEscrito';
 
@@ -22,6 +24,7 @@ type Project = {
   imageUrl?: string;
   category: string;
   isPrivate?: boolean;
+  collaborators?: CollaboratorUser[];
 };
 
 const EditProjectPage = () => {
@@ -37,8 +40,7 @@ const EditProjectPage = () => {
   const [course, setCourse] = useState('');
   const [area, setArea] = useState('');
   const [advisor, setAdvisor] = useState('');
-  const [memberName, setMemberName] = useState('');
-  const [members, setMembers] = useState<string[]>([]);
+  const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState('');
@@ -51,6 +53,8 @@ const EditProjectPage = () => {
   const [error, setError] = useState('');
 
   const summaryCount = useMemo(() => summary.length, [summary]);
+
+  const { user: currentUser } = useAuth();
 
   const inputCls = 'w-full px-4 py-3 border border-[var(--agora-border)] rounded bg-[var(--agora-input-bg)] focus:ring-1 focus:ring-[var(--agora-accent)] focus:border-[var(--agora-accent)] transition-all font-medium text-[var(--agora-ink)] placeholder:text-[var(--agora-muted)] outline-none';
 
@@ -81,8 +85,8 @@ const EditProjectPage = () => {
 
         if (project.imageUrl) setCoverPreview(project.imageUrl);
 
-        if (project.teamMembers) {
-          setMembers(project.teamMembers.split(',').map(m => m.trim()).filter(Boolean));
+        if (project.collaborators && project.collaborators.length > 0) {
+          setCollaborators(project.collaborators);
         }
       } catch (err: any) {
         setError('Não foi possível carregar o projeto.');
@@ -93,17 +97,6 @@ const EditProjectPage = () => {
 
     loadProject();
   }, [id, navigate]);
-
-  const handleAddMember = () => {
-    const trimmed = memberName.trim();
-    if (!trimmed) return;
-    setMembers((prev) => [...prev, trimmed]);
-    setMemberName('');
-  };
-
-  const handleRemoveMember = (member: string) => {
-    setMembers((prev) => prev.filter((item) => item !== member));
-  };
 
   const handleCoverFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -179,9 +172,9 @@ const EditProjectPage = () => {
     try {
       await api.put(`/projects/${id}`, {
         title, description, summary, course, area, advisor,
-        teamMembers: members.join(', '),
         githubLink, fileUrl, imageUrl, category,
-        isPrivate
+        isPrivate,
+        collaboratorIds: collaborators.map((c) => c.id)
       });
       navigate('/projects');
     } catch (err: any) {
@@ -275,38 +268,13 @@ const EditProjectPage = () => {
           <div className="mt-4 space-y-4">
             <div>
               <label className="text-sm font-semibold text-[var(--agora-ink)]">Integrantes</label>
-              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <input
-                  value={memberName}
-                  onChange={(event) => setMemberName(event.target.value)}
-                  placeholder="Nome do integrante"
-                  className={inputCls}
+              <div className="mt-2">
+                <UserTagInput
+                  value={collaborators}
+                  onChange={setCollaborators}
+                  excludeIds={currentUser?.id ? [currentUser.id] : []}
                 />
-                <button
-                  type="button"
-                  onClick={handleAddMember}
-                  className="inline-flex items-center gap-2 px-4 py-3 border border-[var(--agora-border)] rounded text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800 transition-colors"
-                >
-                  <Plus size={16} />
-                  Adicionar integrante
-                </button>
               </div>
-
-              {members.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {members.map((member) => (
-                    <span
-                      key={member}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-[#0a5c2f] text-xs font-semibold rounded"
-                    >
-                      {member}
-                      <button type="button" onClick={() => handleRemoveMember(member)}>
-                        <X size={14} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div>

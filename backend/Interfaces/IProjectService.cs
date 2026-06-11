@@ -11,6 +11,7 @@ public interface IProjectService
     Task<IEnumerable<ProjectResponseDto>> GetFeedAsync();
     Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, string? course, double? minGrade, string? sort, int page, int pageSize);
     Task<PagedResponseDto<ProjectResponseDto>> GetMyProjectsAsync(string userId, ProjectCategory? category, int page, int pageSize);
+    Task<PagedResponseDto<ProjectResponseDto>> GetCollaboratedProjectsAsync(string userId, int page, int pageSize);
     Task<ProjectResult> GetByIdAsync(int id);
     Task<ProjectResult> UpdateAsync(int id, UpdateProjectRequestDto model, string userId);
     Task<ProjectResult> DeleteAsync(int id, string userId);

@@ -11,7 +11,9 @@ public interface IProjectRepository
         string? search, ProjectCategory? category, string? course,
         double? minGrade, string? sort, int page, int pageSize);
     Task<(IEnumerable<Project> Items, int TotalCount)> GetByUserAsync(string userId, ProjectCategory? category, int page, int pageSize);
+    Task<(IEnumerable<Project> Items, int TotalCount)> GetCollaboratedAsync(string userId, int page, int pageSize);
     Task<Project?> GetByIdAsync(int id);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
+    Task SetCollaboratorsAsync(int projectId, List<string> userIds);
 }
