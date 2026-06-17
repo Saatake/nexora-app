@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Calendar,
+  ChevronDown,
   ChevronLeft,
   Download,
   Eye,
@@ -125,6 +126,7 @@ const ProjectDetailsPage = () => {
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [aiReview, setAiReview] = useState<AiReview | null>(null);
   const [isAiReviewing, setIsAiReviewing] = useState(false);
+  const [showAiFeedback, setShowAiFeedback] = useState(false);
   const [evaluationData, setEvaluationData] = useState({
     relevance: 0, quality: 0, methodology: 0, presentation: 0, innovation: 0, feedback: ''
   });
@@ -326,7 +328,7 @@ const ProjectDetailsPage = () => {
                       disabled={isAiReviewing}
                       className="px-5 py-2.5 border border-[var(--agora-border)] bg-[var(--agora-panel)] hover:border-violet-400 hover:text-violet-600 disabled:opacity-50 text-[var(--agora-muted)] text-sm font-semibold rounded-lg transition-colors"
                     >
-                      {isAiReviewing ? 'Analisando...' : '✨ Avaliar com IA'}
+                      {isAiReviewing ? 'Analisando...' : 'Avaliar com IA'}
                     </button>
                   )}
 
@@ -379,7 +381,30 @@ const ProjectDetailsPage = () => {
                         </div>
                       ))}
                     </div>
-                    <p className="text-sm text-[var(--agora-muted)] leading-relaxed border-t border-[var(--agora-border)] pt-4">{aiReview.feedback}</p>
+                    <div className="border-t border-[var(--agora-border)] pt-4">
+                      <button
+                        onClick={() => setShowAiFeedback(v => !v)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-violet-600 hover:text-violet-700 mb-3"
+                      >
+                        <ChevronDown size={14} className={`transition-transform ${showAiFeedback ? 'rotate-180' : ''}`} />
+                        {showAiFeedback ? 'Ocultar análise detalhada' : 'Ver análise detalhada'}
+                      </button>
+                      {showAiFeedback && (
+                        <div className="space-y-4">
+                          {aiReview.feedback.split(/\n###\s+/).filter(Boolean).map((section, i) => {
+                            const nl = section.indexOf('\n');
+                            const title = nl === -1 ? section : section.slice(0, nl);
+                            const body = nl === -1 ? '' : section.slice(nl + 1).trim();
+                            return (
+                              <div key={i}>
+                                <p className="text-xs font-semibold text-[var(--agora-ink)] mb-1">{title}</p>
+                                <p className="text-sm text-[var(--agora-muted)] leading-relaxed whitespace-pre-line">{body}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 

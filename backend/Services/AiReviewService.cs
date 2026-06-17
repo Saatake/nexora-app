@@ -111,7 +111,7 @@ public class AiReviewService : IAiReviewService
             string pontosMelhoria = feedbackObj.GetProperty("pontos_melhoria").GetString() ?? String.Empty;
             string conclusao = feedbackObj.GetProperty("conclusao").GetString() ?? String.Empty;
 
-            string feedbackFormatado = $"### Pontos Fortes\n{pontosFortes}\n\n###Pontos de Melhoria\n{pontosMelhoria}\n\n###Conclusão\n{conclusao}";
+            string feedbackFormatado = $"### Pontos Fortes\n{pontosFortes}\n\n### Pontos de Melhoria\n{pontosMelhoria}\n\n### Conclusão\n{conclusao}";
 
             double average = Math.Round((relevance + quality + methodology + presentation + innovation) / 5.0, 2);
 
