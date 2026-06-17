@@ -14,10 +14,9 @@ public class ProjectController : ControllerBase
     private readonly IProjectService _projectService;
     private readonly IAiReviewService _aiReviewService;
 
-    public ProjectController(IProjectService projectService, IAiReviewService aiReviewService)
+    public ProjectController(IProjectService projectService)
     {
         _projectService = projectService;
-        _aiReviewService = aiReviewService;
     }
 
     [HttpPost]
@@ -178,7 +177,7 @@ public class ProjectController : ControllerBase
     [Authorize]
     public async Task<IActionResult> AiReview(int id)
     {
-        var result = await _aiReviewService.ReviewProjectAsync(id);
+        var result = await _projectService.GenerateAiReviewAsync(id);
 
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });

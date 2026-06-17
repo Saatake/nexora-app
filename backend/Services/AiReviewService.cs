@@ -1,34 +1,30 @@
 using System.Text.Json;
 using Mscc.GenerativeAI;
 using Mscc.GenerativeAI.Types;
-using Nexora.Api.Data;
 using Nexora.Api.Dtos.Responses;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Results;
 using Microsoft.EntityFrameworkCore;
+using Nexora.Api.Models;
 
 namespace Nexora.Api.Services;
 
 public class AiReviewService : IAiReviewService
 {
-    private readonly AppDbContext _context;
     private readonly string _apiKey;
     private readonly HttpClient _httpClient;
 
-    public AiReviewService(AppDbContext context, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public AiReviewService(IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
-        _context = context;
         _apiKey = configuration["Gemini:ApiKey"] ?? throw new InvalidOperationException("Gemini:ApiKey não configurado.");
         _httpClient = httpClientFactory.CreateClient();
     }
 
-    public async Task<AiReviewResult> ReviewProjectAsync(int projectId)
+    public async Task<AiReviewResult> ReviewProjectAsync(Project project)
     {
-        var project = await _context.Projects
-            .FirstOrDefaultAsync(p => p.Id == projectId);
-
-        if (project == null)
-            return new AiReviewResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
+        if(project == null) {
+            throw new ArgumentNullException(nameof(project), "O projeto enviado para a avaliação não pode ser nulo.");
+        }
 
         var textPrompt = $$$"""
             Você é um avaliador acadêmico especializado. Avalie o projeto acadêmico abaixo com notas de 0 a 10 em 5 critérios.
@@ -56,9 +52,13 @@ public class AiReviewService : IAiReviewService
               "methodology": <nota 0-10>,
               "presentation": <nota 0-10>,
               "innovation": <nota 0-10>,
-              "feedback": "<análise construtiva em português de 3-4 frases destacando pontos fortes e sugestões de melhoria>"
+              "feedback": {
+                "pontos_fortes": "<análise detalhada e aprofundada dos pontos fortes do projeto. Escreva pelo menos 2 parágrafos.>",
+                "pontos_melhoria": "<críticas construtivas e sugestões práticas de como o aluno pode evoluir o projeto. Escreva pelo menos 2 parágrafos.>",
+                "conclusao": "<uma síntese geral do parecer técnico>"
             }
-            """;
+        }
+        """;
 
         try
         {
@@ -105,7 +105,13 @@ public class AiReviewService : IAiReviewService
             double methodology = json.GetProperty("methodology").GetDouble();
             double presentation = json.GetProperty("presentation").GetDouble();
             double innovation = json.GetProperty("innovation").GetDouble();
-            string feedback = json.GetProperty("feedback").GetString() ?? string.Empty;
+
+            var feedbackObj = json.GetProperty("feedback");
+            string pontosFortes = feedbackObj.GetProperty("pontos_fortes").GetString() ?? String.Empty;
+            string pontosMelhoria = feedbackObj.GetProperty("pontos_melhoria").GetString() ?? String.Empty;
+            string conclusao = feedbackObj.GetProperty("conclusao").GetString() ?? String.Empty;
+
+            string feedbackFormatado = $"### Pontos Fortes\n{pontosFortes}\n\n###Pontos de Melhoria\n{pontosMelhoria}\n\n###Conclusão\n{conclusao}";
 
             double average = Math.Round((relevance + quality + methodology + presentation + innovation) / 5.0, 2);
 
@@ -120,7 +126,7 @@ public class AiReviewService : IAiReviewService
                     Presentation = presentation,
                     Innovation = innovation,
                     Average = average,
-                    Feedback = feedback
+                    Feedback = feedbackFormatado
                 }
             };
         }

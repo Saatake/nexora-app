@@ -12,11 +12,13 @@ public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAiReviewService _aiReviewService;
 
-    public ProjectService(IProjectRepository projectRepository, UserManager<ApplicationUser> userManager)
+    public ProjectService(IProjectRepository projectRepository, UserManager<ApplicationUser> userManager, IAiReviewService aiReviewService)
     {
         _projectRepository = projectRepository;
         _userManager = userManager;
+        _aiReviewService = aiReviewService;
     }
 
     public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectRequestDto request, string userId)
@@ -232,5 +234,15 @@ public class ProjectService : IProjectService
                     Course = c.User.Course
                 }).ToList() ?? new()
         };
+    }
+
+    public async Task<AiReviewResult> GenerateAiReviewAsync(int id)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+
+        if(project == null) 
+            return new AiReviewResult { Succeeded = false, isNotFound = true, Message = "projeto não encontrado." };
+        
+        return await _aiReviewService.ReviewProjectAsync(project);
     }
 }

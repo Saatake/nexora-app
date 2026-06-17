@@ -17,4 +17,5 @@ public interface IProjectService
     Task<ProjectResult> DeleteAsync(int id, string userId);
     Task<ProjectResult> IncrementViewAsync(int id);
     Task<ProjectResult> GetDownloadAsync(int id);
+    Task<AiReviewResult> GenerateAiReviewAsync(int id);
 }

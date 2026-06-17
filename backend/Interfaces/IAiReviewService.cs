@@ -4,5 +4,5 @@ namespace Nexora.Api.Interfaces;
 
 public interface IAiReviewService
 {
-    Task<AiReviewResult> ReviewProjectAsync(int projectId);
+    Task<AiReviewResult> ReviewProjectAsync(Project project);
 }
