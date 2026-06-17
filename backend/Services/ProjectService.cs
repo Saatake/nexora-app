@@ -241,7 +241,7 @@ public class ProjectService : IProjectService
         var project = await _projectRepository.GetByIdAsync(id);
 
         if(project == null) 
-            return new AiReviewResult { Succeeded = false, isNotFound = true, Message = "projeto não encontrado." };
+            return new AiReviewResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
         
         return await _aiReviewService.ReviewProjectAsync(project);
     }

@@ -12,7 +12,6 @@ namespace Nexora.Api.Controllers;
 public class ProjectController : ControllerBase
 {
     private readonly IProjectService _projectService;
-    private readonly IAiReviewService _aiReviewService;
 
     public ProjectController(IProjectService projectService)
     {
