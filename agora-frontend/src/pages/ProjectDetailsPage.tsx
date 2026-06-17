@@ -12,6 +12,7 @@ import {
   UserCircle2,
   X
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import api from '../api/axios';
 import AppShell from '../components/AppShell';
 import { useAuth } from '../contexts/AuthContext';
@@ -390,18 +391,8 @@ const ProjectDetailsPage = () => {
                         {showAiFeedback ? 'Ocultar análise detalhada' : 'Ver análise detalhada'}
                       </button>
                       {showAiFeedback && (
-                        <div className="space-y-4">
-                          {aiReview.feedback.split(/\n###\s+/).filter(Boolean).map((section, i) => {
-                            const nl = section.indexOf('\n');
-                            const title = nl === -1 ? section : section.slice(0, nl);
-                            const body = nl === -1 ? '' : section.slice(nl + 1).trim();
-                            return (
-                              <div key={i}>
-                                <p className="text-xs font-semibold text-[var(--agora-ink)] mb-1">{title}</p>
-                                <p className="text-sm text-[var(--agora-muted)] leading-relaxed whitespace-pre-line">{body}</p>
-                              </div>
-                            );
-                          })}
+                        <div className="space-y-4 text-sm text-[var(--agora-muted)] leading-relaxed [&>h3]:text-base [&>h3]:font-bold [&>h3]:text-[var(--agora-ink)] [&>h3]:mt-4 [&>h3]:mb-2 [&>p]:mb-3">
+                          <ReactMarkdown>{aiReview.feedback}</ReactMarkdown>
                         </div>
                       )}
                     </div>
@@ -489,7 +480,7 @@ const ProjectDetailsPage = () => {
                         <div className="flex items-center gap-3">
                           <div className="flex -space-x-2">
                             {[{ id: project.authorId, name: project.authorName, photoUrl: undefined as string | null | undefined },
-                              ...(project.collaborators ?? [])]
+                            ...(project.collaborators ?? [])]
                               .slice(0, 4)
                               .map((m, i) => (
                                 <div
