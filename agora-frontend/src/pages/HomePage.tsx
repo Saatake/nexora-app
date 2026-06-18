@@ -29,7 +29,7 @@ const HomePage = () => {
               <img 
                 src={logo} 
                 alt="Ágora" 
-                className="h-12 sm:h-16 transition-transform hover:scale-105"
+                className="h-12 sm:h-16"
               />
             </div>
             

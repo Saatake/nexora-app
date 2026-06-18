@@ -97,7 +97,7 @@ const AppShell = ({
         <aside className="hidden lg:flex w-60 flex-shrink-0 flex-col bg-[var(--agora-sidebar)] text-white p-6 sticky top-0 h-screen">
           {/* Logo Centralizado */}
           <div className="mb-8 flex justify-center w-full">
-            <img src={logoIcon} alt="Ágora" className="h-12 object-contain" />
+            <img src={logoIcon} alt="Ágora" className="h-16 object-contain" />
           </div>
 
           <nav className="space-y-1 flex-1">
@@ -157,7 +157,7 @@ const AppShell = ({
         >
           {/* Logo Centralizado Mobile */}
           <div className="flex items-center justify-center mb-8 relative">
-            <img src={logoIcon} alt="Ágora" className="h-10 object-contain" />
+            <img src={logoIcon} alt="Ágora" className="h-14 object-contain" />
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="absolute right-0 text-white/70 hover:text-white"
