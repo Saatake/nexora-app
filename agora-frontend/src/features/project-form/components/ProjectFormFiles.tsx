@@ -14,7 +14,7 @@ type Props = {
   isUploading: boolean;
   uploadedFileName: string;
   uploadError: string;
-  coverInputRef: React.RefObject<HTMLInputElement>;
+  coverInputRef: React.RefObject<HTMLInputElement | null>;
   onCoverFileSelected: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveCover: () => void;

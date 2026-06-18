@@ -8,7 +8,7 @@ type ProfileHeaderProps = {
   roleLabel: string;
   onEditClick: () => void;
   onPhotoClick: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
