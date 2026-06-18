@@ -1,53 +1,11 @@
-import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import api from '../api/axios';
-import fundoLivro from '../assets/livro-coluna.png';
-import logoIcon from '../assets/logo-icon.png';
+import fundoLivro from '@/assets/livro-coluna.png';
+import logoIcon from '@/assets/logo-icon.png';
+import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 
 const ResetPasswordPage = () => {
-  const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState(searchParams.get('email') || '');
-  const token = searchParams.get('token') || ''; // Token oculto, pego da URL
-  const [newPassword, setNewPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const getErrorMessage = (err: any, fallback: string) => {
-    const data = err?.response?.data;
-    if (typeof data?.message === 'string') {
-      return data.message;
-    }
-    if (Array.isArray(data?.errors)) {
-      return data.errors.join(', ');
-    }
-    if (data?.errors && typeof data.errors === 'object') {
-      return Object.values(data.errors).flat().join(', ');
-    }
-    return fallback;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-
-    try {
-      const response = await api.post('/auth/reset-password', {
-        email,
-        token, // Usa o token da URL
-        newPassword
-      });
-      setSuccess(response.data?.message || 'Senha redefinida com sucesso!');
-    } catch (err: any) {
-      setError(getErrorMessage(err, 'Erro ao redefinir senha'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { email, setEmail, newPassword, setNewPassword, showPassword, setShowPassword, error, success, loading, handleSubmit } = useResetPassword();
 
   return (
     <div 

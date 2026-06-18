@@ -1,45 +1,11 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft } from 'lucide-react';
-import api from '../api/axios';
-import fundoLivro from '../assets/livro-coluna.png';
-import logoIcon from '../assets/logo-icon.png';
+import fundoLivro from '@/assets/livro-coluna.png';
+import logoIcon from '@/assets/logo-icon.png';
+import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 
 const ForgotPasswordPage = () => {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const getErrorMessage = (err: any, fallback: string) => {
-    const data = err?.response?.data;
-    if (typeof data?.message === 'string') {
-      return data.message;
-    }
-    if (Array.isArray(data?.errors)) {
-      return data.errors.join(', ');
-    }
-    if (data?.errors && typeof data.errors === 'object') {
-      return Object.values(data.errors).flat().join(', ');
-    }
-    return fallback;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-
-    try {
-      const response = await api.post('/auth/forgot-password', { email });
-      setSuccess(response.data?.message || 'Se o email estiver cadastrado, enviamos as instrucoes.');
-    } catch (err: any) {
-      setError(getErrorMessage(err, 'Erro ao solicitar recuperacao de senha'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { email, setEmail, error, success, loading, handleSubmit } = useForgotPassword();
 
   return (
     <div 
