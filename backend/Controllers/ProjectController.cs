@@ -154,7 +154,10 @@ public class ProjectController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> IncrementView(int id)
     {
-        var result = await _projectService.IncrementViewAsync(id);
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _projectService.IncrementViewAsync(id, userId);
+
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 

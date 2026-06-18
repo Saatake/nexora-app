@@ -15,7 +15,7 @@ public interface IProjectService
     Task<ProjectResult> GetByIdAsync(int id);
     Task<ProjectResult> UpdateAsync(int id, UpdateProjectRequestDto model, string userId);
     Task<ProjectResult> DeleteAsync(int id, string userId);
-    Task<ProjectResult> IncrementViewAsync(int id);
+    Task<ProjectResult> IncrementViewAsync(int id, string? currentUserId = null);
     Task<ProjectResult> GetDownloadAsync(int id);
     Task<AiReviewResult> GenerateAiReviewAsync(int id);
 }

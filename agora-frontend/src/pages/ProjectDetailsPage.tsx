@@ -157,7 +157,11 @@ const ProjectDetailsPage = () => {
         setProject(projectResponse.data);
         setEvaluations(evaluationResponse.data ?? []);
         setComments(commentResponse.data ?? []);
-        api.post(`/projects/${projectId}/views`).catch(() => undefined);
+        
+        if (!user || projectResponse.data.authorId !== user.id) {
+          api.post('/projects/${projectId}/views').catch(() => undefined);
+        }
+
       } catch {
         if (isMounted) setError('Não foi possível carregar o projeto.');
       } finally {

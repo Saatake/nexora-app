@@ -157,15 +157,19 @@ public class ProjectService : IProjectService
         return new ProjectResult { Succeeded = true, Message = "projeto deletado com sucesso!" };
     }
 
-    public async Task<ProjectResult> IncrementViewAsync(int id)
+    public async Task<ProjectResult> IncrementViewAsync(int id, string? currentUserId = null)
     {
         var project = await _projectRepository.GetByIdAsync(id);
         if (project == null)
             return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
 
+        if(project.UserId != currentUserId)
+        {
         project.ViewCount++;
         await _projectRepository.UpdateAsync(project);
+        }
 
+        // retorna sucesso, porém se for o autor do projeto não contabiliza a view
         return new ProjectResult { Succeeded = true, Message = "visualização registrada." };
     }
 
