@@ -1,132 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Calendar, Eye, Plus, Star, Edit, Trash2, Lock } from 'lucide-react';
-import api from '../api/axios';
-import AppShell from '../components/AppShell';
-
-type Project = {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  averageGrade?: number | null;
-  viewCount: number;
-  downloadCount: number;
-  createdAt: string;
-  isPrivate: boolean;
-  imageUrl?: string | null;
-};
-
-type PagedResponse<T> = {
-  items: T[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-};
-
-type FilterKey = 'all' | 'Tcc' | 'Upx' | 'IniciacaoCientifica' | 'Relatorio' | 'ProjetoEscrito';
-
-const filters: { key: FilterKey; label: string }[] = [
-  { key: 'all', label: 'Todos' },
-  { key: 'Tcc', label: 'TCC' },
-  { key: 'Upx', label: 'UPX' },
-  { key: 'IniciacaoCientifica', label: 'Iniciacao Cientifica' },
-  { key: 'Relatorio', label: 'Relatorio' },
-  { key: 'ProjetoEscrito', label: 'Projeto escrito' }
-];
-
-const formatCategory = (category: string) => {
-  const lookup: Record<string, string> = {
-    Tcc: 'TCC',
-    Upx: 'UPX',
-    IniciacaoCientifica: 'Iniciacao Cientifica',
-    Relatorio: 'Relatorio',
-    ProjetoEscrito: 'Projeto escrito'
-  };
-  return lookup[category] ?? category;
-};
-
-const formatDate = (value: string) => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return 'Data desconhecida';
-  return parsed.toLocaleDateString('pt-BR');
-};
+import AppShell from '@/components/AppShell';
+import { useMyProjects, MY_PROJECTS_FILTERS } from '@/features/my-projects/hooks/useMyProjects';
 
 const MyProjectsPage = () => {
-  const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [deleteModal, setDeleteModal] = useState<{ show: boolean; projectId: number | null; projectTitle: string }>({
-    show: false,
-    projectId: null,
-    projectTitle: ''
-  });
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState('');
-
-  const filterParam = useMemo(() => {
-    if (activeFilter === 'all') return undefined;
-    return activeFilter;
-  }, [activeFilter]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadProjects = async () => {
-      setIsLoading(true);
-      setError('');
-      try {
-        const response = await api.get<PagedResponse<Project>>('/projects/me', {
-          params: { page: 1, pageSize: 12, type: filterParam }
-        });
-
-        if (!isMounted) return;
-        setProjects(response.data.items ?? []);
-      } catch (err) {
-        if (isMounted) setError('Nao foi possivel carregar seus projetos.');
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    loadProjects();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [filterParam]);
-
-  const handleDelete = async () => {
-    if (!deleteModal.projectId) return;
-
-    setIsDeleting(true);
-    setError('');
-    try {
-      await api.delete(`/projects/${deleteModal.projectId}`);
-
-      // Remover projeto da lista
-      setProjects(projects.filter(p => p.id !== deleteModal.projectId));
-      setDeleteModal({ show: false, projectId: null, projectTitle: '' });
-    } catch (err: any) {
-      const message = err.response?.data?.message || 'Não foi possível excluir o projeto.';
-      setError(message);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleEdit = (projectId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigate(`/projects/${projectId}/edit`);
-  };
-
-  const confirmDelete = (projectId: number, projectTitle: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDeleteModal({ show: true, projectId, projectTitle });
-  };
+  const {
+    activeFilter,
+    setActiveFilter,
+    projects,
+    isLoading,
+    deleteModal,
+    isDeleting,
+    error,
+    handleDelete,
+    handleEdit,
+    confirmDelete,
+    closeDeleteModal,
+    formatCategory,
+    formatDate,
+  } = useMyProjects();
 
   return (
     <AppShell
@@ -149,7 +41,7 @@ const MyProjectsPage = () => {
       )}
 
       <div className="flex gap-2 flex-wrap mb-6">
-        {filters.map((filter) => (
+        {MY_PROJECTS_FILTERS.map((filter) => (
           <button
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
@@ -253,7 +145,7 @@ const MyProjectsPage = () => {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => setDeleteModal({ show: false, projectId: null, projectTitle: '' })}
+                onClick={closeDeleteModal}
                 disabled={isDeleting}
                 className="flex-1 py-2 border border-gray-300 rounded text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
               >

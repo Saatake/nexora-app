@@ -1,98 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { BookOpen, Download, Eye, Star, Users } from 'lucide-react';
-import AppShell from '../components/AppShell';
-import api from '../api/axios';
-
-type Project = {
-  id: number;
-  title: string;
-  description: string;
-  summary?: string | null;
-  course?: string | null;
-  category: string;
-  authorName?: string;
-  averageGrade?: number | null;
-  viewCount: number;
-  downloadCount: number;
-  imageUrl?: string | null;
-  createdAt: string;
-};
-
-type Student = {
-  id: string;
-  name: string;
-  course: string;
-  bio: string;
-  photoUrl?: string | null;
-  interests?: string | null;
-  roleType: string;
-};
-
-const formatCategory = (category: string) => {
-  const lookup: Record<string, string> = {
-    Tcc: 'TCC', Upx: 'UPX', IniciacaoCientifica: 'IC',
-    Relatorio: 'Relatório', ProjetoEscrito: 'Projeto escrito'
-  };
-  return lookup[category] ?? category;
-};
+import AppShell from '@/components/AppShell';
+import { useExplore } from '@/features/explore/hooks/useExplore';
 
 const ExploreProjectsPage = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const q = searchParams.get('search') ?? undefined;
-  const tab = searchParams.get('tab') ?? 'projects';
-
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
-  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      setIsLoadingProjects(true);
-      setError('');
-      try {
-        const response = await api.get('/projects', { params: { search: q, page: 1, pageSize: 24 } });
-        if (!isMounted) return;
-        setProjects(response.data.items ?? response.data ?? []);
-      } catch {
-        if (isMounted) setError('Não foi possível carregar projetos.');
-      } finally {
-        if (isMounted) setIsLoadingProjects(false);
-      }
-    };
-    load();
-    return () => { isMounted = false; };
-  }, [q]);
-
-  useEffect(() => {
-    if (tab !== 'students') return;
-    let isMounted = true;
-    const load = async () => {
-      setIsLoadingStudents(true);
-      setError('');
-      try {
-        const response = await api.get('/users', { params: { search: q, page: 1, pageSize: 24 } });
-        if (!isMounted) return;
-        setStudents(response.data ?? []);
-      } catch {
-        if (isMounted) setError('Não foi possível carregar alunos.');
-      } finally {
-        if (isMounted) setIsLoadingStudents(false);
-      }
-    };
-    load();
-    return () => { isMounted = false; };
-  }, [q, tab]);
-
-  const switchTab = (t: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('tab', t);
-    navigate(`/explore?${params.toString()}`);
-  };
+  const { tab, projects, students, isLoadingProjects, isLoadingStudents, error, switchTab, formatCategory } = useExplore();
 
   return (
     <AppShell title="Explorar" subtitle="Descubra projetos e alunos da universidade">

@@ -1,81 +1,10 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Crown, Eye, Star, TrendingUp, Users } from 'lucide-react';
-import api from '../api/axios';
-import AppShell from '../components/AppShell';
-
-type RankingProject = {
-  position: number;
-  projectId: number;
-  title: string;
-  authorName: string;
-  averageGrade: number;
-  viewCount: number;
-};
-
-type RankingStudent = {
-  position: number;
-  studentId: string;
-  name: string;
-  course: string;
-  averageGrade: number;
-  projectCount: number;
-  profilePictureUrl: string;
-};
-
-type GeneralStats = {
-  totalProjects: number;
-  generalAverage: number;
-  totalViews: number;
-  totalStudents: number;
-};
-
-const formatViews = (count: number): string => {
-  if (count >= 1000) return `${Math.floor(count / 1000)}k+`;
-  return count.toString();
-};
-
-const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600'];
+import AppShell from '@/components/AppShell';
+import { useRanking, medalColors } from '@/features/ranking/hooks/useRanking';
 
 const RankingPage = () => {
-  const [topProjects, setTopProjects] = useState<RankingProject[]>([]);
-  const [topStudents, setTopStudents] = useState<RankingStudent[]>([]);
-  const [stats, setStats] = useState<GeneralStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadRanking = async () => {
-      setIsLoading(true);
-      setError('');
-      try {
-        const [projectsResponse, studentsResponse, statsResponse] = await Promise.all([
-          api.get<RankingProject[]>('/ranking/projects'),
-          api.get<RankingStudent[]>('/ranking/students'),
-          api.get<GeneralStats>('/stats/general')
-        ]);
-
-        if (!isMounted) return;
-
-        setTopProjects(projectsResponse.data);
-        setTopStudents(studentsResponse.data);
-        setStats(statsResponse.data);
-      } catch (err) {
-        if (isMounted) {
-          setError('Não foi possível carregar os dados do ranking.');
-        }
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    loadRanking();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { topProjects, topStudents, stats, isLoading, error, formatViews } = useRanking();
 
   if (isLoading) {
     return (
