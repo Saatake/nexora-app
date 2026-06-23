@@ -20,7 +20,7 @@ public class UploadsController : ControllerBase
 
     [HttpPost("project-file")]
     [RequestSizeLimit(20_000_000)]
-    public async Task<IActionResult> UploadProjectFile([FromForm] IFormFile file)
+    public async Task<IActionResult> UploadProjectFile(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "arquivo vazio." });
@@ -58,7 +58,7 @@ public class UploadsController : ControllerBase
 
     [HttpPost("profile-photo")]
     [RequestSizeLimit(5_000_000)]
-    public async Task<IActionResult> UploadProfilePhoto([FromForm] IFormFile file)
+    public async Task<IActionResult> UploadProfilePhoto(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "arquivo vazio." });
@@ -106,7 +106,7 @@ public class UploadsController : ControllerBase
 
     [HttpPost("project-cover")]
     [RequestSizeLimit(5_000_000)]
-    public async Task<IActionResult> UploadProjectCover([FromForm] IFormFile file)
+    public async Task<IActionResult> UploadProjectCover(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "arquivo vazio." });
