@@ -149,6 +149,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRankingService, RankingService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAiReviewService, AiReviewService>();
+builder.Services.AddScoped<IStorageService, StorageService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

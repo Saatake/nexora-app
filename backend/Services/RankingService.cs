@@ -81,7 +81,7 @@ public class RankingService : IRankingService
 
         var evaluations = await _context.Evaluations
         .Include(e => e.Project)
-        .Where(e => !e.Project.IsPrivate)
+        .Where(e => e.Project != null  && !e.Project.IsPrivate)
         .ToListAsync();
         
         var generalAverage = evaluations.Any()

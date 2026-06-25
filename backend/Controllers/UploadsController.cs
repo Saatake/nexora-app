@@ -1,7 +1,6 @@
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Nexora.Api.Interfaces;
 using System.Security.Claims;
 
 namespace Nexora.Api.Controllers;
@@ -11,142 +10,65 @@ namespace Nexora.Api.Controllers;
 [Authorize]
 public class UploadsController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly IStorageService _storageService;
 
-    public UploadsController(IConfiguration configuration)
+    public UploadsController(IStorageService storageService)
     {
-        _configuration = configuration;
+        _storageService = storageService;
     }
 
     [HttpPost("project-file")]
     [RequestSizeLimit(20_000_000)]
     public async Task<IActionResult> UploadProjectFile(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "arquivo vazio." });
-
-        if (file.Length > 20_000_000)
-            return BadRequest(new { message = "arquivo acima de 20MB." });
-
+        if (file == null || file.Length == 0) return BadRequest(new { message = "Arquivo vazio." });
+        if (file.Length > 20_000_000) return BadRequest(new { message = "Arquivo acima de 20mb." });
+        
         if (!string.Equals(Path.GetExtension(file.FileName), ".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { message = "envie um arquivo pdf." });
-
-        var connectionString = _configuration["Storage:ConnectionString"];
-        if (string.IsNullOrWhiteSpace(connectionString))
-            return StatusCode(500, new { message = "storage nao configurado." });
-
-        var containerName = _configuration["Storage:Container"];
-        if (string.IsNullOrWhiteSpace(containerName))
-            containerName = "projects";
+            return BadRequest(new { message = "Somente aceitos arquivos pdf." });
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anon";
-        var blobFileName = $"{Guid.NewGuid():N}.pdf";
-        var blobPath = $"{userId}/{blobFileName}";
+        var url = await _storageService.UploadFileAsync(file, userId, "project"); 
 
-        var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
-
-        var blobClient = containerClient.GetBlobClient(blobPath);
-        var headers = new BlobHttpHeaders { ContentType = "application/pdf" };
-
-        await using var stream = file.OpenReadStream();
-        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = headers });
-
-        return Ok(new { url = blobClient.Uri.ToString(), fileName = file.FileName });
+        return Ok(new { url, fileName = file.FileName });
     }
 
     [HttpPost("profile-photo")]
     [RequestSizeLimit(5_000_000)]
     public async Task<IActionResult> UploadProfilePhoto(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "arquivo vazio." });
-
-        if (file.Length > 5_000_000)
-            return BadRequest(new { message = "arquivo acima de 5MB." });
-
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(extension))
-            return BadRequest(new { message = "envie uma imagem (jpg, png ou webp)." });
-
-        var connectionString = _configuration["Storage:ConnectionString"];
-        if (string.IsNullOrWhiteSpace(connectionString))
-            return StatusCode(500, new { message = "storage nao configurado." });
-
-        var containerName = _configuration["Storage:Container"];
-        if (string.IsNullOrWhiteSpace(containerName))
-            containerName = "projects";
+        var validationError = ValidateImageInput(file);
+        if (validationError != null) return validationError; 
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anon";
-        var blobFileName = $"profile-{Guid.NewGuid():N}{extension}";
-        var blobPath = $"{userId}/{blobFileName}";
+        var url = await _storageService.UploadFileAsync(file, userId, "profile");
 
-        var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
-
-        var blobClient = containerClient.GetBlobClient(blobPath);
-        
-        var contentType = extension switch
-        {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".webp" => "image/webp",
-            _ => "application/octet-stream"
-        };
-        
-        var headers = new BlobHttpHeaders { ContentType = contentType };
-
-        await using var stream = file.OpenReadStream();
-        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = headers });
-
-        return Ok(new { url = blobClient.Uri.ToString(), fileName = file.FileName });
+        return Ok(new { url, fileName = file.FileName });
     }
 
     [HttpPost("project-cover")]
     [RequestSizeLimit(5_000_000)]
     public async Task<IActionResult> UploadProjectCover(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "arquivo vazio." });
-
-        if (file.Length > 5_000_000)
-            return BadRequest(new { message = "arquivo acima de 5MB." });
-
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(extension))
-            return BadRequest(new { message = "envie uma imagem (jpg, png ou webp)." });
-
-        var connectionString = _configuration["Storage:ConnectionString"];
-        if (string.IsNullOrWhiteSpace(connectionString))
-            return StatusCode(500, new { message = "storage nao configurado." });
-
-        var containerName = _configuration["Storage:Container"] ?? "projects";
+        var validationError = ValidateImageInput(file);
+        if (validationError != null) return validationError; 
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anon";
-        var blobFileName = $"cover-{Guid.NewGuid():N}{extension}";
-        var blobPath = $"{userId}/{blobFileName}";
+        var url = await _storageService.UploadFileAsync(file, userId, "cover");
 
-        var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+        return Ok(new { url, fileName = file.FileName });
+    }
 
-        var blobClient = containerClient.GetBlobClient(blobPath);
+    private IActionResult? ValidateImageInput(IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest(new { message = "Arquivo vazio." });
+        if (file.Length > 5_000_000) return BadRequest(new { message = "Arquivo acima de 5mb." });
 
-        var contentType = extension switch
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext))
         {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".webp" => "image/webp",
-            _ => "application/octet-stream"
-        };
-
-        var headers = new BlobHttpHeaders { ContentType = contentType };
-
-        await using var stream = file.OpenReadStream();
-        await blobClient.UploadAsync(stream, new BlobUploadOptions { HttpHeaders = headers });
-
-        return Ok(new { url = blobClient.Uri.ToString(), fileName = file.FileName });
+            return BadRequest(new { message = "Envie uma imagem (jpg, png ou webp)." });
+        }
+        return null;
     }
 }
