@@ -30,9 +30,9 @@ export const MY_PROJECTS_FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'Tcc', label: 'TCC' },
   { key: 'Upx', label: 'UPX' },
-  { key: 'IniciacaoCientifica', label: 'Iniciacao Cientifica' },
-  { key: 'Relatorio', label: 'Relatorio' },
-  { key: 'ProjetoEscrito', label: 'Projeto escrito' },
+  { key: 'IniciacaoCientifica', label: 'Iniciação Científica' },
+  { key: 'Relatorio', label: 'Relatório' },
+  { key: 'ProjetoEscrito', label: 'Projeto Escrito' },
 ];
 
 export const useMyProjects = () => {

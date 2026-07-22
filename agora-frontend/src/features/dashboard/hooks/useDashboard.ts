@@ -90,11 +90,11 @@ export const useDashboard = () => {
   };
 
   const criteriaBars = [
-    { label: 'Relevancia', value: criteria.relevance, color: '#0a5c2f' },
+    { label: 'Relevância', value: criteria.relevance, color: '#0a5c2f' },
     { label: 'Qualidade', value: criteria.quality, color: '#18915b' },
-    { label: 'Metodo', value: criteria.methodology, color: '#34d399' },
-    { label: 'Apresentacao', value: criteria.presentation, color: '#6ee7b7' },
-    { label: 'Inovacao', value: criteria.innovation, color: '#a7f3d0' },
+    { label: 'Metodologia', value: criteria.methodology, color: '#34d399' },
+    { label: 'Apresentação', value: criteria.presentation, color: '#6ee7b7' },
+    { label: 'Inovação', value: criteria.innovation, color: '#a7f3d0' },
   ];
 
   const displayStats = stats ?? { projectCount: 0, averageGrade: 0, totalViews: 0 };
