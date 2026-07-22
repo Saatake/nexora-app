@@ -37,7 +37,7 @@ export const useDashboard = () => {
         setCharts(chartsResponse.data);
         setRecentProjects(sorted);
       } catch {
-        if (isMounted) setError('Nao foi possivel carregar os dados do dashboard.');
+        if (isMounted) setError('Não foi possível carregar os dados do dashboard.');
       } finally {
         if (isMounted) setIsLoading(false);
       }

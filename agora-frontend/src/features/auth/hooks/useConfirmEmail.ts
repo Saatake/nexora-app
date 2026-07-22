@@ -25,7 +25,7 @@ export const useConfirmEmail = () => {
         setMessage(response.data?.message || 'Email confirmado com sucesso!');
       } catch (err: unknown) {
         setStatus('error');
-        setMessage(getErrorMessage(err, 'Nao foi possivel confirmar o email.'));
+        setMessage(getErrorMessage(err, 'Não foi possível confirmar o e-mail.'));
       }
     };
     confirmEmail();

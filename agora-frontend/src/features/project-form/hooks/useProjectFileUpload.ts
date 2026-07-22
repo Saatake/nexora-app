@@ -68,7 +68,7 @@ export const useProjectFileUpload = () => {
       setFileUrl(response.data.url ?? '');
       setUploadedFileName(response.data.fileName ?? file.name);
     } catch {
-      setUploadError('Nao foi possivel enviar o arquivo.');
+      setUploadError('Não foi possível enviar o arquivo.');
     } finally {
       setIsUploading(false);
     }

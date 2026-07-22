@@ -46,7 +46,7 @@ export const useNewProject = () => {
       });
       navigate('/projects');
     } catch {
-      setError('Nao foi possivel publicar o projeto.');
+      setError('Não foi possível publicar o projeto.');
     } finally {
       setIsSaving(false);
     }

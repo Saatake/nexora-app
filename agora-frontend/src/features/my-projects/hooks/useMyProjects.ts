@@ -62,7 +62,7 @@ export const useMyProjects = () => {
         if (!isMounted) return;
         setProjects(response.data.items ?? []);
       } catch {
-        if (isMounted) setError('Nao foi possivel carregar seus projetos.');
+        if (isMounted) setError('Não foi possível carregar seus projetos.');
       } finally {
         if (isMounted) setIsLoading(false);
       }
