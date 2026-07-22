@@ -31,7 +31,7 @@ const ForgotPasswordPage = () => {
 
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900'>Recuperar senha</h1>
-          <p className='text-sm text-gray-500 mt-2'>Envie seu email para receber o link de recuperacao.</p>
+          <p className='text-sm text-gray-500 mt-2'>Envie seu e-mail para receber o link de recuperação.</p>
         </div>
 
         {error && <div className='mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center'>{error}</div>}

@@ -23,7 +23,7 @@ const MyProjectsPage = () => {
   return (
     <AppShell
       title="Meus Projetos"
-      subtitle="Gerencie todos os seus trabalhos academicos"
+      subtitle="Gerencie todos os seus trabalhos acadêmicos."
       headerActions={
         <Link
           to="/projects/new"

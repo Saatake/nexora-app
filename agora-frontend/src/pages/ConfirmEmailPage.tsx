@@ -22,8 +22,8 @@ const ConfirmEmailPage = () => {
 
       <div className='relative z-10 w-full max-w-md bg-white rounded-xl shadow-2xl p-8 md:p-10'>
         <div className='text-center'>
-          <h1 className='text-3xl font-bold text-gray-900'>Confirmacao de email</h1>
-          <p className='text-sm text-gray-500 mt-2'>Estamos validando seu cadastro.</p>
+          <h1 className='text-3xl font-bold text-gray-900'>Confirmação de e-mail</h1>
+          <p className='text-sm text-gray-500 mt-2'>Estamos validando seu cadastro. Aguarde um momento.</p>
 
           {status === 'loading' && (
             <div className='mt-8 flex flex-col items-center gap-3'>
