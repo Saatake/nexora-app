@@ -72,17 +72,17 @@ export const useAuthForm = () => {
       .filter(Boolean);
     if (parts.length === 0) return message;
     const mapped = parts.map((item) => {
-      if (item.includes('is already taken')) return 'Este email ja esta cadastrado.';
+      if (item.includes('is already taken')) return 'Este e-mail já está cadastrado.';
       if (item.includes('Passwords must have at least one non alphanumeric character'))
-        return 'A senha precisa ter pelo menos 1 simbolo.';
+        return 'A senha precisa ter pelo menos 1 símbolo.';
       if (item.includes('Passwords must have at least one lowercase'))
-        return 'A senha precisa ter pelo menos 1 letra minuscula.';
+        return 'A senha precisa ter pelo menos 1 letra minúscula.';
       if (item.includes('Passwords must have at least one uppercase'))
-        return 'A senha precisa ter pelo menos 1 letra maiuscula.';
+        return 'A senha precisa ter pelo menos 1 letra maiúscula.';
       if (item.includes('Passwords must have at least one digit'))
-        return 'A senha precisa ter pelo menos 1 numero.';
+        return 'A senha precisa ter pelo menos 1 número.';
       if (item.includes('Passwords must be at least'))
-        return 'A senha precisa ter no minimo 6 caracteres.';
+        return 'A senha precisa ter no mínimo 6 caracteres.';
       return item;
     });
     return Array.from(new Set(mapped)).join('\n');
@@ -104,7 +104,7 @@ export const useAuthForm = () => {
     setSuccess('');
     setLoading(true);
     if (formData.password !== confirmPassword) {
-      setError('As senhas nao coincidem.');
+      setError('As senhas não coincidem.');
       setLoading(false);
       return;
     }

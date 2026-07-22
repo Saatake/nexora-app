@@ -16,10 +16,10 @@ export const useForgotPassword = () => {
     try {
       const response = await api.post('/auth/forgot-password', { email });
       setSuccess(
-        response.data?.message || 'Se o email estiver cadastrado, enviamos as instrucoes.',
+        response.data?.message || 'Se o e-mail estiver cadastrado, enviamos as instruções.',
       );
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Erro ao solicitar recuperacao de senha'));
+      setError(getErrorMessage(err, 'Erro ao solicitar recuperação de senha'));
     } finally {
       setLoading(false);
     }
