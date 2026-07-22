@@ -13,12 +13,12 @@ const CriteriaChart = ({ criteriaBars }: CriteriaChartProps) => (
       className="font-bold text-[var(--agora-ink)] mb-4"
       style={{ fontFamily: 'Space Grotesk, sans-serif' }}
     >
-      Media por criterio
+      Média por critério
     </h2>
     <div className="space-y-3">
       {criteriaBars.every((bar) => bar.value === 0) ? (
         <div className="text-sm text-[var(--agora-muted)]">
-          Ainda nao ha avaliacoes por criterio
+          Ainda não há avaliações por critério.
         </div>
       ) : (
         criteriaBars.map((bar) => (

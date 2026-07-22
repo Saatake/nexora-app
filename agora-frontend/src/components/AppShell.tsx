@@ -130,7 +130,7 @@ const AppShell = ({
 
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-white truncate transition-colors">
-                  {user?.name ?? 'Aluno Agora'}
+                  {user?.name ?? 'Ágora'}
                 </p>
                 <p className="text-xs text-white/50 truncate group-hover:text-white/70 transition-colors">
                   {user?.course ?? 'Sem curso'}

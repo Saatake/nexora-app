@@ -16,12 +16,12 @@ const StatsCards = ({ stats }: StatsCardsProps) => (
         to: '/projects',
       },
       {
-        label: 'Media geral',
+        label: 'Média geral',
         value: stats.averageGrade.toFixed(1),
         icon: Star,
       },
       {
-        label: 'Visualizacoes totais',
+        label: 'Visualizações totais',
         value: new Intl.NumberFormat('pt-BR').format(stats.totalViews),
         icon: Eye,
       },

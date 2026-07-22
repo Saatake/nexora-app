@@ -26,9 +26,9 @@ const GradeChart = ({ lineChart, trend }: GradeChartProps) => (
           className="font-bold text-[var(--agora-ink)]"
           style={{ fontFamily: 'Space Grotesk, sans-serif' }}
         >
-          Evolucao das notas
+          Evolução das notas
         </h2>
-        <p className="text-xs text-[var(--agora-muted)]">Ultimos 7 meses</p>
+        <p className="text-xs text-[var(--agora-muted)]">Últimos 7 meses</p>
       </div>
       {trend === null ? (
         <div className="flex items-center gap-1 text-xs text-[var(--agora-muted)] font-medium">
@@ -46,7 +46,7 @@ const GradeChart = ({ lineChart, trend }: GradeChartProps) => (
     <div className="relative">
       {lineChart.values.every((v) => v === 0) ? (
         <div className="h-40 flex items-center justify-center text-sm text-[var(--agora-muted)]">
-          Ainda nao ha dados de evolucao de notas
+          Ainda não há dados de evolução de notas.
         </div>
       ) : (
         <svg viewBox={`0 0 ${lineChart.width} ${lineChart.height}`} className="w-full h-40">
