@@ -1,7 +1,7 @@
 export const featuredProjects = [
   {
     id: 1,
-    category: 'Iniciacao Cientifica',
+    category: 'Iniciação Científica',
     title: 'AgroSmart: Sistema de Irrigação Automática Inteligente',
     course: 'Engenharia de Software',
     description:
