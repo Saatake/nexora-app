@@ -27,7 +27,7 @@ const ProjectFormTeam = ({ collaborators, setCollaborators, excludeIds, advisor,
           value={advisor}
           onChange={(e) => setAdvisor(e.target.value)}
           required
-          placeholder="Ex: Prof. Dr. Joao Silva"
+          placeholder="Ex: Prof. Dr. João Silva"
           className={`mt-2 ${inputCls}`}
         />
       </div>

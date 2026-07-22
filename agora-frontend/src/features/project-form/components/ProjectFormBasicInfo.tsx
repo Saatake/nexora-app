@@ -26,15 +26,15 @@ const ProjectFormBasicInfo = ({
   setArea,
 }: Props) => (
   <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
-    <h2 className="text-lg font-semibold">Informacoes Basicas</h2>
+    <h2 className="text-lg font-semibold">Informações Básicas</h2>
     <div className="mt-4 space-y-4">
       <div>
-        <label className="text-sm font-semibold text-[var(--agora-ink)]">Titulo do Projeto *</label>
+        <label className="text-sm font-semibold text-[var(--agora-ink)]">Título do Projeto *</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          placeholder="Ex: Sistema de Gestao Academica com IA"
+          placeholder="Ex: Sistema de Gestão Acadêmica com IA"
           className={`mt-2 ${inputCls}`}
         />
       </div>
@@ -49,9 +49,9 @@ const ProjectFormBasicInfo = ({
           >
             <option value="Tcc">TCC</option>
             <option value="Upx">UPX</option>
-            <option value="IniciacaoCientifica">Iniciacao Cientifica</option>
-            <option value="Relatorio">Relatorio</option>
-            <option value="ProjetoEscrito">Projeto escrito</option>
+            <option value="IniciacaoCientifica">Iniciação Científica</option>
+            <option value="Relatorio">Relatório</option>
+            <option value="ProjetoEscrito">Projeto Escrito</option>
           </select>
         </div>
         <div>
@@ -72,11 +72,11 @@ const ProjectFormBasicInfo = ({
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-[var(--agora-ink)]">Area do Conhecimento</label>
+        <label className="text-sm font-semibold text-[var(--agora-ink)]">Área do Conhecimento</label>
         <input
           value={area}
           onChange={(e) => setArea(e.target.value)}
-          placeholder="Selecione a area"
+          placeholder="Ex: Tecnologia da Informação"
           className={`mt-2 ${inputCls}`}
         />
       </div>

@@ -100,7 +100,7 @@ const ProjectFormFiles = ({
         <div>
           <p className="text-sm font-semibold text-[var(--agora-ink)]">Enviar PDF</p>
           <p className="text-xs text-[var(--agora-muted)]">
-            Maximo 20MB. O link sera preenchido automaticamente.
+            Máximo 20MB. O link será preenchido automaticamente.
           </p>
         </div>
         <label className="inline-flex cursor-pointer items-center gap-2 border border-[var(--agora-border)] rounded px-4 py-2 text-sm font-semibold text-[var(--agora-muted)] hover:border-green-800 hover:text-green-800 transition-colors">
