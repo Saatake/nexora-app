@@ -31,5 +31,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(pc => pc.User)
             .WithMany()
             .HasForeignKey(pc => pc.UserId);
+
+        builder.Entity<Evaluation>()
+            .HasIndex(e => new { e.ProjectId, e.ProfessorId })
+            .IsUnique();
     }
 }
