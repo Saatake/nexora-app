@@ -12,6 +12,8 @@ using Nexora.Api.Services;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Repositories;
 using Nexora.Api.Middlewares;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,6 +124,27 @@ builder.Services.AddAuthentication(options =>
 // IMPORTANTÍSSIMO
 builder.Services.AddAuthorization();
 
+// Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddSlidingWindowLimiter("auth", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.SegmentsPerWindow = 6; // verifica a cada 10s
+        opt.PermitLimit = 5;
+        opt.QueueLimit = 0; // sem fila — rejeita imediatamente
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            "{\"message\": \"Muitas tentativas. Aguarde um momento e tente novamente.\"}",
+            cancellationToken);
+    };
+});
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -190,6 +213,8 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
