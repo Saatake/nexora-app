@@ -186,7 +186,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<ProjectResult> GetDownloadAsync(int id)
+    public async Task<ProjectResult> GetDownloadAsync(int id, string? currentUserId = null)
     {
         var project = await _projectRepository.GetByIdAsync(id);
         if (project == null)
@@ -195,8 +195,11 @@ public class ProjectService : IProjectService
         if (string.IsNullOrWhiteSpace(project.FileUrl))
             return new ProjectResult { Succeeded = false, Message = "este projeto não possui arquivo para download." };
 
-        project.DownloadCount++;
-        await _projectRepository.UpdateAsync(project);
+        if (project.UserId != currentUserId)
+        {
+            project.DownloadCount++;
+            await _projectRepository.UpdateAsync(project);
+        }
 
         return new ProjectResult { Succeeded = true, Message = project.FileUrl };
     }

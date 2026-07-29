@@ -168,7 +168,8 @@ public class ProjectController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Download(int id)
     {
-        var result = await _projectService.GetDownloadAsync(id);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _projectService.GetDownloadAsync(id, userId);
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
