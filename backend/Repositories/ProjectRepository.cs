@@ -33,7 +33,7 @@ public class ProjectRepository : IProjectRepository
     }
 
     public async Task<(IEnumerable<Project> Items, int TotalCount)> GetFilteredAsync(
-        string? search, ProjectCategory? category, string? course,
+        string? search, ProjectCategory? category, ThematicArea? thematicArea,
         double? minGrade, string? sort, int page, int pageSize)
     {
         var query = _context.Projects
@@ -52,8 +52,8 @@ public class ProjectRepository : IProjectRepository
         if (category.HasValue)
             query = query.Where(p => p.Category == category.Value);
 
-        if (!string.IsNullOrWhiteSpace(course))
-            query = query.Where(p => p.Course != null && p.Course.ToLower().Contains(course.ToLower()));
+        if (thematicArea.HasValue)
+            query = query.Where(p => p.ThematicArea == thematicArea.Value);
 
         if (minGrade.HasValue)
             query = query.Where(p => p.Evaluations.Any() && p.Evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0) >= minGrade.Value);

@@ -1,3 +1,5 @@
+using Nexora.Api.Enums;
+
 namespace Nexora.Api.Dtos.Responses;
 
 public class ProjectResponseDto
@@ -6,8 +8,9 @@ public class ProjectResponseDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? Summary { get; set; }
-    public string? Course { get; set; }
-    public string? Area { get; set; }
+    public ThematicArea ThematicArea { get; set; }
+    public string ThematicAreaName { get; set; } = string.Empty;
+    public string? Tags { get; set; }
     public string? Advisor { get; set; }
     public string? TeamMembers { get; set; }
     public string GithubLink { get; set; } = string.Empty;

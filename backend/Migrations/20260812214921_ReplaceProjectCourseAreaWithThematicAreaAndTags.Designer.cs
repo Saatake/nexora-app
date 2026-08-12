@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nexora.Api.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812214921_ReplaceProjectCourseAreaWithThematicAreaAndTags")]
+    partial class ReplaceProjectCourseAreaWithThematicAreaAndTags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,7 +275,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Nexora.Api.Models.Evaluation", b =>
@@ -329,7 +332,7 @@ namespace backend.Migrations
                     b.HasIndex("ProjectId", "ProfessorId")
                         .IsUnique();
 
-                    b.ToTable("Evaluations", (string)null);
+                    b.ToTable("Evaluations");
                 });
 
             modelBuilder.Entity("Nexora.Api.Models.Project", b =>
@@ -402,7 +405,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("Nexora.Api.Models.ProjectCollaborator", b =>
@@ -417,7 +420,7 @@ namespace backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProjectCollaborators", (string)null);
+                    b.ToTable("ProjectCollaborators");
                 });
 
             modelBuilder.Entity("Nexora.Api.Models.UserTeachingArea", b =>
@@ -430,7 +433,7 @@ namespace backend.Migrations
 
                     b.HasKey("UserId", "Area");
 
-                    b.ToTable("UserTeachingAreas", (string)null);
+                    b.ToTable("UserTeachingAreas");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

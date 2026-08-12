@@ -9,7 +9,7 @@ public interface IProjectService
 {
     Task<ProjectResponseDto> CreateProjectAsync(CreateProjectRequestDto model, string userId);
     Task<IEnumerable<ProjectResponseDto>> GetFeedAsync();
-    Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, string? course, double? minGrade, string? sort, int page, int pageSize);
+    Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, ThematicArea? thematicArea, double? minGrade, string? sort, int page, int pageSize);
     Task<PagedResponseDto<ProjectResponseDto>> GetMyProjectsAsync(string userId, ProjectCategory? category, int page, int pageSize);
     Task<PagedResponseDto<ProjectResponseDto>> GetCollaboratedProjectsAsync(string userId, int page, int pageSize);
     Task<ProjectResult> GetByIdAsync(int id);

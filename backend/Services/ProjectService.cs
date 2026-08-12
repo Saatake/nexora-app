@@ -28,8 +28,8 @@ public class ProjectService : IProjectService
             Title = request.Title,
             Description = request.Description,
             Summary = request.Summary,
-            Course = request.Course,
-            Area = request.Area,
+            ThematicArea = request.ThematicArea,
+            Tags = NormalizeTags(request.Tags),
             Advisor = request.Advisor,
             TeamMembers = request.TeamMembers,
             GithubLink = request.GithubLink,
@@ -53,31 +53,12 @@ public class ProjectService : IProjectService
     public async Task<IEnumerable<ProjectResponseDto>> GetFeedAsync()
     {
         var projects = await _projectRepository.GetAllAsync();
-
-        return projects.Select(p => new ProjectResponseDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Summary = p.Summary,
-            Course = p.Course,
-            Area = p.Area,
-            Advisor = p.Advisor,
-            TeamMembers = p.TeamMembers,
-            GithubLink = p.GithubLink,
-            FileUrl = p.FileUrl,
-            ImageUrl = p.ImageUrl,
-            Category = p.Category.ToString(),
-            IsPrivate = p.IsPrivate,
-            AuthorId = p.UserId,
-            AuthorName = p.User?.Name ?? "Anônimo",
-            CreatedAt = p.CreatedAt
-        });
+        return projects.Select(MapToDto);
     }
 
-    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, string? course, double? minGrade, string? sort, int page, int pageSize)
+    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, ThematicArea? thematicArea, double? minGrade, string? sort, int page, int pageSize)
     {
-        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, course, minGrade, sort, page, pageSize);
+        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, thematicArea, minGrade, sort, page, pageSize);
 
         return new PagedResponseDto<ProjectResponseDto>
         {
@@ -126,8 +107,8 @@ public class ProjectService : IProjectService
         project.Title = model.Title;
         project.Description = model.Description;
         project.Summary = model.Summary;
-        project.Course = model.Course;
-        project.Area = model.Area;
+        project.ThematicArea = model.ThematicArea;
+        project.Tags = NormalizeTags(model.Tags);
         project.Advisor = model.Advisor;
         project.TeamMembers = model.TeamMembers;
         project.GithubLink = model.GithubLink;
@@ -216,8 +197,9 @@ public class ProjectService : IProjectService
             Title = p.Title,
             Description = p.Description,
             Summary = p.Summary,
-            Course = p.Course,
-            Area = p.Area,
+            ThematicArea = p.ThematicArea,
+            ThematicAreaName = p.ThematicArea.ToString(),
+            Tags = p.Tags,
             Advisor = p.Advisor,
             TeamMembers = p.TeamMembers,
             GithubLink = p.GithubLink,
@@ -241,6 +223,17 @@ public class ProjectService : IProjectService
                     Course = c.User.Course
                 }).ToList() ?? new()
         };
+    }
+
+    private static string? NormalizeTags(string? tags)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+            return null;
+
+        return string.Join(", ", tags
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(t => t.ToLowerInvariant())
+            .Distinct());
     }
 
     public async Task<AiReviewResult> GenerateAiReviewAsync(int id)

@@ -33,8 +33,8 @@ public class AiReviewService : IAiReviewService
             Metadados do projeto:
             - Título: {{{project.Title}}}
             - Categoria: {{{project.Category}}}
-            - Curso: {{{project.Course ?? "não informado"}}}
-            - Área: {{{project.Area ?? "não informada"}}}
+            - Área Temática: {{{project.ThematicArea}}}
+            - Tags: {{{project.Tags ?? "não informadas"}}}
             - Resumo: {{{project.Summary ?? "não informado"}}}
             - Descrição: {{{project.Description}}}
 

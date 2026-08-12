@@ -18,11 +18,11 @@ public class Project
     [MaxLength(200)]
     public string? Summary { get; set; }
 
-    [MaxLength(120)]
-    public string? Course { get; set; }
+    [Required]
+    public ThematicArea ThematicArea { get; set; }
 
-    [MaxLength(120)]
-    public string? Area { get; set; }
+    [MaxLength(500)]
+    public string? Tags { get; set; }
 
     [MaxLength(120)]
     public string? Advisor { get; set; }

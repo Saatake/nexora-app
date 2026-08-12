@@ -14,6 +14,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Evaluation> Evaluations { get; set; }
     public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
+    public DbSet<UserTeachingArea> UserTeachingAreas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -35,5 +36,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Evaluation>()
             .HasIndex(e => new { e.ProjectId, e.ProfessorId })
             .IsUnique();
+
+        builder.Entity<UserTeachingArea>()
+            .HasKey(ta => new { ta.UserId, ta.Area });
+
+        builder.Entity<UserTeachingArea>()
+            .HasOne(ta => ta.User)
+            .WithMany(u => u.TeachingAreas)
+            .HasForeignKey(ta => ta.UserId);
     }
 }
