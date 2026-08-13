@@ -20,8 +20,9 @@ export type Project = {
   title: string;
   description: string;
   summary?: string | null;
-  course?: string | null;
-  area?: string | null;
+  thematicArea: string;
+  thematicAreaName: string;
+  tags?: string | null;
   advisor?: string | null;
   teamMembers?: string | null;
   githubLink: string;

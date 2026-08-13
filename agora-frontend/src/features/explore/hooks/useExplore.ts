@@ -8,7 +8,8 @@ export type Project = {
   title: string;
   description: string;
   summary?: string | null;
-  course?: string | null;
+  thematicAreaName?: string;
+  tags?: string | null;
   category: string;
   authorName?: string;
   averageGrade?: number | null;

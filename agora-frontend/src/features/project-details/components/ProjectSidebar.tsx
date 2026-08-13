@@ -36,16 +36,25 @@ const ProjectSidebar = ({
             <p className="font-semibold text-[var(--agora-ink)]">{project.advisor}</p>
           </div>
         )}
-        {project.area && (
+        {project.thematicAreaName && (
           <div>
-            <p className="text-[var(--agora-muted)] text-xs mb-0.5">Área</p>
-            <p className="font-semibold text-[var(--agora-ink)]">{project.area}</p>
+            <p className="text-[var(--agora-muted)] text-xs mb-0.5">Área Temática</p>
+            <p className="font-semibold text-[var(--agora-ink)]">{project.thematicAreaName}</p>
           </div>
         )}
-        {project.course && (
+        {project.tags && (
           <div>
-            <p className="text-[var(--agora-muted)] text-xs mb-0.5">Curso</p>
-            <p className="font-semibold text-[var(--agora-ink)]">{project.course}</p>
+            <p className="text-[var(--agora-muted)] text-xs mb-1">Tags</p>
+            <div className="flex flex-wrap gap-1.5">
+              {project.tags.split(',').map((t) => t.trim()).filter(Boolean).map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full bg-[var(--agora-accent-bg)] px-2.5 py-0.5 text-xs font-medium text-[var(--agora-accent)]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
