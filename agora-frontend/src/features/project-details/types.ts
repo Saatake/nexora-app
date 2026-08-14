@@ -34,6 +34,10 @@ export type Project = {
   viewCount: number;
   downloadCount: number;
   averageGrade?: number | null;
+  communityAverage?: number | null;
+  communityCount: number;
+  professorAverage?: number | null;
+  professorCount: number;
   createdAt: string;
   collaborators?: Collaborator[];
 };
@@ -46,9 +50,14 @@ export type Evaluation = {
   presentation: number;
   innovation: number;
   average: number;
+  theoreticalFoundation?: number | null;
+  academicContribution?: number | null;
+  executionFeasibility?: number | null;
+  technicalAverage?: number | null;
   feedback: string;
-  professorId: string;
-  professorName: string;
+  evaluatorId: string;
+  evaluatorName: string;
+  evaluatorRole: string;
   createdAt: string;
 };
 
@@ -66,5 +75,8 @@ export type EvaluationFormData = {
   methodology: number;
   presentation: number;
   innovation: number;
+  theoreticalFoundation?: number;
+  academicContribution?: number;
+  executionFeasibility?: number;
   feedback: string;
 };

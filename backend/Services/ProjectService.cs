@@ -185,11 +185,40 @@ public class ProjectService : IProjectService
         return new ProjectResult { Succeeded = true, Message = project.FileUrl };
     }
 
+    // peso da nota de professor na média ponderada final (interna, para ranking)
+    private const double ProfessorWeight = 3.0;
+
     private static ProjectResponseDto MapToDto(Project p)
     {
-        double? avgGrade = null;
+        double? communityAvg = null;
+        double? professorAvg = null;
+        double? weightedAvg = null;
+        var communityCount = 0;
+        var professorCount = 0;
+
         if (p.Evaluations != null && p.Evaluations.Any())
-            avgGrade = Math.Round(p.Evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2);
+        {
+            static double BaseAvg(Evaluation e) => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0;
+
+            var professorEvals = p.Evaluations.Where(e => e.Professor?.RoleType == UserRole.Professor).ToList();
+            var communityEvals = p.Evaluations.Where(e => e.Professor?.RoleType != UserRole.Professor).ToList();
+
+            professorCount = professorEvals.Count;
+            communityCount = communityEvals.Count;
+
+            if (professorCount > 0)
+                professorAvg = Math.Round(professorEvals.Average(BaseAvg), 2);
+
+            if (communityCount > 0)
+                communityAvg = Math.Round(communityEvals.Average(BaseAvg), 2);
+
+            var totalWeight = communityCount + professorCount * ProfessorWeight;
+            if (totalWeight > 0)
+            {
+                var sum = communityEvals.Sum(BaseAvg) + professorEvals.Sum(BaseAvg) * ProfessorWeight;
+                weightedAvg = Math.Round(sum / totalWeight, 2);
+            }
+        }
 
         return new ProjectResponseDto
         {
@@ -210,7 +239,11 @@ public class ProjectService : IProjectService
             AuthorId = p.UserId,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
-            AverageGrade = avgGrade,
+            AverageGrade = weightedAvg,
+            CommunityAverage = communityAvg,
+            CommunityCount = communityCount,
+            ProfessorAverage = professorAvg,
+            ProfessorCount = professorCount,
             IsPrivate = p.IsPrivate,
             CreatedAt = p.CreatedAt,
             Collaborators = p.Collaborators?

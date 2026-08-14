@@ -10,4 +10,6 @@ public class UserResponseDto
     public string? PhotoUrl { get; set; }
     public string? Interests { get; set; }
     public string RoleType { get; set; } = string.Empty;
+    public string? Formation { get; set; }
+    public List<string> TeachingAreas { get; set; } = new();
 }

@@ -8,6 +8,7 @@ public interface IUserService
 {
     Task<UserResult> GetProfileAsync(string userId);
     Task<UserResult> UpdateProfileAsync(string userId, UpdateProfileRequestDto model);
+    Task<UserResult> UpdateTeachingAreasAsync(string userId, UpdateTeachingAreasRequestDto model);
     Task<UserResult> ChangePasswordAsync(string userId, ChangePasswordRequestDto model);
     Task<IEnumerable<UserResponseDto>> SearchUsersAsync(string? search, int page, int pageSize);
 }

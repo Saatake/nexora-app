@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Nexora.Api.Enums;
 
 namespace Nexora.Api.Dtos.Requests;
 
@@ -19,6 +20,14 @@ public class UpdateProfileRequestDto
 
     [MaxLength(500)]
     public string? Interests { get; set; }
+
+    [MaxLength(300)]
+    public string? Formation { get; set; }
+}
+
+public class UpdateTeachingAreasRequestDto
+{
+    public List<ThematicArea> Areas { get; set; } = new();
 }
 
 public class ChangePasswordRequestDto

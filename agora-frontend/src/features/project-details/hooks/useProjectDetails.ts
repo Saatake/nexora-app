@@ -19,7 +19,7 @@ export const useProjectDetails = () => {
   const canEvaluate = useMemo(() => {
     if (!user || !project) return false;
     if (project.authorId === user.id) return false;
-    return !evaluations.some((e) => e.professorId === user.id);
+    return !evaluations.some((e) => e.evaluatorId === user.id);
   }, [user, project, evaluations]);
 
   const teamMembers = useMemo(() => {

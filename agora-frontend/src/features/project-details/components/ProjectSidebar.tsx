@@ -122,6 +122,26 @@ const ProjectSidebar = ({
     {/* Avaliação */}
     <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
       <h2 className="text-sm font-bold text-[var(--agora-ink)] mb-4">Avaliação</h2>
+
+      {(project.communityCount > 0 || project.professorCount > 0) && (
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="rounded-lg border border-[var(--agora-border)] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wide text-[var(--agora-muted)]">Comunidade</p>
+            <p className="text-lg font-bold text-[var(--agora-ink)]">
+              {project.communityAverage != null ? project.communityAverage.toFixed(1) : '—'}
+            </p>
+            <p className="text-[11px] text-[var(--agora-muted)]">{project.communityCount} avaliações</p>
+          </div>
+          <div className="rounded-lg border border-[var(--agora-accent)] bg-[var(--agora-accent-bg)] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wide text-[var(--agora-accent)]">Professores</p>
+            <p className="text-lg font-bold text-[var(--agora-ink)]">
+              {project.professorAverage != null ? project.professorAverage.toFixed(1) : '—'}
+            </p>
+            <p className="text-[11px] text-[var(--agora-muted)]">{project.professorCount} avaliações</p>
+          </div>
+        </div>
+      )}
+
       {latestEval ? (
         <>
           <div className="space-y-2.5 mb-4">
@@ -136,7 +156,7 @@ const ProjectSidebar = ({
               "{latestEval.feedback}"
             </blockquote>
           )}
-          <p className="text-xs text-[var(--agora-muted)] mb-3">— {latestEval.professorName}</p>
+          <p className="text-xs text-[var(--agora-muted)] mb-3">— {latestEval.evaluatorName}</p>
           {evaluations.length > 1 && (
             <button
               type="button"

@@ -23,6 +23,7 @@ export const useAuthForm = () => {
     password: '',
     course: '',
     bio: '',
+    formation: '',
     roleType: 'Estudante',
   });
   const [confirmPassword, setConfirmPassword] = useState('');

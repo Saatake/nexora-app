@@ -27,12 +27,14 @@ const ProjectDetailsPage = () => {
   const { comments, commentText, setCommentText, isCommenting, handleAddComment } =
     useComments(projectId);
 
+  const isProfessor = user?.roleType === 'Professor';
+
   const {
     evaluationData, setEvaluationData, isEvaluating,
     showEvaluationForm, setShowEvaluationForm, evalError, setEvalError,
     aiReview, isAiReviewing, showAiFeedback, setShowAiFeedback,
     handleSubmitEvaluation, handleAiReview,
-  } = useEvaluation(projectId, refreshProjectAndEvals, setError);
+  } = useEvaluation(projectId, refreshProjectAndEvals, setError, isProfessor);
 
   return (
     <AppShell title="" subtitle="" showSearch={false}>
@@ -109,7 +111,7 @@ const ProjectDetailsPage = () => {
                 latestEval={latestEval}
                 teamMembers={teamMembers}
                 canEvaluate={canEvaluate}
-                hasEvaluated={evaluations.some((e) => e.professorId === user?.id)}
+                hasEvaluated={evaluations.some((e) => e.evaluatorId === user?.id)}
                 onShowEvaluationForm={() => setShowEvaluationForm(true)}
                 onShowAllEvals={() => setShowAllEvals(true)}
                 onShowMembers={() => setShowMembersModal(true)}
@@ -120,6 +122,7 @@ const ProjectDetailsPage = () => {
               <EvaluationFormModal
                 evaluationData={evaluationData}
                 isEvaluating={isEvaluating}
+                isProfessor={isProfessor}
                 error={evalError}
                 onChange={setEvaluationData}
                 onSubmit={handleSubmitEvaluation}

@@ -25,25 +25,54 @@ const AllEvaluationsModal = ({ evaluations, onClose }: AllEvaluationsModalProps)
         </button>
       </div>
       <div className="space-y-5">
-        {evaluations.map((ev) => (
-          <div key={ev.id} className="rounded-xl border border-[var(--agora-border)] p-5">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-semibold text-[var(--agora-ink)]">{ev.professorName}</p>
-              <span className="text-xs text-[var(--agora-muted)]">{formatDate(ev.createdAt)}</span>
+        {evaluations.map((ev) => {
+          const isProfessor = ev.evaluatorRole === 'Professor';
+          return (
+            <div key={ev.id} className="rounded-xl border border-[var(--agora-border)] p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-[var(--agora-ink)]">{ev.evaluatorName}</p>
+                  <span
+                    className={
+                      isProfessor
+                        ? 'inline-flex items-center rounded-full bg-[var(--agora-accent-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--agora-accent)]'
+                        : 'inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600'
+                    }
+                  >
+                    {isProfessor ? 'Professor' : 'Aluno'}
+                  </span>
+                </div>
+                <span className="text-xs text-[var(--agora-muted)]">{formatDate(ev.createdAt)}</span>
+              </div>
+              <div className="space-y-2 mb-3">
+                <EvalBar label="Relevância" value={ev.relevance} />
+                <EvalBar label="Qualidade" value={ev.quality} />
+                <EvalBar label="Metodologia" value={ev.methodology} />
+                <EvalBar label="Apresentação" value={ev.presentation} />
+                <EvalBar label="Inovação" value={ev.innovation} />
+              </div>
+              {isProfessor && ev.theoreticalFoundation != null && (
+                <div className="mt-4 rounded-lg border border-[var(--agora-accent)] bg-[var(--agora-accent-bg)] p-3">
+                  <p className="text-xs font-bold text-[var(--agora-accent)] mb-2 uppercase tracking-wide">Avaliação Técnica</p>
+                  <div className="space-y-2">
+                    <EvalBar label="Embasamento Teórico" value={ev.theoreticalFoundation} />
+                    <EvalBar label="Contribuição Acadêmica" value={ev.academicContribution ?? 0} />
+                    <EvalBar label="Viabilidade de Execução" value={ev.executionFeasibility ?? 0} />
+                  </div>
+                  {ev.technicalAverage != null && (
+                    <p className="mt-2 text-xs font-semibold text-[var(--agora-accent)]">
+                      Média técnica: {ev.technicalAverage.toFixed(1)}
+                    </p>
+                  )}
+                </div>
+              )}
+              {ev.feedback && (
+                <p className="text-sm text-[var(--agora-muted)] italic mt-3 mb-2">"{ev.feedback}"</p>
+              )}
+              <p className="text-sm font-semibold text-emerald-600">Média: {ev.average.toFixed(1)}</p>
             </div>
-            <div className="space-y-2 mb-3">
-              <EvalBar label="Relevância" value={ev.relevance} />
-              <EvalBar label="Qualidade" value={ev.quality} />
-              <EvalBar label="Metodologia" value={ev.methodology} />
-              <EvalBar label="Apresentação" value={ev.presentation} />
-              <EvalBar label="Inovação" value={ev.innovation} />
-            </div>
-            {ev.feedback && (
-              <p className="text-sm text-[var(--agora-muted)] italic mb-2">"{ev.feedback}"</p>
-            )}
-            <p className="text-sm font-semibold text-emerald-600">Média: {ev.average.toFixed(1)}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   </div>

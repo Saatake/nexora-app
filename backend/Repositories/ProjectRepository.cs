@@ -38,7 +38,7 @@ public class ProjectRepository : IProjectRepository
     {
         var query = _context.Projects
             .Include(p => p.User)
-            .Include(p => p.Evaluations)
+            .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Where(p => !p.IsPrivate)
             .AsQueryable();
@@ -76,7 +76,7 @@ public class ProjectRepository : IProjectRepository
     {
         var query = _context.Projects
             .Include(p => p.User)
-            .Include(p => p.Evaluations)
+            .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Where(p => p.UserId == userId)
             .AsQueryable();
@@ -98,7 +98,7 @@ public class ProjectRepository : IProjectRepository
             .Where(pc => pc.UserId == userId)
             .Select(pc => pc.Project!)
             .Include(p => p.User)
-            .Include(p => p.Evaluations)
+            .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .OrderByDescending(p => p.CreatedAt);
 
@@ -112,7 +112,7 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects
             .Include(p => p.User)
-            .Include(p => p.Evaluations)
+            .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .FirstOrDefaultAsync(p => p.Id == id);
     }

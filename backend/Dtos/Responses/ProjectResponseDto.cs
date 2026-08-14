@@ -22,6 +22,10 @@ public class ProjectResponseDto
     public int ViewCount { get; set; }
     public int DownloadCount { get; set; }
     public double? AverageGrade { get; set; }
+    public double? CommunityAverage { get; set; }
+    public int CommunityCount { get; set; }
+    public double? ProfessorAverage { get; set; }
+    public int ProfessorCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsPrivate { get; set; }
     public List<CollaboratorDto> Collaborators { get; set; } = new();

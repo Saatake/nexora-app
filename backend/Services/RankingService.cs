@@ -15,16 +15,22 @@ public class RankingService : IRankingService
         _context = context;
     }
 
+    // mesmo peso usado em ProjectService para manter consist\u00eancia
+    private const double ProfessorWeight = 3.0;
+
     public async Task<IEnumerable<RankingProjectDto>> GetTopProjectsAsync(int count = 10)
     {
-        // GROUP BY e AVG rodam no banco — só os top N chegam na memória
+        // média ponderada rodando no banco (professor pesa 3x aluno)
         var results = await _context.Evaluations
             .Where(e => !e.Project!.IsPrivate)
             .GroupBy(e => e.ProjectId)
             .Select(g => new
             {
                 ProjectId = g.Key,
-                Average = g.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0)
+                Average = g.Sum(e =>
+                        ((e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0)
+                        * (e.Professor!.RoleType == UserRole.Professor ? ProfessorWeight : 1.0))
+                    / g.Sum(e => e.Professor!.RoleType == UserRole.Professor ? ProfessorWeight : 1.0)
             })
             .OrderByDescending(x => x.Average)
             .Take(count)
