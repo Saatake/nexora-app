@@ -31,6 +31,7 @@ export type Project = {
   category: string;
   authorId: string;
   authorName: string;
+  authorRoleType?: string;
   viewCount: number;
   downloadCount: number;
   averageGrade?: number | null;
@@ -66,6 +67,7 @@ export type Comment = {
   text: string;
   authorName: string;
   authorId: string;
+  authorRoleType?: string;
   createdAt: string;
 };
 

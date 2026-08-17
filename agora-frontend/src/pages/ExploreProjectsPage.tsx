@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Download, Eye, Star, Users } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import RoleBadge from '@/components/RoleBadge';
 import { useExplore } from '@/features/explore/hooks/useExplore';
 
 const ExploreProjectsPage = () => {
@@ -103,6 +104,7 @@ const ExploreProjectsPage = () => {
                         {(project.authorName ?? 'A').charAt(0).toUpperCase()}
                       </div>
                       <span className="text-sm text-[var(--agora-muted)] truncate max-w-[120px]">{project.authorName}</span>
+                      <RoleBadge role={project.authorRoleType} />
                     </div>
                     <div className="flex items-center gap-3 text-xs text-[var(--agora-muted)]">
                       <span className="inline-flex items-center gap-1">

@@ -237,6 +237,7 @@ public class ProjectService : IProjectService
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             AuthorId = p.UserId,
+            AuthorRoleType = p.User?.RoleType.ToString() ?? string.Empty,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
             AverageGrade = weightedAvg,

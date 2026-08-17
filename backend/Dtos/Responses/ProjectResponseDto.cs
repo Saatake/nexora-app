@@ -19,6 +19,7 @@ public class ProjectResponseDto
     public string Category { get; set; } = string.Empty;
     public string AuthorId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
+    public string AuthorRoleType { get; set; } = string.Empty;
     public int ViewCount { get; set; }
     public int DownloadCount { get; set; }
     public double? AverageGrade { get; set; }

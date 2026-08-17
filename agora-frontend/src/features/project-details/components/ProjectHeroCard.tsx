@@ -7,6 +7,7 @@ import {
   UserCircle2,
 } from 'lucide-react';
 import { formatCategory, formatDate } from '@/shared/utils/formatters';
+import RoleBadge from '@/components/RoleBadge';
 import type { Project } from '../types';
 
 type ProjectHeroCardProps = {
@@ -63,6 +64,7 @@ const ProjectHeroCard = ({
           >
             {project.authorName}
           </Link>
+          <RoleBadge role={project.authorRoleType} />
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Calendar size={15} />

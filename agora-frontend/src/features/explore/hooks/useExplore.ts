@@ -12,6 +12,7 @@ export type Project = {
   tags?: string | null;
   category: string;
   authorName?: string;
+  authorRoleType?: string;
   averageGrade?: number | null;
   viewCount: number;
   downloadCount: number;

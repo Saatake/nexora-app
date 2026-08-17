@@ -1,5 +1,6 @@
 import { MessageSquare } from 'lucide-react';
 import { formatDate } from '@/shared/utils/formatters';
+import RoleBadge from '@/components/RoleBadge';
 import type { Comment } from '../types';
 
 type CommentsSectionProps = {
@@ -33,9 +34,12 @@ const CommentsSection = ({
           </div>
           <div className="flex-1 bg-[var(--agora-bg)] rounded-xl px-4 py-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold text-[var(--agora-ink)]">
-                {comment.authorName}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-[var(--agora-ink)]">
+                  {comment.authorName}
+                </span>
+                <RoleBadge role={comment.authorRoleType} />
+              </div>
               <span className="text-xs text-[var(--agora-muted)]">
                 {formatDate(comment.createdAt)}
               </span>
