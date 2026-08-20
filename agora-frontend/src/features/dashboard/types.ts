@@ -39,3 +39,36 @@ export type PagedResponse<T> = {
   totalCount: number;
   totalPages: number;
 };
+
+export type PendingProject = {
+  id: number;
+  title: string;
+  summary?: string;
+  thematicAreaName: string;
+  authorName: string;
+  communityAverage?: number | null;
+  communityCount: number;
+  imageUrl?: string;
+  createdAt: string;
+};
+
+export type FeaturedProject = {
+  id: number;
+  title: string;
+  summary?: string;
+  thematicAreaName: string;
+  authorName: string;
+  averageGrade?: number | null;
+  evaluationCount: number;
+  imageUrl?: string;
+  badges: { badge: string; count: number }[];
+};
+
+export type ProfessorDashboard = {
+  evaluationsGiven: number;
+  areasCount: number;
+  pendingCount: number;
+  pendingProjects: PendingProject[];
+  featuredProjects: FeaturedProject[];
+};
+};

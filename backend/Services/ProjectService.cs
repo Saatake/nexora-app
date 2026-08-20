@@ -255,6 +255,19 @@ public class ProjectService : IProjectService
                     Name = c.User!.Name,
                     PhotoUrl = c.User.PhotoUrl,
                     Course = c.User.Course
+                }).ToList() ?? new(),
+            Badges = p.Badges?
+                .GroupBy(b => b.Badge)
+                .Select(g => new ProjectBadgeDto
+                {
+                    Badge = g.Key.ToString(),
+                    Count = g.Count(),
+                    Professors = g.Select(b => new BadgeProfessorDto
+                    {
+                        Id = b.ProfessorId,
+                        Name = b.Professor?.Name ?? "",
+                        AwardedAt = b.CreatedAt
+                    }).ToList()
                 }).ToList() ?? new()
         };
     }

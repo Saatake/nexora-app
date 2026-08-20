@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import api from '@/api/axios';
 import { useProjectDetails } from '@/features/project-details/hooks/useProjectDetails';
 import { useComments } from '@/features/project-details/hooks/useComments';
 import { useEvaluation } from '@/features/project-details/hooks/useEvaluation';
@@ -28,6 +29,22 @@ const ProjectDetailsPage = () => {
     useComments(projectId);
 
   const isProfessor = user?.roleType === 'Professor';
+
+  const handleAwardBadge = async (badge: string) => {
+    if (!projectId) return;
+    try {
+      await api.post(`/projects/${projectId}/badges/${badge}`);
+      refreshProjectAndEvals();
+    } catch { /* silencia conflito */ }
+  };
+
+  const handleRemoveBadge = async (badge: string) => {
+    if (!projectId) return;
+    try {
+      await api.delete(`/projects/${projectId}/badges/${badge}`);
+      refreshProjectAndEvals();
+    } catch { /* silencia */ }
+  };
 
   const {
     evaluationData, setEvaluationData, isEvaluating,
@@ -112,9 +129,12 @@ const ProjectDetailsPage = () => {
                 teamMembers={teamMembers}
                 canEvaluate={canEvaluate}
                 hasEvaluated={evaluations.some((e) => e.evaluatorId === user?.id)}
+                isProfessor={isProfessor}
                 onShowEvaluationForm={() => setShowEvaluationForm(true)}
                 onShowAllEvals={() => setShowAllEvals(true)}
                 onShowMembers={() => setShowMembersModal(true)}
+                onAwardBadge={isProfessor ? handleAwardBadge : undefined}
+                onRemoveBadge={isProfessor ? handleRemoveBadge : undefined}
               />
             </div>
 

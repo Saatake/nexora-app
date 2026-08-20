@@ -47,6 +47,7 @@ const ProfilePage = () => {
   }
 
   const roleLabel = currentUser?.roleType === 'Professor' ? 'Professor' : 'Aluno';
+  const isProfessor = profile.roleType === 'Professor';
 
   return (
     <>
@@ -62,6 +63,7 @@ const ProfilePage = () => {
             profile={profile}
             isOwnProfile={isOwnProfile}
             isUploadingPhoto={isUploadingPhoto}
+            isProfessor={isProfessor}
             roleLabel={roleLabel}
             onEditClick={handleEditProfile}
             onPhotoClick={() => fileInputRef.current?.click()}
@@ -83,6 +85,7 @@ const ProfilePage = () => {
             <ProfileEditModal
               editData={editData}
               isSaving={isSaving}
+              isProfessor={isProfessor}
               onChange={setEditData}
               onSave={handleSaveProfile}
               onClose={() => setIsEditing(false)}

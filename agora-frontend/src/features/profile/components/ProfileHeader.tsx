@@ -1,10 +1,13 @@
 import { Upload } from 'lucide-react';
 import type { UserProfile } from '../types';
+import { THEMATIC_AREA_LABELS } from '@/constants/thematicAreas';
+import type { ThematicArea } from '@/constants/thematicAreas';
 
 type ProfileHeaderProps = {
   profile: UserProfile;
   isOwnProfile: boolean;
   isUploadingPhoto: boolean;
+  isProfessor: boolean;
   roleLabel: string;
   onEditClick: () => void;
   onPhotoClick: () => void;
@@ -16,6 +19,7 @@ const ProfileHeader = ({
   profile,
   isOwnProfile,
   isUploadingPhoto,
+  isProfessor,
   roleLabel,
   onEditClick,
   onPhotoClick,
@@ -67,9 +71,29 @@ const ProfileHeader = ({
               </h2>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-[var(--agora-muted)]">
                 <span>{roleLabel}</span>
-                <span>·</span>
-                <span>{profile.course}</span>
+                {isProfessor ? (
+                  profile.formation && (
+                    <>
+                      <span>·</span>
+                      <span>{profile.formation}</span>
+                    </>
+                  )
+                ) : (
+                  <>
+                    <span>·</span>
+                    <span>{profile.course}</span>
+                  </>
+                )}
               </div>
+              {isProfessor && profile.teachingAreas && profile.teachingAreas.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {profile.teachingAreas.map((area) => (
+                    <span key={area} className="text-xs bg-green-50 text-[#0a5c2f] border border-green-200 px-2 py-0.5 rounded-full font-medium">
+                      {THEMATIC_AREA_LABELS[area as ThematicArea] ?? area}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

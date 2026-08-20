@@ -8,6 +8,18 @@ export type AiReview = {
   feedback: string;
 };
 
+export type BadgeProfessor = {
+  id: string;
+  name: string;
+  awardedAt: string;
+};
+
+export type ProjectBadge = {
+  badge: string;
+  count: number;
+  professors: BadgeProfessor[];
+};
+
 export type Collaborator = {
   id: string;
   name: string;
@@ -41,6 +53,7 @@ export type Project = {
   professorCount: number;
   createdAt: string;
   collaborators?: Collaborator[];
+  badges?: ProjectBadge[];
 };
 
 export type Evaluation = {

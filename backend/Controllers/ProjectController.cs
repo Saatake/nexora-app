@@ -5,6 +5,7 @@ using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Enums;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
+using Nexora.Api.Services;
 using System.Security.Claims;
 
 namespace Nexora.Api.Controllers;
@@ -15,11 +16,13 @@ public class ProjectController : ControllerBase
 {
     private readonly IProjectService _projectService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly BadgeService _badgeService;
 
-    public ProjectController(IProjectService projectService, UserManager<ApplicationUser> userManager)
+    public ProjectController(IProjectService projectService, UserManager<ApplicationUser> userManager, BadgeService badgeService)
     {
         _projectService = projectService;
         _userManager = userManager;
+        _badgeService = badgeService;
     }
 
     [HttpPost]
@@ -194,5 +197,37 @@ public class ProjectController : ControllerBase
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
         return Ok(result.Data);
+    }
+
+    [HttpPost("{id}/badges/{badge}")]
+    [Authorize]
+    public async Task<IActionResult> AwardBadge(int id, BadgeType badge)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null || user.RoleType != UserRole.Professor)
+            return Forbid();
+
+        var result = await _badgeService.AwardBadgeAsync(id, userId!, badge);
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : Conflict(new { result.Message });
+
+        return Ok(new { result.Message });
+    }
+
+    [HttpDelete("{id}/badges/{badge}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveBadge(int id, BadgeType badge)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null || user.RoleType != UserRole.Professor)
+            return Forbid();
+
+        var result = await _badgeService.RemoveBadgeAsync(id, userId!, badge);
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
+
+        return Ok(new { result.Message });
     }
 }

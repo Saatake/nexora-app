@@ -61,6 +61,9 @@ public class UserService : IUserService
         if (user == null)
             return new UserResult { Succeeded = false, IsNotFound = true, Message = "usuário não encontrado." };
 
+        if (model.Areas.Distinct().Count() > 3)
+            return new UserResult { Succeeded = false, Message = "máximo de 3 áreas de ensino permitidas." };
+
         _context.UserTeachingAreas.RemoveRange(user.TeachingAreas);
 
         foreach (var area in model.Areas.Distinct())

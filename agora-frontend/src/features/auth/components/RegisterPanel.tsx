@@ -194,7 +194,7 @@ const RegisterPanel = ({
             <input
               type="text"
               name="formation"
-              placeholder="Formação (ex: Doutorado em Eng. de Software)"
+              placeholder="Ex: Doutor em Eng. de Software"
               value={formData.formation}
               onChange={onFieldChange}
               className="pl-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400"

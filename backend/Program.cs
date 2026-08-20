@@ -170,6 +170,7 @@ builder.Services.AddScoped<IEvaluationRepository, EvaluationRepository>();
 builder.Services.AddScoped<IEvaluationService, EvaluationService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRankingService, RankingService>();
+builder.Services.AddScoped<BadgeService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAiReviewService, AiReviewService>();
 builder.Services.AddScoped<IStorageService, StorageService>();

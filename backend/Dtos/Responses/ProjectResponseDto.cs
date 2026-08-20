@@ -30,4 +30,19 @@ public class ProjectResponseDto
     public DateTime CreatedAt { get; set; }
     public bool IsPrivate { get; set; }
     public List<CollaboratorDto> Collaborators { get; set; } = new();
+    public List<ProjectBadgeDto> Badges { get; set; } = new();
+}
+
+public class ProjectBadgeDto
+{
+    public string Badge { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public List<BadgeProfessorDto> Professors { get; set; } = new();
+}
+
+public class BadgeProfessorDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public DateTime AwardedAt { get; set; }
 }

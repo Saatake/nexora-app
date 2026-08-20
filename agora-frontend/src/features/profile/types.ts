@@ -7,6 +7,8 @@ export type UserProfile = {
   photoUrl?: string;
   interests?: string;
   roleType: string;
+  formation?: string;
+  teachingAreas?: string[];
   projectCount?: number;
   averageGrade?: number;
   totalViews?: number;
@@ -27,4 +29,6 @@ export type EditData = {
   bio: string;
   photoUrl: string;
   interests: string;
+  formation: string;
+  teachingAreas: string[];
 };

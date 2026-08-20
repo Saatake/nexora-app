@@ -15,6 +15,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Evaluation> Evaluations { get; set; }
     public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
     public DbSet<UserTeachingArea> UserTeachingAreas { get; set; }
+    public DbSet<ProjectBadge> ProjectBadges { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -44,5 +45,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(ta => ta.User)
             .WithMany(u => u.TeachingAreas)
             .HasForeignKey(ta => ta.UserId);
+
+        builder.Entity<ProjectBadge>()
+            .HasIndex(b => new { b.ProjectId, b.Badge, b.ProfessorId })
+            .IsUnique();
+
+        builder.Entity<ProjectBadge>()
+            .HasOne(b => b.Project)
+            .WithMany(p => p.Badges)
+            .HasForeignKey(b => b.ProjectId);
+
+        builder.Entity<ProjectBadge>()
+            .HasOne(b => b.Professor)
+            .WithMany()
+            .HasForeignKey(b => b.ProfessorId);
     }
 }
