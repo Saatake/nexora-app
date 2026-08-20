@@ -15,6 +15,7 @@ export const useEvaluation = (
   projectId: number,
   onRefresh: () => Promise<void>,
   setPageError: (msg: string) => void,
+  isProfessor: boolean = false,
 ) => {
   const [evaluationData, setEvaluationData] =
     useState<EvaluationFormData>(defaultFormData);
@@ -37,6 +38,21 @@ export const useEvaluation = (
     ) {
       setEvalError('Por favor, preencha todas as notas de 1 a 10.');
       return;
+    }
+    if (isProfessor) {
+      const {
+        theoreticalFoundation,
+        academicContribution,
+        executionFeasibility,
+      } = evaluationData;
+      if (
+        !theoreticalFoundation ||
+        !academicContribution ||
+        !executionFeasibility
+      ) {
+        setEvalError('Preencha também os critérios técnicos (1 a 10).');
+        return;
+      }
     }
     setIsEvaluating(true);
     setEvalError('');

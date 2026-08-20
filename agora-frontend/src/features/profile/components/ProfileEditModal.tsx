@@ -1,8 +1,10 @@
 import type { EditData } from '../types';
+import { THEMATIC_AREAS, THEMATIC_AREA_LABELS } from '@/constants/thematicAreas';
 
 type ProfileEditModalProps = {
   editData: EditData;
   isSaving: boolean;
+  isProfessor: boolean;
   onChange: (data: EditData) => void;
   onSave: () => void;
   onClose: () => void;
@@ -11,10 +13,21 @@ type ProfileEditModalProps = {
 const ProfileEditModal = ({
   editData,
   isSaving,
+  isProfessor,
   onChange,
   onSave,
   onClose,
-}: ProfileEditModalProps) => (
+}: ProfileEditModalProps) => {
+  const toggleArea = (area: string) => {
+    const current = editData.teachingAreas;
+    if (current.includes(area)) {
+      onChange({ ...editData, teachingAreas: current.filter((a) => a !== area) });
+    } else if (current.length < 3) {
+      onChange({ ...editData, teachingAreas: [...current, area] });
+    }
+  };
+
+  return (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
     <div className="bg-[var(--agora-panel)] rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
@@ -35,15 +48,50 @@ const ProfileEditModal = ({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Curso</label>
-          <input
-            type="text"
-            value={editData.course}
-            onChange={(e) => onChange({ ...editData, course: e.target.value })}
-            className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
-          />
-        </div>
+        {isProfessor ? (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Formação Acadêmica</label>
+              <input
+                type="text"
+                placeholder="Ex: Doutor em Ciências da Computação — USP"
+                value={editData.formation}
+                onChange={(e) => onChange({ ...editData, formation: e.target.value })}
+                className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Áreas de Ensino <span className="text-[var(--agora-muted)] font-normal">({editData.teachingAreas.length}/3)</span></label>
+              <p className="text-xs text-[var(--agora-muted)] mb-3">Projetos nessas áreas aparecerão na sua fila de avaliação.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {THEMATIC_AREAS.map((area) => (
+                  <label key={area} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={editData.teachingAreas.includes(area)}
+                      onChange={() => toggleArea(area)}
+                      className="w-4 h-4 accent-[#0a5c2f]"
+                    />
+                    <span className="text-sm text-[var(--agora-ink)] group-hover:text-[#0a5c2f] transition-colors">
+                      {THEMATIC_AREA_LABELS[area]}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div>
+            <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Curso</label>
+            <input
+              type="text"
+              value={editData.course}
+              onChange={(e) => onChange({ ...editData, course: e.target.value })}
+              className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
+            />
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">Bio</label>
@@ -55,17 +103,19 @@ const ProfileEditModal = ({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">
-            Áreas de Interesse (separadas por vírgula)
-          </label>
-          <input
-            type="text"
-            value={editData.interests}
-            onChange={(e) => onChange({ ...editData, interests: e.target.value })}
-            className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
-          />
-        </div>
+        {!isProfessor && (
+          <div>
+            <label className="block text-sm font-semibold text-[var(--agora-ink)] mb-2">
+              Áreas de Interesse (separadas por vírgula)
+            </label>
+            <input
+              type="text"
+              value={editData.interests}
+              onChange={(e) => onChange({ ...editData, interests: e.target.value })}
+              className="w-full rounded border border-[var(--agora-border)] px-4 py-2 text-sm bg-[var(--agora-input-bg)] text-[var(--agora-ink)]"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3 mt-6">
@@ -86,6 +136,7 @@ const ProfileEditModal = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default ProfileEditModal;

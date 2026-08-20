@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Nexora.Api.Services;
 
@@ -22,6 +23,7 @@ public class AuthService : IAuthService
     private readonly ILogger<AuthService> _logger;
     private readonly string _frontendUrl;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IWebHostEnvironment _env;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -30,7 +32,8 @@ public class AuthService : IAuthService
         IEmailService emailService,
         IConfiguration configuration,
         ILogger<AuthService> logger,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IWebHostEnvironment env)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -38,6 +41,7 @@ public class AuthService : IAuthService
         _emailService = emailService;
         _logger = logger;
         _httpContextAccessor = httpContextAccessor;
+        _env = env;
         _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
     }
 
@@ -49,14 +53,6 @@ public class AuthService : IAuthService
 
             if (user == null)
                 return Fail();
-
-            if (!user.EmailConfirmed)
-                return new AuthResult
-                {
-                    Succeeded = false,
-                    IsUnauthorized = true,
-                    Message = "email não confirmado. verifique sua caixa de entrada."
-                };
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
@@ -105,6 +101,19 @@ public class AuthService : IAuthService
                 {
                     Succeeded = false,
                     Errors = result.Errors.Select(e => e.Description)
+                };
+            }
+
+            // dev: pula a confirmação por e-mail para acelerar testes
+            if (_env.IsDevelopment())
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+
+                return new AuthResult
+                {
+                    Succeeded = true,
+                    Message = "Cadastro concluído (dev: e-mail auto-confirmado)."
                 };
             }
 

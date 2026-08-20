@@ -38,9 +38,6 @@ const MembersModal = ({ project, onClose }: MembersModalProps) => (
             <p className="text-sm font-semibold text-[var(--agora-ink)] truncate">
               {project.authorName}
             </p>
-            {project.course && (
-              <p className="text-xs text-[var(--agora-muted)] truncate">{project.course}</p>
-            )}
             <span className="text-xs text-[var(--agora-accent)] font-medium">Autor</span>
           </div>
         </Link>

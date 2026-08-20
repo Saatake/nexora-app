@@ -5,13 +5,11 @@ type LoginPanelProps = {
   isLogin: boolean;
   loginEmail: string;
   loginPassword: string;
-  loginRoleTab: 'Aluno' | 'Professor';
   showPassword: boolean;
   error: string;
   loading: boolean;
   onEmailChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
-  onRoleChange: (r: 'Aluno' | 'Professor') => void;
   onTogglePassword: () => void;
   onSubmit: (e: React.FormEvent) => void;
   onSwitchToRegister: () => void;
@@ -21,13 +19,11 @@ const LoginPanel = ({
   isLogin,
   loginEmail,
   loginPassword,
-  loginRoleTab,
   showPassword,
   error,
   loading,
   onEmailChange,
   onPasswordChange,
-  onRoleChange,
   onTogglePassword,
   onSubmit,
   onSwitchToRegister,
@@ -42,28 +38,6 @@ const LoginPanel = ({
     <div className="flex flex-col h-full justify-center max-w-sm mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Login</h1>
 
-      <div className="flex gap-4 mb-8">
-        <button
-          onClick={() => onRoleChange('Aluno')}
-          className={`flex-1 py-2 text-sm font-semibold rounded border transition-all ${
-            loginRoleTab === 'Aluno'
-              ? 'border-green-800 text-green-800 bg-green-50'
-              : 'border-gray-300 text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Aluno
-        </button>
-        <button
-          onClick={() => onRoleChange('Professor')}
-          className={`flex-1 py-2 text-sm font-semibold rounded border transition-all ${
-            loginRoleTab === 'Professor'
-              ? 'border-green-800 text-green-800 bg-green-50'
-              : 'border-gray-300 text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Professor
-        </button>
-      </div>
 
       {error && isLogin && (
         <div className="mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg text-center">
@@ -79,9 +53,7 @@ const LoginPanel = ({
             </div>
             <input
               type="email"
-              placeholder={
-                loginRoleTab === 'Aluno' ? 'E-mail Institucional' : 'professor@universidade.edu.br'
-              }
+              placeholder="E-mail"
               value={loginEmail}
               onChange={(e) => onEmailChange(e.target.value)}
               required

@@ -28,8 +28,8 @@ public class ProjectService : IProjectService
             Title = request.Title,
             Description = request.Description,
             Summary = request.Summary,
-            Course = request.Course,
-            Area = request.Area,
+            ThematicArea = request.ThematicArea,
+            Tags = NormalizeTags(request.Tags),
             Advisor = request.Advisor,
             TeamMembers = request.TeamMembers,
             GithubLink = request.GithubLink,
@@ -53,31 +53,12 @@ public class ProjectService : IProjectService
     public async Task<IEnumerable<ProjectResponseDto>> GetFeedAsync()
     {
         var projects = await _projectRepository.GetAllAsync();
-
-        return projects.Select(p => new ProjectResponseDto
-        {
-            Id = p.Id,
-            Title = p.Title,
-            Description = p.Description,
-            Summary = p.Summary,
-            Course = p.Course,
-            Area = p.Area,
-            Advisor = p.Advisor,
-            TeamMembers = p.TeamMembers,
-            GithubLink = p.GithubLink,
-            FileUrl = p.FileUrl,
-            ImageUrl = p.ImageUrl,
-            Category = p.Category.ToString(),
-            IsPrivate = p.IsPrivate,
-            AuthorId = p.UserId,
-            AuthorName = p.User?.Name ?? "Anônimo",
-            CreatedAt = p.CreatedAt
-        });
+        return projects.Select(MapToDto);
     }
 
-    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, string? course, double? minGrade, string? sort, int page, int pageSize)
+    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, ThematicArea? thematicArea, double? minGrade, string? sort, int page, int pageSize)
     {
-        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, course, minGrade, sort, page, pageSize);
+        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, thematicArea, minGrade, sort, page, pageSize);
 
         return new PagedResponseDto<ProjectResponseDto>
         {
@@ -126,8 +107,8 @@ public class ProjectService : IProjectService
         project.Title = model.Title;
         project.Description = model.Description;
         project.Summary = model.Summary;
-        project.Course = model.Course;
-        project.Area = model.Area;
+        project.ThematicArea = model.ThematicArea;
+        project.Tags = NormalizeTags(model.Tags);
         project.Advisor = model.Advisor;
         project.TeamMembers = model.TeamMembers;
         project.GithubLink = model.GithubLink;
@@ -186,7 +167,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<ProjectResult> GetDownloadAsync(int id)
+    public async Task<ProjectResult> GetDownloadAsync(int id, string? currentUserId = null)
     {
         var project = await _projectRepository.GetByIdAsync(id);
         if (project == null)
@@ -195,17 +176,49 @@ public class ProjectService : IProjectService
         if (string.IsNullOrWhiteSpace(project.FileUrl))
             return new ProjectResult { Succeeded = false, Message = "este projeto não possui arquivo para download." };
 
-        project.DownloadCount++;
-        await _projectRepository.UpdateAsync(project);
+        if (project.UserId != currentUserId)
+        {
+            project.DownloadCount++;
+            await _projectRepository.UpdateAsync(project);
+        }
 
         return new ProjectResult { Succeeded = true, Message = project.FileUrl };
     }
 
+    // peso da nota de professor na média ponderada final (interna, para ranking)
+    private const double ProfessorWeight = 3.0;
+
     private static ProjectResponseDto MapToDto(Project p)
     {
-        double? avgGrade = null;
+        double? communityAvg = null;
+        double? professorAvg = null;
+        double? weightedAvg = null;
+        var communityCount = 0;
+        var professorCount = 0;
+
         if (p.Evaluations != null && p.Evaluations.Any())
-            avgGrade = Math.Round(p.Evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2);
+        {
+            static double BaseAvg(Evaluation e) => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0;
+
+            var professorEvals = p.Evaluations.Where(e => e.Professor?.RoleType == UserRole.Professor).ToList();
+            var communityEvals = p.Evaluations.Where(e => e.Professor?.RoleType != UserRole.Professor).ToList();
+
+            professorCount = professorEvals.Count;
+            communityCount = communityEvals.Count;
+
+            if (professorCount > 0)
+                professorAvg = Math.Round(professorEvals.Average(BaseAvg), 2);
+
+            if (communityCount > 0)
+                communityAvg = Math.Round(communityEvals.Average(BaseAvg), 2);
+
+            var totalWeight = communityCount + professorCount * ProfessorWeight;
+            if (totalWeight > 0)
+            {
+                var sum = communityEvals.Sum(BaseAvg) + professorEvals.Sum(BaseAvg) * ProfessorWeight;
+                weightedAvg = Math.Round(sum / totalWeight, 2);
+            }
+        }
 
         return new ProjectResponseDto
         {
@@ -213,8 +226,9 @@ public class ProjectService : IProjectService
             Title = p.Title,
             Description = p.Description,
             Summary = p.Summary,
-            Course = p.Course,
-            Area = p.Area,
+            ThematicArea = p.ThematicArea,
+            ThematicAreaName = p.ThematicArea.ToString(),
+            Tags = p.Tags,
             Advisor = p.Advisor,
             TeamMembers = p.TeamMembers,
             GithubLink = p.GithubLink,
@@ -223,9 +237,14 @@ public class ProjectService : IProjectService
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             AuthorId = p.UserId,
+            AuthorRoleType = p.User?.RoleType.ToString() ?? string.Empty,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
-            AverageGrade = avgGrade,
+            AverageGrade = weightedAvg,
+            CommunityAverage = communityAvg,
+            CommunityCount = communityCount,
+            ProfessorAverage = professorAvg,
+            ProfessorCount = professorCount,
             IsPrivate = p.IsPrivate,
             CreatedAt = p.CreatedAt,
             Collaborators = p.Collaborators?
@@ -236,8 +255,32 @@ public class ProjectService : IProjectService
                     Name = c.User!.Name,
                     PhotoUrl = c.User.PhotoUrl,
                     Course = c.User.Course
+                }).ToList() ?? new(),
+            Badges = p.Badges?
+                .GroupBy(b => b.Badge)
+                .Select(g => new ProjectBadgeDto
+                {
+                    Badge = g.Key.ToString(),
+                    Count = g.Count(),
+                    Professors = g.Select(b => new BadgeProfessorDto
+                    {
+                        Id = b.ProfessorId,
+                        Name = b.Professor?.Name ?? "",
+                        AwardedAt = b.CreatedAt
+                    }).ToList()
                 }).ToList() ?? new()
         };
+    }
+
+    private static string? NormalizeTags(string? tags)
+    {
+        if (string.IsNullOrWhiteSpace(tags))
+            return null;
+
+        return string.Join(", ", tags
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(t => t.ToLowerInvariant())
+            .Distinct());
     }
 
     public async Task<AiReviewResult> GenerateAiReviewAsync(int id)

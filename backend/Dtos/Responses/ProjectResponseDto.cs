@@ -1,3 +1,5 @@
+using Nexora.Api.Enums;
+
 namespace Nexora.Api.Dtos.Responses;
 
 public class ProjectResponseDto
@@ -6,8 +8,9 @@ public class ProjectResponseDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? Summary { get; set; }
-    public string? Course { get; set; }
-    public string? Area { get; set; }
+    public ThematicArea ThematicArea { get; set; }
+    public string ThematicAreaName { get; set; } = string.Empty;
+    public string? Tags { get; set; }
     public string? Advisor { get; set; }
     public string? TeamMembers { get; set; }
     public string GithubLink { get; set; } = string.Empty;
@@ -16,10 +19,30 @@ public class ProjectResponseDto
     public string Category { get; set; } = string.Empty;
     public string AuthorId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
+    public string AuthorRoleType { get; set; } = string.Empty;
     public int ViewCount { get; set; }
     public int DownloadCount { get; set; }
     public double? AverageGrade { get; set; }
+    public double? CommunityAverage { get; set; }
+    public int CommunityCount { get; set; }
+    public double? ProfessorAverage { get; set; }
+    public int ProfessorCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsPrivate { get; set; }
     public List<CollaboratorDto> Collaborators { get; set; } = new();
+    public List<ProjectBadgeDto> Badges { get; set; } = new();
+}
+
+public class ProjectBadgeDto
+{
+    public string Badge { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public List<BadgeProfessorDto> Professors { get; set; } = new();
+}
+
+public class BadgeProfessorDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public DateTime AwardedAt { get; set; }
 }

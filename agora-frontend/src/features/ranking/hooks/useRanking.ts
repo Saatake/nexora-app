@@ -7,6 +7,7 @@ export type RankingProject = {
   projectId: number;
   title: string;
   authorName: string;
+  authorRoleType?: string;
   averageGrade: number;
   viewCount: number;
 };

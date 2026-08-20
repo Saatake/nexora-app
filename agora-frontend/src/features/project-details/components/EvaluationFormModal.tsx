@@ -3,15 +3,31 @@ import type { EvaluationFormData } from '../types';
 type EvaluationFormModalProps = {
   evaluationData: EvaluationFormData;
   isEvaluating: boolean;
+  isProfessor: boolean;
   error: string;
   onChange: (data: EvaluationFormData) => void;
   onSubmit: () => void;
   onClose: () => void;
 };
 
+const baseCriteria = [
+  { key: 'relevance', label: 'Relevância' },
+  { key: 'quality', label: 'Qualidade' },
+  { key: 'methodology', label: 'Metodologia' },
+  { key: 'presentation', label: 'Apresentação' },
+  { key: 'innovation', label: 'Inovação' },
+] as const;
+
+const technicalCriteria = [
+  { key: 'theoreticalFoundation', label: 'Embasamento Teórico' },
+  { key: 'academicContribution', label: 'Contribuição Acadêmica' },
+  { key: 'executionFeasibility', label: 'Viabilidade de Execução' },
+] as const;
+
 const EvaluationFormModal = ({
   evaluationData,
   isEvaluating,
+  isProfessor,
   error,
   onChange,
   onSubmit,
@@ -22,7 +38,7 @@ const EvaluationFormModal = ({
     onClick={onClose}
   >
     <div
-      className="bg-[var(--agora-panel)] rounded-2xl p-6 w-full max-w-lg shadow-2xl"
+      className="bg-[var(--agora-panel)] rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-5">
@@ -34,16 +50,12 @@ const EvaluationFormModal = ({
           ✕
         </button>
       </div>
+
+      <p className="text-xs font-bold text-[var(--agora-muted)] uppercase tracking-wide mb-2">
+        Critérios Gerais
+      </p>
       <div className="grid gap-4 sm:grid-cols-2 mb-4">
-        {(
-          [
-            { key: 'relevance', label: 'Relevância' },
-            { key: 'quality', label: 'Qualidade' },
-            { key: 'methodology', label: 'Metodologia' },
-            { key: 'presentation', label: 'Apresentação' },
-            { key: 'innovation', label: 'Inovação' },
-          ] as const
-        ).map(({ key, label }) => (
+        {baseCriteria.map(({ key, label }) => (
           <div key={key}>
             <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-1">
               {label} (1–10)
@@ -61,6 +73,34 @@ const EvaluationFormModal = ({
           </div>
         ))}
       </div>
+
+      {isProfessor && (
+        <div className="mb-4 rounded-xl border border-[var(--agora-accent)] bg-[var(--agora-accent-bg)] p-4">
+          <p className="text-xs font-bold text-[var(--agora-accent)] uppercase tracking-wide mb-3">
+            Avaliação Técnica (exclusiva de professor)
+          </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {technicalCriteria.map(({ key, label }) => (
+              <div key={key}>
+                <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-1">
+                  {label} (1–10)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={evaluationData[key] || ''}
+                  onChange={(e) =>
+                    onChange({ ...evaluationData, [key]: Number(e.target.value) })
+                  }
+                  className="w-full border border-[var(--agora-border)] rounded-lg px-3 py-2 text-sm bg-white text-[var(--agora-ink)] focus:ring-1 focus:ring-[var(--agora-accent)] outline-none"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mb-4">
         <label className="block text-xs font-semibold text-[var(--agora-ink)] mb-1">
           Feedback (opcional)

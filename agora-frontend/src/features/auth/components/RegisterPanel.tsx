@@ -7,6 +7,7 @@ import {
   User,
   BookOpen,
   PenSquare,
+  GraduationCap,
 } from 'lucide-react';
 import { FACENS_COURSES } from '@/constants/facensCourses';
 import { passwordRequirements } from '../constants/passwordRequirements';
@@ -19,6 +20,7 @@ type RegisterPanelProps = {
     password: string;
     course: string;
     bio: string;
+    formation: string;
     roleType: string;
   };
   confirmPassword: string;
@@ -188,20 +190,39 @@ const RegisterPanel = ({
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <BookOpen className="h-5 w-5 text-gray-400" />
           </div>
-          <select
-            name="course"
-            value={formData.course}
-            onChange={onFieldChange}
-            className="pl-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 bg-white appearance-none"
-          >
-            <option value="">Selecione seu curso</option>
-            {FACENS_COURSES.map((course) => (
-              <option key={course} value={course}>
-                {course}
-              </option>
-            ))}
-          </select>
+          {formData.roleType === 'Professor' ? (
+            <input
+              type="text"
+              name="formation"
+              placeholder="Ex: Doutor em Eng. de Software"
+              value={formData.formation}
+              onChange={onFieldChange}
+              className="pl-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 placeholder-gray-400"
+            />
+          ) : (
+            <select
+              name="course"
+              value={formData.course}
+              onChange={onFieldChange}
+              required
+              className="pl-10 w-full px-4 py-3 border border-gray-300 rounded focus:ring-1 focus:ring-green-800 focus:border-green-800 transition-all font-medium text-gray-800 bg-white appearance-none"
+            >
+              <option value="">Selecione seu curso</option>
+              {FACENS_COURSES.map((course) => (
+                <option key={course} value={course}>
+                  {course}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
+
+        {formData.roleType === 'Professor' && (
+          <p className="flex items-center gap-1.5 text-xs text-gray-500 -mt-2">
+            <GraduationCap className="h-3.5 w-3.5" />
+            Você poderá adicionar suas áreas de ensino depois no perfil.
+          </p>
+        )}
 
         <div className="relative">
           <div className="absolute top-3 left-3 pointer-events-none">

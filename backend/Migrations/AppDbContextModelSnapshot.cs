@@ -181,6 +181,10 @@ namespace backend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Formation")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("Interests")
                         .HasColumnType("text");
 
@@ -279,8 +283,14 @@ namespace backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<double?>("AcademicContribution")
+                        .HasColumnType("double precision");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("ExecutionFeasibility")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Feedback")
                         .IsRequired()
@@ -309,6 +319,9 @@ namespace backend.Migrations
                     b.Property<double>("Relevance")
                         .HasColumnType("double precision");
 
+                    b.Property<double?>("TheoreticalFoundation")
+                        .HasColumnType("double precision");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProfessorId");
@@ -331,16 +344,8 @@ namespace backend.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
-                    b.Property<string>("Area")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
                     b.Property<int>("Category")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Course")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -371,9 +376,16 @@ namespace backend.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("Tags")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("TeamMembers")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("ThematicArea")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -393,6 +405,37 @@ namespace backend.Migrations
                     b.ToTable("Projects");
                 });
 
+            modelBuilder.Entity("Nexora.Api.Models.ProjectBadge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Badge")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProfessorId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfessorId");
+
+                    b.HasIndex("ProjectId", "Badge", "ProfessorId")
+                        .IsUnique();
+
+                    b.ToTable("ProjectBadges");
+                });
+
             modelBuilder.Entity("Nexora.Api.Models.ProjectCollaborator", b =>
                 {
                     b.Property<int>("ProjectId")
@@ -406,6 +449,19 @@ namespace backend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ProjectCollaborators");
+                });
+
+            modelBuilder.Entity("Nexora.Api.Models.UserTeachingArea", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Area")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "Area");
+
+                    b.ToTable("UserTeachingAreas");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -508,6 +564,25 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Nexora.Api.Models.ProjectBadge", b =>
+                {
+                    b.HasOne("Nexora.Api.Models.ApplicationUser", "Professor")
+                        .WithMany()
+                        .HasForeignKey("ProfessorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nexora.Api.Models.Project", "Project")
+                        .WithMany("Badges")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Professor");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Nexora.Api.Models.ProjectCollaborator", b =>
                 {
                     b.HasOne("Nexora.Api.Models.Project", "Project")
@@ -527,8 +602,26 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Nexora.Api.Models.UserTeachingArea", b =>
+                {
+                    b.HasOne("Nexora.Api.Models.ApplicationUser", "User")
+                        .WithMany("TeachingAreas")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Nexora.Api.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("TeachingAreas");
+                });
+
             modelBuilder.Entity("Nexora.Api.Models.Project", b =>
                 {
+                    b.Navigation("Badges");
+
                     b.Navigation("Collaborators");
 
                     b.Navigation("Comments");

@@ -29,6 +29,11 @@ public class EvaluationService : IEvaluationService
         if (alreadyEvaluated)
             return new ProjectResult { Succeeded = false, Message = "você já avaliou este projeto." };
 
+        var isProfessor = professor.RoleType == UserRole.Professor;
+
+        if (isProfessor && (model.TheoreticalFoundation is null || model.AcademicContribution is null || model.ExecutionFeasibility is null))
+            return new ProjectResult { Succeeded = false, Message = "professores precisam preencher todos os critérios técnicos." };
+
         var evaluation = new Evaluation
         {
             ProjectId = projectId,
@@ -38,11 +43,14 @@ public class EvaluationService : IEvaluationService
             Methodology = model.Methodology,
             Presentation = model.Presentation,
             Innovation = model.Innovation,
+            TheoreticalFoundation = isProfessor ? model.TheoreticalFoundation : null,
+            AcademicContribution = isProfessor ? model.AcademicContribution : null,
+            ExecutionFeasibility = isProfessor ? model.ExecutionFeasibility : null,
             Feedback = model.Feedback,
             CreatedAt = DateTime.UtcNow
         };
 
-        var created = await _evaluationRepository.CreateAsync(evaluation);
+        await _evaluationRepository.CreateAsync(evaluation);
 
         return new ProjectResult { Succeeded = true, Message = "avaliação registrada com sucesso!" };
     }
@@ -55,6 +63,13 @@ public class EvaluationService : IEvaluationService
 
     private static EvaluationResponseDto MapToDto(Evaluation e)
     {
+        double? technicalAverage = null;
+        if (e.TheoreticalFoundation.HasValue && e.AcademicContribution.HasValue && e.ExecutionFeasibility.HasValue)
+        {
+            technicalAverage = Math.Round(
+                (e.TheoreticalFoundation.Value + e.AcademicContribution.Value + e.ExecutionFeasibility.Value) / 3.0, 2);
+        }
+
         return new EvaluationResponseDto
         {
             Id = e.Id,
@@ -64,8 +79,14 @@ public class EvaluationService : IEvaluationService
             Presentation = e.Presentation,
             Innovation = e.Innovation,
             Average = Math.Round((e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0, 2),
+            TheoreticalFoundation = e.TheoreticalFoundation,
+            AcademicContribution = e.AcademicContribution,
+            ExecutionFeasibility = e.ExecutionFeasibility,
+            TechnicalAverage = technicalAverage,
             Feedback = e.Feedback,
-            ProfessorName = e.Professor?.Name ?? "Professor",
+            EvaluatorId = e.ProfessorId,
+            EvaluatorName = e.Professor?.Name ?? "Avaliador",
+            EvaluatorRole = e.Professor?.RoleType.ToString() ?? string.Empty,
             CreatedAt = e.CreatedAt
         };
     }

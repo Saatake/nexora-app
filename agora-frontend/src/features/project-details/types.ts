@@ -8,6 +8,18 @@ export type AiReview = {
   feedback: string;
 };
 
+export type BadgeProfessor = {
+  id: string;
+  name: string;
+  awardedAt: string;
+};
+
+export type ProjectBadge = {
+  badge: string;
+  count: number;
+  professors: BadgeProfessor[];
+};
+
 export type Collaborator = {
   id: string;
   name: string;
@@ -20,8 +32,9 @@ export type Project = {
   title: string;
   description: string;
   summary?: string | null;
-  course?: string | null;
-  area?: string | null;
+  thematicArea: string;
+  thematicAreaName: string;
+  tags?: string | null;
   advisor?: string | null;
   teamMembers?: string | null;
   githubLink: string;
@@ -30,11 +43,17 @@ export type Project = {
   category: string;
   authorId: string;
   authorName: string;
+  authorRoleType?: string;
   viewCount: number;
   downloadCount: number;
   averageGrade?: number | null;
+  communityAverage?: number | null;
+  communityCount: number;
+  professorAverage?: number | null;
+  professorCount: number;
   createdAt: string;
   collaborators?: Collaborator[];
+  badges?: ProjectBadge[];
 };
 
 export type Evaluation = {
@@ -45,9 +64,14 @@ export type Evaluation = {
   presentation: number;
   innovation: number;
   average: number;
+  theoreticalFoundation?: number | null;
+  academicContribution?: number | null;
+  executionFeasibility?: number | null;
+  technicalAverage?: number | null;
   feedback: string;
-  professorId: string;
-  professorName: string;
+  evaluatorId: string;
+  evaluatorName: string;
+  evaluatorRole: string;
   createdAt: string;
 };
 
@@ -56,6 +80,7 @@ export type Comment = {
   text: string;
   authorName: string;
   authorId: string;
+  authorRoleType?: string;
   createdAt: string;
 };
 
@@ -65,5 +90,8 @@ export type EvaluationFormData = {
   methodology: number;
   presentation: number;
   innovation: number;
+  theoreticalFoundation?: number;
+  academicContribution?: number;
+  executionFeasibility?: number;
   feedback: string;
 };

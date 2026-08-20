@@ -14,8 +14,8 @@ const NewProjectPage = () => {
     summary, setSummary,
     description, setDescription,
     githubLink, setGithubLink,
-    course, setCourse,
-    area, setArea,
+    thematicArea, setThematicArea,
+    tags, setTags,
     advisor, setAdvisor,
     collaborators, setCollaborators,
     isPrivate, setIsPrivate,
@@ -38,8 +38,8 @@ const NewProjectPage = () => {
         <ProjectFormBasicInfo
           title={title} setTitle={setTitle}
           category={category} setCategory={setCategory}
-          course={course} setCourse={setCourse}
-          area={area} setArea={setArea}
+          thematicArea={thematicArea} setThematicArea={setThematicArea}
+          tags={tags} setTags={setTags}
         />
 
         <ProjectFormTeam

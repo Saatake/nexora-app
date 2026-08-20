@@ -8,7 +8,7 @@ public interface IProjectRepository
     Task<Project> CreateAsync(Project project);
     Task<IEnumerable<Project>> GetAllAsync();
     Task<(IEnumerable<Project> Items, int TotalCount)> GetFilteredAsync(
-        string? search, ProjectCategory? category, string? course,
+        string? search, ProjectCategory? category, ThematicArea? thematicArea,
         double? minGrade, string? sort, int page, int pageSize);
     Task<(IEnumerable<Project> Items, int TotalCount)> GetByUserAsync(string userId, ProjectCategory? category, int page, int pageSize);
     Task<(IEnumerable<Project> Items, int TotalCount)> GetCollaboratedAsync(string userId, int page, int pageSize);

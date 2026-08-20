@@ -76,4 +76,79 @@ public class DashboardService : IDashboardService
             CriteriaAverage = criteriaAverage
         };
     }
+
+    public async Task<ProfessorDashboardDto> GetProfessorDashboardAsync(string professorId)
+    {
+        var areas = await _context.UserTeachingAreas
+            .Where(ta => ta.UserId == professorId)
+            .Select(ta => ta.Area)
+            .ToListAsync();
+
+        var evaluationsGiven = await _context.Evaluations
+            .CountAsync(e => e.ProfessorId == professorId);
+
+        var alreadyEvaluatedIds = await _context.Evaluations
+            .Where(e => e.ProfessorId == professorId)
+            .Select(e => e.ProjectId)
+            .ToListAsync();
+
+        // projetos nas áreas do professor que ele ainda não avaliou
+        var pendingQuery = _context.Projects
+            .Where(p => !p.IsPrivate && areas.Contains(p.ThematicArea) && !alreadyEvaluatedIds.Contains(p.Id))
+            .Include(p => p.User)
+            .Include(p => p.Evaluations)
+            .OrderByDescending(p => p.CreatedAt);
+
+        var pendingCount = await pendingQuery.CountAsync();
+        var pendingProjects = await pendingQuery.Take(10).Select(p => new PendingProjectDto
+        {
+            Id = p.Id,
+            Title = p.Title,
+            Summary = p.Summary,
+            ThematicAreaName = p.ThematicArea.ToString(),
+            AuthorName = p.User != null ? p.User.Name : "",
+            CommunityAverage = p.Evaluations.Any()
+                ? Math.Round(p.Evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2)
+                : null,
+            CommunityCount = p.Evaluations.Count,
+            ImageUrl = p.ImageUrl,
+            CreatedAt = p.CreatedAt
+        }).ToListAsync();
+
+        // top 5 projetos mais bem avaliados
+        var featuredProjects = await _context.Projects
+            .Where(p => !p.IsPrivate && p.Evaluations.Any())
+            .Include(p => p.User)
+            .Include(p => p.Evaluations)
+            .Include(p => p.Badges)
+            .OrderByDescending(p => p.Evaluations.Average(e =>
+                (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0))
+            .Take(5)
+            .Select(p => new FeaturedProjectDto
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Summary = p.Summary,
+                ThematicAreaName = p.ThematicArea.ToString(),
+                AuthorName = p.User != null ? p.User.Name : "",
+                AverageGrade = Math.Round(p.Evaluations.Average(e =>
+                    (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2),
+                EvaluationCount = p.Evaluations.Count,
+                ImageUrl = p.ImageUrl,
+                Badges = p.Badges
+                    .GroupBy(b => b.Badge)
+                    .Select(g => new FeaturedBadgeDto { Badge = g.Key.ToString(), Count = g.Count() })
+                    .ToList()
+            })
+            .ToListAsync();
+
+        return new ProfessorDashboardDto
+        {
+            EvaluationsGiven = evaluationsGiven,
+            AreasCount = areas.Count,
+            PendingCount = pendingCount,
+            PendingProjects = pendingProjects,
+            FeaturedProjects = featuredProjects
+        };
+    }
 }

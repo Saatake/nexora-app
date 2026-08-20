@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Enums;
 using Nexora.Api.Interfaces;
+using Nexora.Api.Models;
+using Nexora.Api.Services;
 using System.Security.Claims;
 
 namespace Nexora.Api.Controllers;
@@ -12,10 +15,14 @@ namespace Nexora.Api.Controllers;
 public class ProjectController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly BadgeService _badgeService;
 
-    public ProjectController(IProjectService projectService)
+    public ProjectController(IProjectService projectService, UserManager<ApplicationUser> userManager, BadgeService badgeService)
     {
         _projectService = projectService;
+        _userManager = userManager;
+        _badgeService = badgeService;
     }
 
     [HttpPost]
@@ -23,9 +30,13 @@ public class ProjectController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateProjectRequestDto request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
+
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user?.RoleType == UserRole.Professor)
+            return StatusCode(403, new { message = "professores não podem publicar projetos." });
 
         var result = await _projectService.CreateProjectAsync(request, userId);
         return Ok(result);
@@ -35,14 +46,14 @@ public class ProjectController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetFeed(
         [FromQuery] string? search, [FromQuery] ProjectCategory? category,
-        [FromQuery] string? course, [FromQuery] double? minGrade,
+        [FromQuery] ThematicArea? thematicArea, [FromQuery] double? minGrade,
         [FromQuery] string? sort, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         if (page < 1) page = 1;
         if (pageSize < 1) pageSize = 10;
         if (pageSize > 50) pageSize = 50;
 
-        var feed = await _projectService.GetFeedAsync(search, category, course, minGrade, sort, page, pageSize);
+        var feed = await _projectService.GetFeedAsync(search, category, thematicArea, minGrade, sort, page, pageSize);
         return Ok(feed);
     }
 
@@ -168,7 +179,8 @@ public class ProjectController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Download(int id)
     {
-        var result = await _projectService.GetDownloadAsync(id);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _projectService.GetDownloadAsync(id, userId);
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
@@ -185,5 +197,37 @@ public class ProjectController : ControllerBase
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
         return Ok(result.Data);
+    }
+
+    [HttpPost("{id}/badges/{badge}")]
+    [Authorize]
+    public async Task<IActionResult> AwardBadge(int id, BadgeType badge)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null || user.RoleType != UserRole.Professor)
+            return Forbid();
+
+        var result = await _badgeService.AwardBadgeAsync(id, userId!, badge);
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : Conflict(new { result.Message });
+
+        return Ok(new { result.Message });
+    }
+
+    [HttpDelete("{id}/badges/{badge}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveBadge(int id, BadgeType badge)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _userManager.FindByIdAsync(userId!);
+        if (user == null || user.RoleType != UserRole.Professor)
+            return Forbid();
+
+        var result = await _badgeService.RemoveBadgeAsync(id, userId!, badge);
+        if (!result.Succeeded)
+            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
+
+        return Ok(new { result.Message });
     }
 }

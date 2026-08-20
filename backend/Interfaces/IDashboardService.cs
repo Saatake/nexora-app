@@ -6,4 +6,5 @@ public interface IDashboardService
 {
     Task<DashboardStatsDto> GetStatsAsync(string userId);
     Task<DashboardChartsDto> GetChartsAsync(string userId);
+    Task<ProfessorDashboardDto> GetProfessorDashboardAsync(string professorId);
 }

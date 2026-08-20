@@ -23,6 +23,16 @@ public class Evaluation
     [Range(0, 10)]
     public double Innovation { get; set; }
 
+    // exclusivos de professor (nullable)
+    [Range(0, 10)]
+    public double? TheoreticalFoundation { get; set; }
+
+    [Range(0, 10)]
+    public double? AcademicContribution { get; set; }
+
+    [Range(0, 10)]
+    public double? ExecutionFeasibility { get; set; }
+
     [MaxLength(2000)]
     public string Feedback { get; set; } = string.Empty;
 

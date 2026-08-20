@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '@/api/axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { THEMATIC_AREA_ENUM } from '@/constants/thematicAreas';
 import type { UserProfile, ProfileProject, EditData } from '../types';
 
 export const useProfile = () => {
@@ -21,6 +22,8 @@ export const useProfile = () => {
     bio: '',
     photoUrl: '',
     interests: '',
+    formation: '',
+    teachingAreas: [],
   });
   const [error, setError] = useState('');
   const [cropSrc, setCropSrc] = useState<string | null>(null);
@@ -89,6 +92,8 @@ export const useProfile = () => {
       bio: profile.bio || '',
       photoUrl: profile.photoUrl || '',
       interests: profile.interests || '',
+      formation: profile.formation || '',
+      teachingAreas: profile.teachingAreas || [],
     });
     setIsEditing(true);
   };
@@ -99,6 +104,12 @@ export const useProfile = () => {
     setError('');
     try {
       await api.put('/users/me', editData);
+      if (profile.roleType === 'Professor') {
+        const areaNumbers = editData.teachingAreas
+          .map((a) => THEMATIC_AREA_ENUM[a as keyof typeof THEMATIC_AREA_ENUM])
+          .filter(Boolean);
+        await api.put('/users/me/teaching-areas', { areas: areaNumbers });
+      }
       const profileResponse = await api.get(`/users/${userId}`);
       setProfile({ ...profile, ...profileResponse.data });
       setIsEditing(false);

@@ -43,6 +43,7 @@ public class CommentService : ICommentService
             Text = c.Text,
             AuthorName = c.User?.Name ?? "Anônimo",
             AuthorId = c.UserId,
+            AuthorRoleType = c.User?.RoleType.ToString() ?? string.Empty,
             CreatedAt = c.CreatedAt
         };
     }

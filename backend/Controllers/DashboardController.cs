@@ -36,4 +36,14 @@ public class DashboardController : ControllerBase
         var charts = await _dashboardService.GetChartsAsync(userId);
         return Ok(charts);
     }
+
+    [HttpGet("professor")]
+    public async Task<IActionResult> GetProfessorDashboard()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var data = await _dashboardService.GetProfessorDashboardAsync(userId);
+        return Ok(data);
+    }
 }

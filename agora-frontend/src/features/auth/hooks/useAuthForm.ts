@@ -14,7 +14,6 @@ export const useAuthForm = () => {
   // Login state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginRoleTab, setRoleTab] = useState<'Aluno' | 'Professor'>('Aluno');
 
   // Register state
   const [formData, setFormData] = useState({
@@ -23,6 +22,7 @@ export const useAuthForm = () => {
     password: '',
     course: '',
     bio: '',
+    formation: '',
     roleType: 'Estudante',
   });
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,17 +45,6 @@ export const useAuthForm = () => {
       const { token } = response.data;
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
       const meResponse = await api.get('/users/me');
-
-      const userRole = meResponse.data.roleType;
-      const expectedRole = loginRoleTab === 'Professor' ? 'Professor' : 'Estudante';
-
-      if (userRole !== expectedRole) {
-        setError(
-          `Esta conta é de ${userRole === 'Professor' ? 'Professor' : 'Aluno'}. Por favor, selecione a opção correta.`,
-        );
-        setLoading(false);
-        return;
-      }
 
       login(token, meResponse.data);
       navigate('/dashboard');
@@ -119,6 +108,7 @@ export const useAuthForm = () => {
         response.data.message ||
           'Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.',
       );
+      resetRegisterForm();
       setTimeout(() => {
         setIsLogin(true);
         setSuccess('');
@@ -131,10 +121,24 @@ export const useAuthForm = () => {
     }
   };
 
+  const resetRegisterForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      course: '',
+      bio: '',
+      formation: '',
+      roleType: 'Estudante',
+    });
+    setConfirmPassword('');
+  };
+
   const switchMode = (mode: boolean) => {
     setIsLogin(mode);
     setError('');
     setSuccess('');
+    resetRegisterForm();
   };
 
   return {
@@ -143,8 +147,6 @@ export const useAuthForm = () => {
     setLoginEmail,
     loginPassword,
     setLoginPassword,
-    loginRoleTab,
-    setRoleTab,
     formData,
     setFormData,
     confirmPassword,

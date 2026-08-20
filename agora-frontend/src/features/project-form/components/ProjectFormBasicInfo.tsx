@@ -1,4 +1,4 @@
-import { FACENS_COURSES } from '@/constants/facensCourses';
+import { THEMATIC_AREAS, THEMATIC_AREA_LABELS, type ThematicArea } from '@/constants/thematicAreas';
 import type { ProjectCategory } from '../types';
 
 const inputCls =
@@ -9,10 +9,10 @@ type Props = {
   setTitle: (v: string) => void;
   category: ProjectCategory;
   setCategory: (v: ProjectCategory) => void;
-  course: string;
-  setCourse: (v: string) => void;
-  area: string;
-  setArea: (v: string) => void;
+  thematicArea: ThematicArea;
+  setThematicArea: (v: ThematicArea) => void;
+  tags: string;
+  setTags: (v: string) => void;
 };
 
 const ProjectFormBasicInfo = ({
@@ -20,10 +20,10 @@ const ProjectFormBasicInfo = ({
   setTitle,
   category,
   setCategory,
-  course,
-  setCourse,
-  area,
-  setArea,
+  thematicArea,
+  setThematicArea,
+  tags,
+  setTags,
 }: Props) => (
   <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
     <h2 className="text-lg font-semibold">Informações Básicas</h2>
@@ -55,16 +55,16 @@ const ProjectFormBasicInfo = ({
           </select>
         </div>
         <div>
-          <label className="text-sm font-semibold text-[var(--agora-ink)]">Curso</label>
+          <label className="text-sm font-semibold text-[var(--agora-ink)]">Área Temática *</label>
           <select
-            value={course}
-            onChange={(e) => setCourse(e.target.value)}
+            value={thematicArea}
+            onChange={(e) => setThematicArea(e.target.value as ThematicArea)}
+            required
             className={`mt-2 ${inputCls} appearance-none`}
           >
-            <option value="">Selecione o curso</option>
-            {FACENS_COURSES.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            {THEMATIC_AREAS.map((area) => (
+              <option key={area} value={area}>
+                {THEMATIC_AREA_LABELS[area]}
               </option>
             ))}
           </select>
@@ -72,13 +72,14 @@ const ProjectFormBasicInfo = ({
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-[var(--agora-ink)]">Área do Conhecimento</label>
+        <label className="text-sm font-semibold text-[var(--agora-ink)]">Tags</label>
         <input
-          value={area}
-          onChange={(e) => setArea(e.target.value)}
-          placeholder="Ex: Tecnologia da Informação"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="Ex: python, machine learning, api rest"
           className={`mt-2 ${inputCls}`}
         />
+        <p className="mt-1 text-xs text-[var(--agora-muted)]">Separe por vírgulas. Ajuda outras pessoas a encontrarem o projeto.</p>
       </div>
     </div>
   </section>

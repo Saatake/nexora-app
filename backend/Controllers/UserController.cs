@@ -90,4 +90,22 @@ public class UserController : ControllerBase
 
         return Ok(new { result.Message });
     }
+
+    [HttpPut("me/teaching-areas")]
+    public async Task<IActionResult> UpdateTeachingAreas([FromBody] UpdateTeachingAreasRequestDto model)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var result = await _userService.UpdateTeachingAreasAsync(userId, model);
+
+        if (!result.Succeeded)
+            return result.IsNotFound
+                ? NotFound(new { result.Message })
+                : BadRequest(new { result.Message });
+
+        return Ok(new { result.Message });
+    }
 }

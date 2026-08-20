@@ -27,3 +27,44 @@ public class CriteriaAverageDto
     public double Presentation { get; set; }
     public double Innovation { get; set; }
 }
+
+public class ProfessorDashboardDto
+{
+    public int EvaluationsGiven { get; set; }
+    public int AreasCount { get; set; }
+    public int PendingCount { get; set; }
+    public List<PendingProjectDto> PendingProjects { get; set; } = new();
+    public List<FeaturedProjectDto> FeaturedProjects { get; set; } = new();
+}
+
+public class PendingProjectDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Summary { get; set; }
+    public string ThematicAreaName { get; set; } = string.Empty;
+    public string AuthorName { get; set; } = string.Empty;
+    public double? CommunityAverage { get; set; }
+    public int CommunityCount { get; set; }
+    public string? ImageUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class FeaturedProjectDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Summary { get; set; }
+    public string ThematicAreaName { get; set; } = string.Empty;
+    public string AuthorName { get; set; } = string.Empty;
+    public double? AverageGrade { get; set; }
+    public int EvaluationCount { get; set; }
+    public string? ImageUrl { get; set; }
+    public List<FeaturedBadgeDto> Badges { get; set; } = new();
+}
+
+public class FeaturedBadgeDto
+{
+    public string Badge { get; set; } = string.Empty;
+    public int Count { get; set; }
+}

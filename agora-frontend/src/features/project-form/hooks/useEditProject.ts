@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '@/api/axios';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ProjectCategory } from '../types';
+import type { ThematicArea } from '@/constants/thematicAreas';
 import type { CollaboratorUser } from '@/components/UserTagInput';
 import { useProjectFileUpload } from './useProjectFileUpload';
 
@@ -17,8 +18,8 @@ export const useEditProject = () => {
   const [summary, setSummary] = useState('');
   const [description, setDescription] = useState('');
   const [githubLink, setGithubLink] = useState('');
-  const [course, setCourse] = useState('');
-  const [area, setArea] = useState('');
+  const [thematicArea, setThematicArea] = useState<ThematicArea>('TecnologiaInovacao');
+  const [tags, setTags] = useState('');
   const [advisor, setAdvisor] = useState('');
   const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
@@ -44,8 +45,8 @@ export const useEditProject = () => {
         setDescription(project.description);
         setGithubLink(project.githubLink);
         fileUpload.setFileUrl(project.fileUrl);
-        setCourse(project.course || '');
-        setArea(project.area || '');
+        setThematicArea((project.thematicArea as ThematicArea) || 'TecnologiaInovacao');
+        setTags(project.tags || '');
         setAdvisor(project.advisor || '');
         fileUpload.setImageUrl(project.imageUrl || '');
         setIsPrivate(project.isPrivate || false);
@@ -70,8 +71,8 @@ export const useEditProject = () => {
         title,
         description,
         summary,
-        course,
-        area,
+        thematicArea,
+        tags,
         advisor,
         githubLink,
         fileUrl: fileUpload.fileUrl,
@@ -98,8 +99,8 @@ export const useEditProject = () => {
     summary, setSummary,
     description, setDescription,
     githubLink, setGithubLink,
-    course, setCourse,
-    area, setArea,
+    thematicArea, setThematicArea,
+    tags, setTags,
     advisor, setAdvisor,
     collaborators, setCollaborators,
     isPrivate, setIsPrivate,

@@ -16,11 +16,11 @@ public class CreateProjectRequestDto
     [MaxLength(200, ErrorMessage = "resumo pode ter no máximo 200 caracteres.")]
     public string? Summary { get; set; }
 
-    [MaxLength(120, ErrorMessage = "curso pode ter no máximo 120 caracteres.")]
-    public string? Course { get; set; }
+    [Required(ErrorMessage = "área temática é obrigatória.")]
+    public ThematicArea ThematicArea { get; set; }
 
-    [MaxLength(120, ErrorMessage = "área pode ter no máximo 120 caracteres.")]
-    public string? Area { get; set; }
+    [MaxLength(500, ErrorMessage = "tags podem ter no máximo 500 caracteres.")]
+    public string? Tags { get; set; }
 
     [MaxLength(120, ErrorMessage = "orientador pode ter no máximo 120 caracteres.")]
     public string? Advisor { get; set; }
@@ -56,11 +56,11 @@ public class UpdateProjectRequestDto
     [MaxLength(200, ErrorMessage = "resumo pode ter no máximo 200 caracteres.")]
     public string? Summary { get; set; }
 
-    [MaxLength(120, ErrorMessage = "curso pode ter no máximo 120 caracteres.")]
-    public string? Course { get; set; }
+    [Required(ErrorMessage = "área temática é obrigatória.")]
+    public ThematicArea ThematicArea { get; set; }
 
-    [MaxLength(120, ErrorMessage = "área pode ter no máximo 120 caracteres.")]
-    public string? Area { get; set; }
+    [MaxLength(500, ErrorMessage = "tags podem ter no máximo 500 caracteres.")]
+    public string? Tags { get; set; }
 
     [MaxLength(120, ErrorMessage = "orientador pode ter no máximo 120 caracteres.")]
     public string? Advisor { get; set; }
