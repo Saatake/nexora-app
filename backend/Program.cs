@@ -14,6 +14,7 @@ using Nexora.Api.Repositories;
 using Nexora.Api.Middlewares;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Resend;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -145,6 +146,14 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+// Resend
+builder.Services.Configure<ResendClientOptions>(options =>
+{
+    options.ApiToken = builder.Configuration["Resend:ApiKey"]
+        ?? throw new InvalidOperationException("Resend:ApiKey não configurada");
+});
+builder.Services.AddHttpClient<ResendClient>();
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -222,3 +231,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+program.cs
