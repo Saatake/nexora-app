@@ -231,6 +231,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
-program.cs
