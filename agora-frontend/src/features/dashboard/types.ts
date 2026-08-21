@@ -71,4 +71,3 @@ export type ProfessorDashboard = {
   pendingProjects: PendingProject[];
   featuredProjects: FeaturedProject[];
 };
-};
