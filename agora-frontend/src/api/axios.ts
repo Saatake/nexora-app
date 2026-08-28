@@ -9,9 +9,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // redireciona para login só em rotas protegidas, não no /auth/me de restauração de sessão
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/me')) {
-      console.warn("Sessão expirada. Redirecionando para o login...");
-      window.location.href = '/';
+    if (error.response?.status === 401 && !error.config?.url?.includes('/users/me')) {
+      console.warn('Sessão expirada. Redirecionando para o login...');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
