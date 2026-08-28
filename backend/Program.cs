@@ -76,30 +76,7 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask;
             }
 
-            if (string.IsNullOrWhiteSpace(authHeader))
-            {
-                logger.LogWarning("JWT missing Authorization header for {Path}", context.Request.Path);
-                return Task.CompletedTask;
-            }
-
-            var hasBearer = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
-            logger.LogInformation("JWT Authorization header received. HasBearer={HasBearer} Length={Length}", hasBearer, authHeader.Length);
-
-            if (hasBearer)
-            {
-                var token = authHeader.Substring("Bearer ".Length).Trim();
-                try
-                {
-                    var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-                    var aud = jwt.Audiences.FirstOrDefault() ?? "";
-                    logger.LogInformation("JWT token received. Issuer={Issuer} Audience={Audience} Exp={Exp}", jwt.Issuer, aud, jwt.ValidTo);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "JWT token could not be read.");
-                }
-            }
-
+            logger.LogWarning("JWT ausente em {Path}", context.Request.Path);
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>

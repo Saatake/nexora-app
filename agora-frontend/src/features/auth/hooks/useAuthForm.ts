@@ -42,7 +42,7 @@ export const useAuthForm = () => {
         email: loginEmail,
         password: loginPassword,
       });
-      const meResponse = await api.get('/auth/me');
+      const meResponse = await api.get('/users/me');
       login(meResponse.data);
       navigate('/dashboard');
     } catch (err: unknown) {

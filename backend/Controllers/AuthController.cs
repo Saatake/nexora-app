@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Interfaces;
-using System.Security.Claims;
 
 namespace Nexora.Api.Controllers;
 
@@ -12,13 +10,11 @@ namespace Nexora.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IUserService _userService;
     private readonly IWebHostEnvironment _env;
 
-    public AuthController(IAuthService authService, IUserService userService, IWebHostEnvironment env)
+    public AuthController(IAuthService authService, IWebHostEnvironment env)
     {
         _authService = authService;
-        _userService = userService;
         _env = env;
     }
 
@@ -57,19 +53,6 @@ public class AuthController : ControllerBase
         });
 
         return Ok();
-    }
-
-    [HttpGet("me")]
-    [Authorize]
-    public async Task<IActionResult> Me()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized();
-
-        var result = await _userService.GetProfileAsync(userId);
-        if (!result.Succeeded) return Unauthorized();
-
-        return Ok(result.Data);
     }
 
     [HttpPost("register")]

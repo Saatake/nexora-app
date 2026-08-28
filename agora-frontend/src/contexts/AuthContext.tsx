@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // restaura sessão ao carregar a página se o cookie ainda for válido
   useEffect(() => {
-    api.get('/auth/me')
+    api.get('/users/me')
       .then(res => setUser(res.data))
       .catch(() => setUser(null))
       .finally(() => setIsLoading(false));
