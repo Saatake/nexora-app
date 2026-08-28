@@ -60,15 +60,21 @@ builder.Services.AddAuthentication(options =>
             var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger("JwtBearer");
 
-            // lê o token do cookie httpOnly se não vier no header
+            // Authorization header tem prioridade (Swagger, chamadas diretas)
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Token = authHeader["Bearer ".Length..].Trim();
+                return Task.CompletedTask;
+            }
+
+            // fallback: lê do cookie httpOnly
             var cookieToken = context.Request.Cookies["jwt"];
             if (!string.IsNullOrEmpty(cookieToken))
             {
                 context.Token = cookieToken;
                 return Task.CompletedTask;
             }
-
-            var authHeader = context.Request.Headers["Authorization"].ToString();
 
             if (string.IsNullOrWhiteSpace(authHeader))
             {
@@ -231,6 +237,27 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+
+// CSRF: rejeita requisições com cookie jwt vindas de origens não permitidas
+var allowedOrigins = new[] { frontendUrl, "http://localhost:3000", "http://localhost:5173" };
+app.Use(async (context, next) =>
+{
+    var hasCookie = context.Request.Cookies.ContainsKey("jwt");
+    var isStateChanging = !HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method);
+
+    if (hasCookie && isStateChanging)
+    {
+        var origin = context.Request.Headers["Origin"].ToString();
+        if (!string.IsNullOrEmpty(origin) && !allowedOrigins.Contains(origin))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsync("{\"message\":\"Origin não permitida.\"}");
+            return;
+        }
+    }
+
+    await next();
+});
 
 app.UseHttpsRedirection();
 

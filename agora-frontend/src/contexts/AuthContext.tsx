@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (loggedUser: User) => {
     setUser(loggedUser);
+    setIsLoading(false); // evita race: /auth/me em voo não vai sobrescrever o login
   };
 
   const logout = async () => {
