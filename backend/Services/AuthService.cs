@@ -209,7 +209,7 @@ public class AuthService : IAuthService
             return new AuthResult
             {
                 Succeeded = true,
-                Message = "usuário criado com sucesso! verifique seu email para confirmar o cadastro."
+                Message = "Usuário criado com sucesso! Verifique seu e-mail para confirmar o cadastro."
             };
         }
         catch (Exception ex)
@@ -238,11 +238,11 @@ public class AuthService : IAuthService
             return new AuthResult
             {
                 Succeeded = false,
-                Message = "token inválido ou expirado.",
+                Message = "Token inválido ou expirado.",
                 Errors = result.Errors.Select(e => e.Description)
             };
 
-        return new AuthResult { Succeeded = true, Message = "email confirmado com sucesso!" };
+        return new AuthResult { Succeeded = true, Message = "E-mail confirmado com sucesso!" };
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordRequestDto model)
