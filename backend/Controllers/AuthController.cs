@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Interfaces;
+using System.Security.Claims;
 
 namespace Nexora.Api.Controllers;
 
@@ -10,10 +12,14 @@ namespace Nexora.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IUserService _userService;
+    private readonly IWebHostEnvironment _env;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IUserService userService, IWebHostEnvironment env)
     {
         _authService = authService;
+        _userService = userService;
+        _env = env;
     }
 
     [HttpPost("login")]
@@ -27,7 +33,43 @@ public class AuthController : ControllerBase
                 ? Unauthorized(new { result.Message })
                 : BadRequest(new { result.Errors });
 
-        return Ok(new { result.Token });
+        var isSecure = !_env.IsDevelopment();
+        Response.Cookies.Append("jwt", result.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isSecure,
+            SameSite = isSecure ? SameSiteMode.None : SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
+
+        return Ok();
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        var isSecure = !_env.IsDevelopment();
+        Response.Cookies.Delete("jwt", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isSecure,
+            SameSite = isSecure ? SameSiteMode.None : SameSiteMode.Lax
+        });
+
+        return Ok();
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> Me()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var result = await _userService.GetProfileAsync(userId);
+        if (!result.Succeeded) return Unauthorized();
+
+        return Ok(result.Data);
     }
 
     [HttpPost("register")]

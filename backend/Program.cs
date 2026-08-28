@@ -59,6 +59,15 @@ builder.Services.AddAuthentication(options =>
         {
             var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger("JwtBearer");
+
+            // lê o token do cookie httpOnly se não vier no header
+            var cookieToken = context.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(cookieToken))
+            {
+                context.Token = cookieToken;
+                return Task.CompletedTask;
+            }
+
             var authHeader = context.Request.Headers["Authorization"].ToString();
 
             if (string.IsNullOrWhiteSpace(authHeader))
@@ -162,7 +171,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(frontendUrl, "http://localhost:3000", "http://localhost:5173")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import api from '../api/axios';
 
 interface User {
@@ -13,46 +13,37 @@ interface User {
 
 interface AuthContextData {
   user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
+  login: (user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        return JSON.parse(storedUser);
-      } catch {
-        localStorage.removeItem('user');
-      }
-    }
-    return null;
-  });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = (newToken: string, loggedUser: User) => {
-    setToken(newToken);
+  // restaura sessão ao carregar a página se o cookie ainda for válido
+  useEffect(() => {
+    api.get('/auth/me')
+      .then(res => setUser(res.data))
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const login = (loggedUser: User) => {
     setUser(loggedUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(loggedUser));
   };
 
-  const logout = () => {
-    setToken(null);
+  const logout = async () => {
+    await api.post('/auth/logout').catch(() => {});
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    // Limpa o header Authorization do axios
-    delete api.defaults.headers.common['Authorization'];
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
