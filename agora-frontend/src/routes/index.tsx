@@ -17,17 +17,18 @@ import ProfilePage from '../pages/ProfilePage';
 import ProjectDetailsPage from '../pages/ProjectDetailsPage';
 
 const PrivateRoute = ({ children }: { children: ReactElement }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <HomePage />} />
+        <Route path="/" element={isLoading ? null : isAuthenticated ? <Navigate to="/dashboard" /> : <HomePage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

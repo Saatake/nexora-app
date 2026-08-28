@@ -59,32 +59,24 @@ builder.Services.AddAuthentication(options =>
         {
             var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger("JwtBearer");
-            var authHeader = context.Request.Headers["Authorization"].ToString();
 
-            if (string.IsNullOrWhiteSpace(authHeader))
+            // Authorization header tem prioridade (Swagger, chamadas diretas)
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogWarning("JWT missing Authorization header for {Path}", context.Request.Path);
+                context.Token = authHeader["Bearer ".Length..].Trim();
                 return Task.CompletedTask;
             }
 
-            var hasBearer = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
-            logger.LogInformation("JWT Authorization header received. HasBearer={HasBearer} Length={Length}", hasBearer, authHeader.Length);
-
-            if (hasBearer)
+            // fallback: lê do cookie httpOnly
+            var cookieToken = context.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(cookieToken))
             {
-                var token = authHeader.Substring("Bearer ".Length).Trim();
-                try
-                {
-                    var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-                    var aud = jwt.Audiences.FirstOrDefault() ?? "";
-                    logger.LogInformation("JWT token received. Issuer={Issuer} Audience={Audience} Exp={Exp}", jwt.Issuer, aud, jwt.ValidTo);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "JWT token could not be read.");
-                }
+                context.Token = cookieToken;
+                return Task.CompletedTask;
             }
 
+            logger.LogWarning("JWT ausente em {Path}", context.Request.Path);
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
@@ -162,7 +154,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(frontendUrl, "http://localhost:3000", "http://localhost:5173")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 
@@ -221,6 +214,27 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+
+// CSRF: rejeita requisições com cookie jwt vindas de origens não permitidas
+var allowedOrigins = new[] { frontendUrl, "http://localhost:3000", "http://localhost:5173" };
+app.Use(async (context, next) =>
+{
+    var hasCookie = context.Request.Cookies.ContainsKey("jwt");
+    var isStateChanging = !HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method);
+
+    if (hasCookie && isStateChanging)
+    {
+        var origin = context.Request.Headers["Origin"].ToString();
+        if (!string.IsNullOrEmpty(origin) && !allowedOrigins.Contains(origin))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsync("{\"message\":\"Origin não permitida.\"}");
+            return;
+        }
+    }
+
+    await next();
+});
 
 app.UseHttpsRedirection();
 

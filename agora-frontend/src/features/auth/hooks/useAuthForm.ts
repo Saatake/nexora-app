@@ -38,15 +38,12 @@ export const useAuthForm = () => {
     setError('');
     setLoading(true);
     try {
-      const response = await api.post('/auth/login', {
+      await api.post('/auth/login', {
         email: loginEmail,
         password: loginPassword,
       });
-      const { token } = response.data;
-      api.defaults.headers.common.Authorization = `Bearer ${token}`;
       const meResponse = await api.get('/users/me');
-
-      login(token, meResponse.data);
+      login(meResponse.data);
       navigate('/dashboard');
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Erro ao realizar login'));

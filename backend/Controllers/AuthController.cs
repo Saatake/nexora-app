@@ -10,10 +10,12 @@ namespace Nexora.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IWebHostEnvironment _env;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IWebHostEnvironment env)
     {
         _authService = authService;
+        _env = env;
     }
 
     [HttpPost("login")]
@@ -27,7 +29,30 @@ public class AuthController : ControllerBase
                 ? Unauthorized(new { result.Message })
                 : BadRequest(new { result.Errors });
 
-        return Ok(new { result.Token });
+        var isSecure = !_env.IsDevelopment();
+        Response.Cookies.Append("jwt", result.Token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isSecure,
+            SameSite = isSecure ? SameSiteMode.None : SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(7)
+        });
+
+        return Ok();
+    }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        var isSecure = !_env.IsDevelopment();
+        Response.Cookies.Delete("jwt", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isSecure,
+            SameSite = isSecure ? SameSiteMode.None : SameSiteMode.Lax
+        });
+
+        return Ok();
     }
 
     [HttpPost("register")]
