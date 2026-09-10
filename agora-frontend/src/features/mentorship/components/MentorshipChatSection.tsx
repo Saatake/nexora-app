@@ -51,24 +51,24 @@ export const MentorshipChatSection = ({
   };
 
   return (
-    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] flex flex-col h-[520px] overflow-hidden">
+    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] flex flex-col h-[460px] sm:h-[520px] overflow-hidden">
       {/* Header do Chat */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--agora-border)] bg-[var(--agora-card-bg)]">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-[#0a5c2f]/10 text-[#0a5c2f]">
+      <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-[var(--agora-border)] bg-[var(--agora-card-bg)] gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-1.5 rounded-lg bg-[#0a5c2f]/10 text-[#0a5c2f] flex-shrink-0">
             <Lock size={16} />
           </div>
-          <div>
-            <h3 className="text-xs font-bold text-[var(--agora-ink)] flex items-center gap-1.5">
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold text-[var(--agora-ink)] flex items-center gap-1.5 truncate">
               Canal Privado de Orientação
             </h3>
-            <p className="text-[10px] text-[var(--agora-muted)]">
+            <p className="text-[10px] text-[var(--agora-muted)] truncate sm:whitespace-normal">
               Espaço restrito para dúvidas, dicas e alinhamentos entre os alunos e o orientador
             </p>
           </div>
         </div>
-        <span className="text-[11px] font-medium text-[var(--agora-muted)]">
-          {messages.length} mensagem{messages.length === 1 ? '' : 'ns'}
+        <span className="text-[11px] font-medium text-[var(--agora-muted)] flex-shrink-0 whitespace-nowrap">
+          {messages.length} msg{messages.length === 1 ? '' : 's'}
         </span>
       </div>
 

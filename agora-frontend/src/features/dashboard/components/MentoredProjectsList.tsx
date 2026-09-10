@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Compass, GraduationCap, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { MentoredProject } from '../types';
+import { THEMATIC_AREA_LABELS, type ThematicArea } from '@/constants/thematicAreas';
 
 type MentoredProjectsListProps = {
   projects: MentoredProject[];
@@ -8,10 +9,10 @@ type MentoredProjectsListProps = {
 
 const MentoredProjectsList = ({ projects = [] }: MentoredProjectsListProps) => {
   return (
-    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)] mb-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-4 sm:p-6 shadow-[var(--agora-shadow)] mt-8 mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-[#0a5c2f]/10 text-[#0a5c2f]">
+          <div className="p-2 rounded-xl bg-[#0a5c2f]/10 text-[#0a5c2f] flex-shrink-0">
             <GraduationCap size={20} />
           </div>
           <div>
@@ -23,7 +24,7 @@ const MentoredProjectsList = ({ projects = [] }: MentoredProjectsListProps) => {
             </p>
           </div>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#0a5c2f]/15 text-[#0a5c2f]">
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#0a5c2f]/15 text-[#0a5c2f] self-start sm:self-auto flex-shrink-0">
           {projects.length} {projects.length === 1 ? 'projeto' : 'projetos'}
         </span>
       </div>
@@ -56,7 +57,7 @@ const MentoredProjectsList = ({ projects = [] }: MentoredProjectsListProps) => {
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="inline-flex items-center rounded-full bg-[var(--agora-accent-bg)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--agora-accent)]">
-                    {project.thematicAreaName}
+                    {THEMATIC_AREA_LABELS[project.thematicAreaName as ThematicArea] || project.thematicAreaName}
                   </span>
                   {project.pendingReviewGoals > 0 && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 animate-pulse">

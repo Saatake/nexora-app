@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import type { PendingProject } from '../types';
+import { THEMATIC_AREA_LABELS, type ThematicArea } from '@/constants/thematicAreas';
 
 type Props = { projects: PendingProject[] };
 
@@ -30,7 +31,9 @@ const PendingProjectsList = ({ projects }: Props) => (
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-[#0a5c2f]">{p.title}</p>
-              <p className="text-xs text-gray-500 truncate">{p.authorName} · {p.thematicAreaName}</p>
+              <p className="text-xs text-gray-500 truncate">
+                {p.authorName} · {THEMATIC_AREA_LABELS[p.thematicAreaName as ThematicArea] || p.thematicAreaName}
+              </p>
             </div>
             <div className="text-right flex-shrink-0">
               {p.communityAverage != null ? (
