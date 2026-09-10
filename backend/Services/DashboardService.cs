@@ -142,13 +142,38 @@ public class DashboardService : IDashboardService
             })
             .ToListAsync();
 
+        // projetos mentorados pelo professor
+        var mentoredProjects = await _context.Mentorships
+            .Where(m => m.ProfessorId == professorId && m.Status == Nexora.Api.Enums.MentorshipStatus.Active)
+            .Include(m => m.Project)
+            .ThenInclude(p => p!.User)
+            .Include(m => m.Goals)
+            .OrderByDescending(m => m.AcceptedAt)
+            .Select(m => new MentoredProjectDto
+            {
+                MentorshipId = m.Id,
+                ProjectId = m.ProjectId,
+                Title = m.Project != null ? m.Project.Title : "",
+                Summary = m.Project != null ? m.Project.Summary : null,
+                ImageUrl = m.Project != null ? m.Project.ImageUrl : null,
+                ThematicAreaName = m.Project != null ? m.Project.ThematicArea.ToString() : "",
+                AuthorName = m.Project != null && m.Project.User != null ? m.Project.User.Name : "",
+                AuthorPhotoUrl = m.Project != null && m.Project.User != null ? m.Project.User.PhotoUrl : null,
+                Since = m.AcceptedAt ?? m.RequestedAt,
+                TotalGoals = m.Goals.Count,
+                PendingReviewGoals = m.Goals.Count(g => g.Status == Nexora.Api.Enums.MentorshipGoalStatus.Submitted),
+                CompletedGoals = m.Goals.Count(g => g.Status == Nexora.Api.Enums.MentorshipGoalStatus.Approved)
+            })
+            .ToListAsync();
+
         return new ProfessorDashboardDto
         {
             EvaluationsGiven = evaluationsGiven,
             AreasCount = areas.Count,
             PendingCount = pendingCount,
             PendingProjects = pendingProjects,
-            FeaturedProjects = featuredProjects
+            FeaturedProjects = featuredProjects,
+            MentoredProjects = mentoredProjects
         };
     }
 }

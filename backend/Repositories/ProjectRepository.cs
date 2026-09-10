@@ -28,6 +28,7 @@ public class ProjectRepository : IProjectRepository
         .Include(p => p.User)
         .Include(p => p.Collaborators).ThenInclude(c => c.User)
         .Include(p => p.Badges).ThenInclude(b => b.Professor)
+        .Include(p => p.Mentorships).ThenInclude(m => m.Professor)
         .Where(p => !p.IsPrivate)
         .OrderByDescending(p => p.CreatedAt)
         .ToListAsync();
@@ -42,6 +43,7 @@ public class ProjectRepository : IProjectRepository
             .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Include(p => p.Badges).ThenInclude(b => b.Professor)
+            .Include(p => p.Mentorships).ThenInclude(m => m.Professor)
             .Where(p => !p.IsPrivate)
             .AsQueryable();
 
@@ -81,6 +83,7 @@ public class ProjectRepository : IProjectRepository
             .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Include(p => p.Badges).ThenInclude(b => b.Professor)
+            .Include(p => p.Mentorships).ThenInclude(m => m.Professor)
             .Where(p => p.UserId == userId)
             .AsQueryable();
 
@@ -104,6 +107,7 @@ public class ProjectRepository : IProjectRepository
             .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Include(p => p.Badges).ThenInclude(b => b.Professor)
+            .Include(p => p.Mentorships).ThenInclude(m => m.Professor)
             .OrderByDescending(p => p.CreatedAt);
 
         var totalCount = await query.CountAsync();
@@ -119,6 +123,7 @@ public class ProjectRepository : IProjectRepository
             .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
             .Include(p => p.Badges).ThenInclude(b => b.Professor)
+            .Include(p => p.Mentorships).ThenInclude(m => m.Professor)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 

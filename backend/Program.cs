@@ -176,6 +176,8 @@ builder.Services.AddScoped<BadgeService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAiReviewService, AiReviewService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IMentorshipService, MentorshipService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

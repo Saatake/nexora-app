@@ -35,6 +35,23 @@ public class ProfessorDashboardDto
     public int PendingCount { get; set; }
     public List<PendingProjectDto> PendingProjects { get; set; } = new();
     public List<FeaturedProjectDto> FeaturedProjects { get; set; } = new();
+    public List<MentoredProjectDto> MentoredProjects { get; set; } = new();
+}
+
+public class MentoredProjectDto
+{
+    public int MentorshipId { get; set; }
+    public int ProjectId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Summary { get; set; }
+    public string? ImageUrl { get; set; }
+    public string ThematicAreaName { get; set; } = string.Empty;
+    public string AuthorName { get; set; } = string.Empty;
+    public string? AuthorPhotoUrl { get; set; }
+    public DateTime Since { get; set; }
+    public int TotalGoals { get; set; }
+    public int PendingReviewGoals { get; set; }
+    public int CompletedGoals { get; set; }
 }
 
 public class PendingProjectDto

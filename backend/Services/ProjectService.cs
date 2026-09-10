@@ -13,12 +13,18 @@ public class ProjectService : IProjectService
     private readonly IProjectRepository _projectRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAiReviewService _aiReviewService;
+    private readonly INotificationService _notificationService;
 
-    public ProjectService(IProjectRepository projectRepository, UserManager<ApplicationUser> userManager, IAiReviewService aiReviewService)
+    public ProjectService(
+        IProjectRepository projectRepository,
+        UserManager<ApplicationUser> userManager,
+        IAiReviewService aiReviewService,
+        INotificationService notificationService)
     {
         _projectRepository = projectRepository;
         _userManager = userManager;
         _aiReviewService = aiReviewService;
+        _notificationService = notificationService;
     }
 
     public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectRequestDto request, string userId)
@@ -121,6 +127,19 @@ public class ProjectService : IProjectService
         await _projectRepository.SetCollaboratorsAsync(project.Id, model.CollaboratorIds);
 
         var updated = await _projectRepository.GetByIdAsync(project.Id);
+
+        var activeMentor = updated?.Mentorships?.FirstOrDefault(m => m.Status == MentorshipStatus.Active);
+        if (activeMentor != null && activeMentor.ProfessorId != userId)
+        {
+            await _notificationService.CreateNotificationAsync(
+                userId: activeMentor.ProfessorId,
+                type: NotificationType.ProjectUpdated,
+                title: "Projeto orientado atualizado",
+                message: $"O projeto '{updated!.Title}' recebeu atualizações da equipe.",
+                link: $"/projects/{updated.Id}",
+                senderId: userId);
+        }
+
         return new ProjectResult { Succeeded = true, Message = "projeto atualizado com sucesso!", Data = MapToDto(updated!) };
     }
 
@@ -268,7 +287,19 @@ public class ProjectService : IProjectService
                         Name = b.Professor?.Name ?? "",
                         AwardedAt = b.CreatedAt
                     }).ToList()
-                }).ToList() ?? new()
+                }).ToList() ?? new(),
+            Mentor = p.Mentorships?
+                .Where(m => m.Status == MentorshipStatus.Active && m.Professor != null)
+                .Select(m => new MentorProfessorDto
+                {
+                    MentorshipId = m.Id,
+                    Id = m.ProfessorId,
+                    Name = m.Professor!.Name,
+                    PhotoUrl = m.Professor.PhotoUrl,
+                    Course = m.Professor.Course,
+                    Since = m.AcceptedAt ?? m.RequestedAt
+                })
+                .FirstOrDefault()
         };
     }
 

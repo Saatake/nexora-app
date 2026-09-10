@@ -31,6 +31,17 @@ public class ProjectResponseDto
     public bool IsPrivate { get; set; }
     public List<CollaboratorDto> Collaborators { get; set; } = new();
     public List<ProjectBadgeDto> Badges { get; set; } = new();
+    public MentorProfessorDto? Mentor { get; set; }
+}
+
+public class MentorProfessorDto
+{
+    public int MentorshipId { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? PhotoUrl { get; set; }
+    public string? Course { get; set; }
+    public DateTime Since { get; set; }
 }
 
 public class ProjectBadgeDto

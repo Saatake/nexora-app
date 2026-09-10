@@ -56,6 +56,7 @@ public class Project
     public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
     public ICollection<ProjectCollaborator> Collaborators { get; set; } = new List<ProjectCollaborator>();
     public ICollection<ProjectBadge> Badges { get; set; } = new List<ProjectBadge>();
+    public ICollection<Mentorship> Mentorships { get; set; } = new List<Mentorship>();
 
     // indica se o projeto é privado ou público
     public bool IsPrivate { get; set; } = false;
