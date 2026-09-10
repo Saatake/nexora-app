@@ -11,6 +11,7 @@ import RecentProjectsList from '@/features/dashboard/components/RecentProjectsLi
 import ProfessorStatsCards from '@/features/dashboard/components/ProfessorStatsCards';
 import PendingProjectsList from '@/features/dashboard/components/PendingProjectsList';
 import FeaturedProjectsList from '@/features/dashboard/components/FeaturedProjectsList';
+import MentoredProjectsList from '@/features/dashboard/components/MentoredProjectsList';
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -37,6 +38,7 @@ const DashboardPage = () => {
               areasCount={data.areasCount}
               pendingCount={data.pendingCount}
             />
+            <MentoredProjectsList projects={data.mentoredProjects || []} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <PendingProjectsList projects={data.pendingProjects} />
               <FeaturedProjectsList projects={data.featuredProjects} />

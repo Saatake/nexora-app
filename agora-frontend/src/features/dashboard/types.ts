@@ -64,10 +64,26 @@ export type FeaturedProject = {
   badges: { badge: string; count: number }[];
 };
 
+export type MentoredProject = {
+  mentorshipId: number;
+  projectId: number;
+  title: string;
+  summary?: string;
+  imageUrl?: string;
+  thematicAreaName: string;
+  authorName: string;
+  authorPhotoUrl?: string;
+  since: string;
+  totalGoals: number;
+  pendingReviewGoals: number;
+  completedGoals: number;
+};
+
 export type ProfessorDashboard = {
   evaluationsGiven: number;
   areasCount: number;
   pendingCount: number;
   pendingProjects: PendingProject[];
   featuredProjects: FeaturedProject[];
+  mentoredProjects: MentoredProject[];
 };

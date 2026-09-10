@@ -27,6 +27,15 @@ export type Collaborator = {
   course?: string | null;
 };
 
+export type MentorProfessor = {
+  mentorshipId: number;
+  id: string;
+  name: string;
+  photoUrl?: string | null;
+  course?: string | null;
+  since: string;
+};
+
 export type Project = {
   id: number;
   title: string;
@@ -54,6 +63,7 @@ export type Project = {
   createdAt: string;
   collaborators?: Collaborator[];
   badges?: ProjectBadge[];
+  mentor?: MentorProfessor | null;
 };
 
 export type Evaluation = {

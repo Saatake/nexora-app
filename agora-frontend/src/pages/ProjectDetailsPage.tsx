@@ -1,21 +1,25 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronLeft, GraduationCap, LayoutList } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import api from '@/api/axios';
 import { useProjectDetails } from '@/features/project-details/hooks/useProjectDetails';
 import { useComments } from '@/features/project-details/hooks/useComments';
 import { useEvaluation } from '@/features/project-details/hooks/useEvaluation';
+import { useMentorship } from '@/features/mentorship/hooks/useMentorship';
 import ProjectHeroCard from '@/features/project-details/components/ProjectHeroCard';
 import AiReviewCard from '@/features/project-details/components/AiReviewCard';
 import CommentsSection from '@/features/project-details/components/CommentsSection';
 import ProjectSidebar from '@/features/project-details/components/ProjectSidebar';
+import { MentorshipHub } from '@/features/mentorship/components/MentorshipHub';
 import EvaluationFormModal from '@/features/project-details/components/EvaluationFormModal';
 import AllEvaluationsModal from '@/features/project-details/components/AllEvaluationsModal';
 import MembersModal from '@/features/project-details/components/MembersModal';
 
 const ProjectDetailsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'overview';
   const [showAllEvals, setShowAllEvals] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
 
@@ -24,6 +28,68 @@ const ProjectDetailsPage = () => {
     error, setError, projectId, canEvaluate, teamMembers,
     latestEval, user, handleDownload, refreshProjectAndEvals,
   } = useProjectDetails();
+
+  const {
+    mentorship,
+    messages,
+    isLoadingMessages,
+    requestMentorship,
+    acceptMentorship,
+    rejectMentorship,
+    revokeMentorship,
+    createGoal,
+    submitGoal,
+    reviewGoal,
+    deleteGoal,
+    sendMessage,
+    refresh: refreshMentorship,
+  } = useMentorship(projectId);
+
+  const handleTabChange = (tab: 'overview' | 'mentorship') => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (tab === 'overview') {
+      nextParams.delete('tab');
+    } else {
+      nextParams.set('tab', tab);
+    }
+    setSearchParams(nextParams);
+  };
+
+  const handleRequestMentorship = async (profId?: string, msg?: string) => {
+    const res = await requestMentorship(profId, msg);
+    if (res.success) {
+      refreshProjectAndEvals();
+      refreshMentorship();
+    }
+    return res;
+  };
+
+  const handleAcceptMentorship = async (mId: number) => {
+    const res = await acceptMentorship(mId);
+    if (res.success) {
+      refreshProjectAndEvals();
+      refreshMentorship();
+    }
+    return res;
+  };
+
+  const handleRejectMentorship = async (mId: number) => {
+    const res = await rejectMentorship(mId);
+    if (res.success) {
+      refreshProjectAndEvals();
+      refreshMentorship();
+    }
+    return res;
+  };
+
+  const handleRevokeMentorship = async (mId: number, reason?: string) => {
+    const res = await revokeMentorship(mId, reason);
+    if (res.success) {
+      refreshProjectAndEvals();
+      refreshMentorship();
+    }
+    return res;
+  };
 
   const { comments, commentText, setCommentText, isCommenting, handleAddComment } =
     useComments(projectId);
@@ -88,38 +154,100 @@ const ProjectDetailsPage = () => {
               onAiReview={handleAiReview}
             />
 
+            {/* Abas Principais */}
+            <div className="flex items-center gap-2 border-b border-[var(--agora-border)] my-6">
+              <button
+                onClick={() => handleTabChange('overview')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                  currentTab === 'overview'
+                    ? 'border-[#0a5c2f] text-[#0a5c2f]'
+                    : 'border-transparent text-[var(--agora-muted)] hover:text-[var(--agora-ink)]'
+                }`}
+              >
+                <LayoutList size={16} />
+                Visão Geral
+              </button>
+
+              <button
+                onClick={() => handleTabChange('mentorship')}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+                  currentTab === 'mentorship'
+                    ? 'border-[#0a5c2f] text-[#0a5c2f]'
+                    : 'border-transparent text-[var(--agora-muted)] hover:text-[var(--agora-ink)]'
+                }`}
+              >
+                <GraduationCap size={16} />
+                Mentoria & Orientação
+                {mentorship?.status === 'Active' && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0a5c2f]/15 text-[#0a5c2f]">
+                    Ativa
+                  </span>
+                )}
+                {mentorship?.status === 'PendingApproval' && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 animate-pulse">
+                    Pendente
+                  </span>
+                )}
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
-                {project.summary && (
-                  <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
-                    <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Resumo</h2>
-                    <p className="text-sm text-[var(--agora-muted)] leading-relaxed">{project.summary}</p>
-                  </div>
-                )}
-
-                <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
-                  <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Descrição</h2>
-                  <p className="text-sm text-[var(--agora-muted)] leading-relaxed whitespace-pre-line">
-                    {project.description}
-                  </p>
-                </div>
-
-                {aiReview && (
-                  <AiReviewCard
-                    aiReview={aiReview}
-                    showFeedback={showAiFeedback}
-                    onToggleFeedback={() => setShowAiFeedback((v) => !v)}
+                {currentTab === 'mentorship' ? (
+                  <MentorshipHub
+                    projectId={project.id}
+                    projectTitle={project.title}
+                    authorId={project.authorId}
+                    collaboratorIds={(project.collaborators || []).map((c) => c.id)}
+                    currentUserId={user?.id}
+                    isProfessor={isProfessor}
+                    mentorship={mentorship}
+                    messages={messages}
+                    isLoadingMessages={isLoadingMessages}
+                    onRequestMentorship={handleRequestMentorship}
+                    onAcceptMentorship={handleAcceptMentorship}
+                    onRejectMentorship={handleRejectMentorship}
+                    onRevokeMentorship={handleRevokeMentorship}
+                    onCreateGoal={createGoal}
+                    onSubmitGoal={submitGoal}
+                    onReviewGoal={reviewGoal}
+                    onDeleteGoal={deleteGoal}
+                    onSendMessage={sendMessage}
                   />
-                )}
+                ) : (
+                  <>
+                    {project.summary && (
+                      <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
+                        <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Resumo</h2>
+                        <p className="text-sm text-[var(--agora-muted)] leading-relaxed">{project.summary}</p>
+                      </div>
+                    )}
 
-                <CommentsSection
-                  comments={comments}
-                  userName={user?.name}
-                  commentText={commentText}
-                  isCommenting={isCommenting}
-                  onTextChange={setCommentText}
-                  onSubmit={handleAddComment}
-                />
+                    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
+                      <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Descrição</h2>
+                      <p className="text-sm text-[var(--agora-muted)] leading-relaxed whitespace-pre-line">
+                        {project.description}
+                      </p>
+                    </div>
+
+                    {aiReview && (
+                      <AiReviewCard
+                        aiReview={aiReview}
+                        showFeedback={showAiFeedback}
+                        onToggleFeedback={() => setShowAiFeedback((v) => !v)}
+                      />
+                    )}
+
+                    <CommentsSection
+                      comments={comments}
+                      userName={user?.name}
+                      commentText={commentText}
+                      isCommenting={isCommenting}
+                      onTextChange={setCommentText}
+                      onSubmit={handleAddComment}
+                    />
+                  </>
+                )}
               </div>
 
               <ProjectSidebar

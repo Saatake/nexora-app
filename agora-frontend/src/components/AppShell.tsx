@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { NotificationsPopover } from './NotificationsPopover';
 import logoIcon from '../assets/logo.png';
 
 type AppShellProps = {
@@ -200,6 +201,7 @@ const AppShell = ({
                 </h1>
               </div>
               <div className="flex items-center gap-2">
+                <NotificationsPopover />
                 <button
                   onClick={toggleTheme}
                   className="flex items-center justify-center h-9 w-9 rounded border border-[var(--agora-border)] bg-[var(--agora-panel)] text-[var(--agora-muted)] hover:text-[var(--agora-ink)] transition-colors"

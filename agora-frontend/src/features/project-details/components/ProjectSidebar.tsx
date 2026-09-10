@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Award, ExternalLink } from 'lucide-react';
 import EvalBar from './EvalBar';
 import BadgeDetailModal from './BadgeDetailModal';
@@ -45,12 +46,40 @@ const ProjectSidebar = ({
     <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
       <h2 className="text-sm font-bold text-[var(--agora-ink)] mb-4">Detalhes</h2>
       <div className="space-y-3 text-sm">
-        {project.advisor && (
+        {project.mentor ? (
+          <div>
+            <p className="text-[var(--agora-muted)] text-xs mb-1.5 font-semibold">Professor Orientador</p>
+            <Link
+              to={`/profile/${project.mentor.id}`}
+              className="flex items-center gap-2.5 p-2.5 rounded-xl border border-[var(--agora-border)] bg-[var(--agora-card-bg)] hover:border-[#0a5c2f] transition-all group shadow-sm"
+            >
+              {project.mentor.photoUrl ? (
+                <img
+                  src={project.mentor.photoUrl}
+                  alt={project.mentor.name}
+                  className="h-9 w-9 rounded-full object-cover border border-[#0a5c2f]/40 flex-shrink-0"
+                />
+              ) : (
+                <div className="h-9 w-9 rounded-full bg-[#0a5c2f] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-inner">
+                  {project.mentor.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="font-bold text-xs text-[var(--agora-ink)] group-hover:text-[#0a5c2f] truncate transition-colors">
+                  Prof. {project.mentor.name}
+                </p>
+                <p className="text-[10px] text-[var(--agora-muted)] truncate">
+                  {project.mentor.course || 'Docente Orientador'}
+                </p>
+              </div>
+            </Link>
+          </div>
+        ) : project.advisor ? (
           <div>
             <p className="text-[var(--agora-muted)] text-xs mb-0.5">Orientador</p>
             <p className="font-semibold text-[var(--agora-ink)]">{project.advisor}</p>
           </div>
-        )}
+        ) : null}
         {project.thematicAreaName && (
           <div>
             <p className="text-[var(--agora-muted)] text-xs mb-0.5">Área Temática</p>
