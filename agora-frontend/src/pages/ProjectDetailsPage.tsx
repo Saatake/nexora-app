@@ -37,10 +37,15 @@ const ProjectDetailsPage = () => {
     acceptMentorship,
     rejectMentorship,
     revokeMentorship,
+    completeMentorship,
     createGoal,
+    updateGoal,
     submitGoal,
     reviewGoal,
     deleteGoal,
+    createTask,
+    toggleTask,
+    deleteTask,
     sendMessage,
     refresh: refreshMentorship,
   } = useMentorship(projectId);
@@ -208,10 +213,15 @@ const ProjectDetailsPage = () => {
                     onAcceptMentorship={handleAcceptMentorship}
                     onRejectMentorship={handleRejectMentorship}
                     onRevokeMentorship={handleRevokeMentorship}
+                    onCompleteMentorship={completeMentorship}
                     onCreateGoal={createGoal}
+                    onUpdateGoal={updateGoal}
                     onSubmitGoal={submitGoal}
                     onReviewGoal={reviewGoal}
                     onDeleteGoal={deleteGoal}
+                    onCreateTask={createTask}
+                    onToggleTask={toggleTask}
+                    onDeleteTask={deleteTask}
                     onSendMessage={sendMessage}
                   />
                 ) : (

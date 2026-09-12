@@ -24,5 +24,8 @@ public class MentorshipResponseDto
     public int TotalGoals { get; set; }
     public int PendingReviewGoals { get; set; }
     public int CompletedGoals { get; set; }
+    public int TotalTasks { get; set; }
+    public int CompletedTasks { get; set; }
+    public int OverallProgressPercent { get; set; }
     public List<MentorshipGoalResponseDto> Goals { get; set; } = new();
 }

@@ -6,3 +6,5 @@ namespace Nexora.Api.Results;
 public class MentorshipResult : ServiceResult<MentorshipResponseDto> { }
 
 public class MentorshipGoalResult : ServiceResult<MentorshipGoalResponseDto> { }
+
+public class MentorshipTaskResult : ServiceResult<MentorshipTaskResponseDto> { }

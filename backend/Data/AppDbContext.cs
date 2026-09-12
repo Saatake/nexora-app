@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Mentorship> Mentorships { get; set; }
     public DbSet<MentorshipGoal> MentorshipGoals { get; set; }
+    public DbSet<MentorshipTask> MentorshipTasks { get; set; }
     public DbSet<MentorshipMessage> MentorshipMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -80,6 +81,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(g => g.Mentorship)
             .WithMany(m => m.Goals)
             .HasForeignKey(g => g.MentorshipId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MentorshipTask>()
+            .HasOne(t => t.MentorshipGoal)
+            .WithMany(g => g.Tasks)
+            .HasForeignKey(t => t.MentorshipGoalId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<MentorshipMessage>()

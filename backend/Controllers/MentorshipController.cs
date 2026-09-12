@@ -54,6 +54,14 @@ public class MentorshipController : ApiBaseController
         return ToResponse(result);
     }
 
+    [HttpPost("api/mentorships/{id}/complete")]
+    public async Task<IActionResult> CompleteMentorship(int id)
+    {
+        if (!TryGetUserId(out var userId, out var error)) return error!;
+        var result = await _mentorshipService.CompleteMentorshipAsync(id, userId);
+        return ToResponse(result);
+    }
+
     [HttpGet("api/mentorships/{id}")]
     public async Task<IActionResult> GetMentorshipById(int id)
     {
@@ -98,13 +106,52 @@ public class MentorshipController : ApiBaseController
         return ToResponse(await _mentorshipService.ReviewGoalAsync(goalId, request, userId));
     }
 
+    [HttpPut("api/mentorships/goals/{goalId}")]
+    public async Task<IActionResult> UpdateGoal(int goalId, [FromBody] UpdateMentorshipGoalRequestDto request)
+    {
+        if (!TryGetUserId(out var userId, out var error)) return error!;
+        return ToResponse(await _mentorshipService.UpdateGoalAsync(goalId, request, userId));
+    }
+
     [HttpDelete("api/mentorships/goals/{goalId}")]
     public async Task<IActionResult> DeleteGoal(int goalId)
     {
         if (!TryGetUserId(out var userId, out var error)) return error!;
         var success = await _mentorshipService.DeleteGoalAsync(goalId, userId);
-        if (!success) return BadRequest(new { message = "Não foi possível excluir a meta." });
-        return Ok(new { message = "Meta excluída com sucesso." });
+        if (!success) return BadRequest(new { message = "Não foi possível excluir o marco." });
+        return Ok(new { message = "Marco excluído com sucesso." });
+    }
+
+    // ================= Tarefas (Tasks) =================
+
+    [HttpPost("api/mentorships/goals/{goalId}/tasks")]
+    public async Task<IActionResult> CreateTask(int goalId, [FromBody] CreateMentorshipTaskRequestDto request)
+    {
+        if (!TryGetUserId(out var userId, out var error)) return error!;
+        return ToResponse(await _mentorshipService.CreateTaskAsync(goalId, request, userId));
+    }
+
+    [HttpPut("api/mentorships/tasks/{taskId}/toggle")]
+    public async Task<IActionResult> ToggleTask(int taskId)
+    {
+        if (!TryGetUserId(out var userId, out var error)) return error!;
+        return ToResponse(await _mentorshipService.ToggleTaskAsync(taskId, userId));
+    }
+
+    [HttpPut("api/mentorships/tasks/{taskId}")]
+    public async Task<IActionResult> UpdateTask(int taskId, [FromBody] UpdateMentorshipTaskRequestDto request)
+    {
+        if (!TryGetUserId(out var userId, out var error)) return error!;
+        return ToResponse(await _mentorshipService.UpdateTaskAsync(taskId, request, userId));
+    }
+
+    [HttpDelete("api/mentorships/tasks/{taskId}")]
+    public async Task<IActionResult> DeleteTask(int taskId)
+    {
+        if (!TryGetUserId(out var userId, out var error)) return error!;
+        var success = await _mentorshipService.DeleteTaskAsync(taskId, userId);
+        if (!success) return BadRequest(new { message = "Não foi possível excluir a tarefa." });
+        return Ok(new { message = "Tarefa excluída com sucesso." });
     }
 
     // ================= Chat Privado =================

@@ -23,6 +23,38 @@ public class CreateMentorshipGoalRequestDto
     public DateTime? DueDate { get; set; }
 }
 
+public class UpdateMentorshipGoalRequestDto
+{
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty;
+
+    [MaxLength(2000)]
+    public string Description { get; set; } = string.Empty;
+
+    public DateTime? DueDate { get; set; }
+}
+
+public class CreateMentorshipTaskRequestDto
+{
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty;
+
+    [MaxLength(1000)]
+    public string? Description { get; set; }
+}
+
+public class UpdateMentorshipTaskRequestDto
+{
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty;
+
+    [MaxLength(1000)]
+    public string? Description { get; set; }
+}
+
 public class SubmitMentorshipGoalRequestDto
 {
     [MaxLength(2000)]

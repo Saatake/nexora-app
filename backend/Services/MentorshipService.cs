@@ -250,18 +250,60 @@ public class MentorshipService : IMentorshipService
         return new MentorshipResult { Succeeded = true, Message = "Mentoria encerrada com sucesso." };
     }
 
+    // ===================== Concluir Mentoria =====================
+
+    public async Task<MentorshipResult> CompleteMentorshipAsync(int mentorshipId, string userId)
+    {
+        var mentorship = await LoadMentorshipWithProjectAsync(mentorshipId);
+
+        if (mentorship == null)
+            return new MentorshipResult { Succeeded = false, IsNotFound = true, Message = "Mentoria não encontrada." };
+
+        if (mentorship.Status != MentorshipStatus.Active)
+            return new MentorshipResult { Succeeded = false, Message = "Apenas mentorias ativas podem ser concluídas." };
+
+        if (mentorship.ProfessorId != userId)
+            return new MentorshipResult { Succeeded = false, IsForbidden = true, Message = "Apenas o orientador pode concluir a mentoria." };
+
+        mentorship.Status = MentorshipStatus.Completed;
+        mentorship.EndedAt = DateTime.UtcNow;
+
+        if (mentorship.Project != null)
+        {
+            mentorship.Project.Advisor = mentorship.Professor?.Name ?? mentorship.Project.Advisor;
+        }
+
+        await _context.SaveChangesAsync();
+
+        var projectTitle = mentorship.Project?.Title ?? "Projeto";
+        if (mentorship.Project != null)
+        {
+            await _notificationService.CreateNotificationAsync(
+                userId: mentorship.Project.UserId,
+                type: NotificationType.MentorshipAccepted,
+                title: "Mentoria Concluída com Sucesso! 🎓",
+                message: $"Parabéns! O Prof. {mentorship.Professor?.Name} concluiu com sucesso a mentoria do projeto '{projectTitle}'. Todas as entregas foram orientadas e aprovadas com louvor.",
+                link: $"/projects/{mentorship.ProjectId}",
+                senderId: userId);
+        }
+
+        var dto = await MapToDto(mentorship.Id);
+        return new MentorshipResult { Succeeded = true, Data = dto, Message = "Mentoria concluída com sucesso! Projeto finalizado." };
+    }
+
     // ===================== Consultas =====================
 
     public async Task<MentorshipResult> GetProjectMentorshipAsync(int projectId, string? userId)
     {
         var mentorship = await _context.Mentorships
-            .Where(m => m.ProjectId == projectId && (m.Status == MentorshipStatus.Active || m.Status == MentorshipStatus.PendingApproval))
+            .Where(m => m.ProjectId == projectId && (m.Status == MentorshipStatus.Active || m.Status == MentorshipStatus.PendingApproval || m.Status == MentorshipStatus.Completed))
             .OrderByDescending(m => m.Status == MentorshipStatus.Active)
+            .ThenByDescending(m => m.Status == MentorshipStatus.Completed)
             .ThenByDescending(m => m.RequestedAt)
             .FirstOrDefaultAsync();
 
         if (mentorship == null)
-            return new MentorshipResult { Succeeded = true, Data = null, Message = "Nenhuma mentoria ativa ou pendente." };
+            return new MentorshipResult { Succeeded = true, Data = null, Message = "Nenhuma mentoria ativa, concluída ou pendente." };
 
         var dto = await MapToDto(mentorship.Id);
         return new MentorshipResult { Succeeded = true, Data = dto };
@@ -344,6 +386,27 @@ public class MentorshipService : IMentorshipService
         return new MentorshipGoalResult { Succeeded = true, Message = "Meta criada com sucesso.", Data = MapGoalToDto(goal) };
     }
 
+    public async Task<MentorshipGoalResult> UpdateGoalAsync(int goalId, UpdateMentorshipGoalRequestDto request, string userId)
+    {
+        var goal = await _context.MentorshipGoals
+            .Include(g => g.Mentorship)
+            .Include(g => g.Tasks)
+            .FirstOrDefaultAsync(g => g.Id == goalId);
+
+        if (goal?.Mentorship == null || goal.Mentorship.Status != MentorshipStatus.Active)
+            return new MentorshipGoalResult { Succeeded = false, IsNotFound = true, Message = "Meta não encontrada ou mentoria inativa." };
+
+        if (goal.Mentorship.ProfessorId != userId)
+            return new MentorshipGoalResult { Succeeded = false, IsForbidden = true, Message = "Apenas o orientador pode editar este marco." };
+
+        goal.Title = request.Title;
+        goal.Description = request.Description;
+        goal.DueDate = request.DueDate;
+
+        await _context.SaveChangesAsync();
+        return new MentorshipGoalResult { Succeeded = true, Data = MapGoalToDto(goal), Message = "Marco atualizado com sucesso." };
+    }
+
     public async Task<MentorshipGoalResult> SubmitGoalAsync(int goalId, SubmitMentorshipGoalRequestDto request, string userId)
     {
         var goal = await LoadGoalWithMentorshipAsync(goalId);
@@ -376,6 +439,7 @@ public class MentorshipService : IMentorshipService
         var goal = await _context.MentorshipGoals
             .Include(g => g.Mentorship)
             .ThenInclude(m => m!.Project)
+            .Include(g => g.Tasks)
             .FirstOrDefaultAsync(g => g.Id == goalId);
 
         if (goal?.Mentorship == null || goal.Mentorship.Status != MentorshipStatus.Active)
@@ -414,6 +478,137 @@ public class MentorshipService : IMentorshipService
         if (goal.Mentorship.ProfessorId != userId) return false;
 
         _context.MentorshipGoals.Remove(goal);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    // ===================== Tarefas (Tasks) =====================
+
+    public async Task<MentorshipTaskResult> CreateTaskAsync(int goalId, CreateMentorshipTaskRequestDto request, string userId)
+    {
+        var goal = await _context.MentorshipGoals
+            .Include(g => g.Mentorship)
+            .FirstOrDefaultAsync(g => g.Id == goalId);
+
+        if (goal?.Mentorship == null || goal.Mentorship.Status != MentorshipStatus.Active)
+            return new MentorshipTaskResult { Succeeded = false, IsNotFound = true, Message = "Marco não encontrado ou mentoria inativa." };
+
+        if (goal.Mentorship.ProfessorId != userId)
+            return new MentorshipTaskResult { Succeeded = false, IsForbidden = true, Message = "Apenas o orientador pode adicionar tarefas a este marco." };
+
+        var task = new MentorshipTask
+        {
+            MentorshipGoalId = goalId,
+            Title = request.Title,
+            Description = request.Description,
+            IsCompleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.MentorshipTasks.Add(task);
+        await _context.SaveChangesAsync();
+
+        return new MentorshipTaskResult
+        {
+            Succeeded = true,
+            Message = "Tarefa criada com sucesso.",
+            Data = new MentorshipTaskResponseDto
+            {
+                Id = task.Id,
+                MentorshipGoalId = task.MentorshipGoalId,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+                CreatedAt = task.CreatedAt
+            }
+        };
+    }
+
+    public async Task<MentorshipTaskResult> ToggleTaskAsync(int taskId, string userId)
+    {
+        var task = await _context.MentorshipTasks
+            .Include(t => t.MentorshipGoal)
+            .ThenInclude(g => g!.Mentorship)
+            .ThenInclude(m => m!.Project)
+            .ThenInclude(p => p!.Collaborators)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (task?.MentorshipGoal?.Mentorship == null || task.MentorshipGoal.Mentorship.Status != MentorshipStatus.Active)
+            return new MentorshipTaskResult { Succeeded = false, IsNotFound = true, Message = "Tarefa não encontrada ou mentoria inativa." };
+
+        var mentorship = task.MentorshipGoal.Mentorship;
+        var isProfessor = mentorship.ProfessorId == userId;
+        var isMember = mentorship.Project != null && IsProjectMember(mentorship.Project, userId);
+
+        if (!isProfessor && !isMember)
+            return new MentorshipTaskResult { Succeeded = false, IsForbidden = true, Message = "Sem permissão para alterar esta tarefa." };
+
+        task.IsCompleted = !task.IsCompleted;
+        task.CompletedAt = task.IsCompleted ? DateTime.UtcNow : null;
+        await _context.SaveChangesAsync();
+
+        return new MentorshipTaskResult
+        {
+            Succeeded = true,
+            Message = task.IsCompleted ? "Tarefa concluída." : "Tarefa reaberta.",
+            Data = new MentorshipTaskResponseDto
+            {
+                Id = task.Id,
+                MentorshipGoalId = task.MentorshipGoalId,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+                CompletedAt = task.CompletedAt,
+                CreatedAt = task.CreatedAt
+            }
+        };
+    }
+
+    public async Task<MentorshipTaskResult> UpdateTaskAsync(int taskId, UpdateMentorshipTaskRequestDto request, string userId)
+    {
+        var task = await _context.MentorshipTasks
+            .Include(t => t.MentorshipGoal)
+            .ThenInclude(g => g!.Mentorship)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (task?.MentorshipGoal?.Mentorship == null || task.MentorshipGoal.Mentorship.Status != MentorshipStatus.Active)
+            return new MentorshipTaskResult { Succeeded = false, IsNotFound = true, Message = "Tarefa não encontrada ou mentoria inativa." };
+
+        if (task.MentorshipGoal.Mentorship.ProfessorId != userId)
+            return new MentorshipTaskResult { Succeeded = false, IsForbidden = true, Message = "Apenas o orientador pode editar esta tarefa." };
+
+        task.Title = request.Title;
+        task.Description = request.Description;
+        await _context.SaveChangesAsync();
+
+        return new MentorshipTaskResult
+        {
+            Succeeded = true,
+            Message = "Tarefa atualizada com sucesso.",
+            Data = new MentorshipTaskResponseDto
+            {
+                Id = task.Id,
+                MentorshipGoalId = task.MentorshipGoalId,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+                CompletedAt = task.CompletedAt,
+                CreatedAt = task.CreatedAt
+            }
+        };
+    }
+
+    public async Task<bool> DeleteTaskAsync(int taskId, string userId)
+    {
+        var task = await _context.MentorshipTasks
+            .Include(t => t.MentorshipGoal)
+            .ThenInclude(g => g!.Mentorship)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (task?.MentorshipGoal?.Mentorship == null) return false;
+        if (task.MentorshipGoal.Mentorship.ProfessorId != userId) return false;
+
+        _context.MentorshipTasks.Remove(task);
         await _context.SaveChangesAsync();
         return true;
     }
@@ -556,6 +751,7 @@ public class MentorshipService : IMentorshipService
     private async Task<MentorshipGoal?> LoadGoalWithMentorshipAsync(int goalId)
     {
         return await _context.MentorshipGoals
+            .Include(g => g.Tasks)
             .Include(g => g.Mentorship)
             .ThenInclude(m => m!.Project)
             .ThenInclude(p => p!.Collaborators)
@@ -573,7 +769,7 @@ public class MentorshipService : IMentorshipService
             .Where(predicate)
             .Include(x => x.Project).ThenInclude(p => p!.User)
             .Include(x => x.Professor)
-            .Include(x => x.Goals)
+            .Include(x => x.Goals).ThenInclude(g => g.Tasks)
             .OrderByDescending(orderByDesc)
             .Select(m => new MentorshipResponseDto
             {
@@ -595,6 +791,11 @@ public class MentorshipService : IMentorshipService
                 TotalGoals = m.Goals.Count,
                 PendingReviewGoals = m.Goals.Count(g => g.Status == MentorshipGoalStatus.Submitted),
                 CompletedGoals = m.Goals.Count(g => g.Status == MentorshipGoalStatus.Approved),
+                TotalTasks = m.Goals.SelectMany(g => g.Tasks).Count(),
+                CompletedTasks = m.Goals.SelectMany(g => g.Tasks).Count(t => t.IsCompleted),
+                OverallProgressPercent = m.Goals.SelectMany(g => g.Tasks).Any()
+                    ? (int)Math.Round((double)m.Goals.SelectMany(g => g.Tasks).Count(t => t.IsCompleted) / m.Goals.SelectMany(g => g.Tasks).Count() * 100)
+                    : (m.Goals.Any() ? (int)Math.Round((double)m.Goals.Count(g => g.Status == MentorshipGoalStatus.Approved) / m.Goals.Count * 100) : 0),
                 Goals = m.Goals.OrderBy(g => g.CreatedAt).Select(g => new MentorshipGoalResponseDto
                 {
                     Id = g.Id,
@@ -607,7 +808,22 @@ public class MentorshipService : IMentorshipService
                     StudentSubmissionNote = g.StudentSubmissionNote,
                     CreatedAt = g.CreatedAt,
                     CompletedAt = g.CompletedAt,
-                    ReviewedAt = g.ReviewedAt
+                    ReviewedAt = g.ReviewedAt,
+                    TotalTasks = g.Tasks.Count,
+                    CompletedTasks = g.Tasks.Count(t => t.IsCompleted),
+                    ProgressPercent = g.Tasks.Any()
+                        ? (int)Math.Round((double)g.Tasks.Count(t => t.IsCompleted) / g.Tasks.Count * 100)
+                        : (g.Status == MentorshipGoalStatus.Approved ? 100 : (g.Status == MentorshipGoalStatus.Submitted ? 50 : 0)),
+                    Tasks = g.Tasks.OrderBy(t => t.CreatedAt).Select(t => new MentorshipTaskResponseDto
+                    {
+                        Id = t.Id,
+                        MentorshipGoalId = t.MentorshipGoalId,
+                        Title = t.Title,
+                        Description = t.Description,
+                        IsCompleted = t.IsCompleted,
+                        CompletedAt = t.CompletedAt,
+                        CreatedAt = t.CreatedAt
+                    }).ToList()
                 }).ToList()
             });
     }
@@ -617,12 +833,17 @@ public class MentorshipService : IMentorshipService
         var m = await _context.Mentorships
             .Include(x => x.Project).ThenInclude(p => p!.User)
             .Include(x => x.Professor)
-            .Include(x => x.Goals)
+            .Include(x => x.Goals).ThenInclude(g => g.Tasks)
             .FirstOrDefaultAsync(x => x.Id == mentorshipId);
 
         if (m == null) return null;
 
         var goals = m.Goals.OrderBy(g => g.CreatedAt).Select(MapGoalToDto).ToList();
+        var totalTasks = goals.Sum(g => g.TotalTasks);
+        var completedTasks = goals.Sum(g => g.CompletedTasks);
+        var overallProgress = totalTasks > 0
+            ? (int)Math.Round((double)completedTasks / totalTasks * 100)
+            : (goals.Count > 0 ? (int)Math.Round((double)goals.Count(g => g.Status == MentorshipGoalStatus.Approved) / goals.Count * 100) : 0);
 
         return new MentorshipResponseDto
         {
@@ -644,12 +865,34 @@ public class MentorshipService : IMentorshipService
             TotalGoals = goals.Count,
             PendingReviewGoals = goals.Count(g => g.Status == MentorshipGoalStatus.Submitted),
             CompletedGoals = goals.Count(g => g.Status == MentorshipGoalStatus.Approved),
+            TotalTasks = totalTasks,
+            CompletedTasks = completedTasks,
+            OverallProgressPercent = overallProgress,
             Goals = goals
         };
     }
 
     private static MentorshipGoalResponseDto MapGoalToDto(MentorshipGoal g)
     {
+        var tasks = (g.Tasks ?? new List<MentorshipTask>())
+            .OrderBy(t => t.CreatedAt)
+            .Select(t => new MentorshipTaskResponseDto
+            {
+                Id = t.Id,
+                MentorshipGoalId = t.MentorshipGoalId,
+                Title = t.Title,
+                Description = t.Description,
+                IsCompleted = t.IsCompleted,
+                CompletedAt = t.CompletedAt,
+                CreatedAt = t.CreatedAt
+            }).ToList();
+
+        var totalTasks = tasks.Count;
+        var completedTasks = tasks.Count(t => t.IsCompleted);
+        var progressPercent = totalTasks > 0
+            ? (int)Math.Round((double)completedTasks / totalTasks * 100)
+            : (g.Status == MentorshipGoalStatus.Approved ? 100 : (g.Status == MentorshipGoalStatus.Submitted ? 50 : 0));
+
         return new MentorshipGoalResponseDto
         {
             Id = g.Id,
@@ -662,7 +905,11 @@ public class MentorshipService : IMentorshipService
             StudentSubmissionNote = g.StudentSubmissionNote,
             CreatedAt = g.CreatedAt,
             CompletedAt = g.CompletedAt,
-            ReviewedAt = g.ReviewedAt
+            ReviewedAt = g.ReviewedAt,
+            TotalTasks = totalTasks,
+            CompletedTasks = completedTasks,
+            ProgressPercent = progressPercent,
+            Tasks = tasks
         };
     }
 }

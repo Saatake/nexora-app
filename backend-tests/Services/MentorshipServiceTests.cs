@@ -714,4 +714,123 @@ public class MentorshipServiceTests
             Assert.Equal("Projeto Alpha", result[0].ProjectTitle);
         }
     }
+
+    // ==================== CompleteMentorshipAsync ====================
+
+    [Fact]
+    public async Task CompleteMentorship_ByProfessor_ShouldSetStatusCompleted()
+    {
+        var (service, context, notifMock) = CreateService();
+        using (context)
+        {
+            await SeedBaseData(context);
+
+            var mentorship = new Mentorship
+            {
+                Id = 1,
+                ProjectId = 1,
+                ProfessorId = "prof1",
+                Status = MentorshipStatus.Active,
+                InitiatedBy = MentorshipInitiator.Professor,
+                AcceptedAt = DateTime.UtcNow
+            };
+            context.Mentorships.Add(mentorship);
+            await context.SaveChangesAsync();
+
+            var result = await service.CompleteMentorshipAsync(1, "prof1");
+
+            Assert.True(result.Succeeded);
+            Assert.NotNull(result.Data);
+            Assert.Equal(MentorshipStatus.Completed, result.Data!.Status);
+
+            var updated = await context.Mentorships.FindAsync(1);
+            Assert.Equal(MentorshipStatus.Completed, updated!.Status);
+            Assert.NotNull(updated.EndedAt);
+        }
+    }
+
+    // ==================== UpdateGoalAsync ====================
+
+    [Fact]
+    public async Task UpdateGoal_ByProfessor_ShouldUpdateFields()
+    {
+        var (service, context, _) = CreateService();
+        using (context)
+        {
+            await SeedBaseData(context);
+
+            var mentorship = new Mentorship
+            {
+                Id = 1, ProjectId = 1, ProfessorId = "prof1",
+                Status = MentorshipStatus.Active,
+                InitiatedBy = MentorshipInitiator.Professor
+            };
+            context.Mentorships.Add(mentorship);
+
+            var goal = new MentorshipGoal
+            {
+                Id = 1, MentorshipId = 1, Title = "Antigo", Description = "Desc Antiga"
+            };
+            context.MentorshipGoals.Add(goal);
+            await context.SaveChangesAsync();
+
+            var result = await service.UpdateGoalAsync(1, new UpdateMentorshipGoalRequestDto
+            {
+                Title = "Novo Título",
+                Description = "Nova Descrição"
+            }, "prof1");
+
+            Assert.True(result.Succeeded);
+            Assert.Equal("Novo Título", result.Data!.Title);
+            Assert.Equal("Nova Descrição", result.Data.Description);
+        }
+    }
+
+    // ==================== Task Operations ====================
+
+    [Fact]
+    public async Task TaskOperations_CreateToggleDelete_ShouldWorkCorrectly()
+    {
+        var (service, context, _) = CreateService();
+        using (context)
+        {
+            await SeedBaseData(context);
+
+            var mentorship = new Mentorship
+            {
+                Id = 1, ProjectId = 1, ProfessorId = "prof1",
+                Status = MentorshipStatus.Active,
+                InitiatedBy = MentorshipInitiator.Professor
+            };
+            context.Mentorships.Add(mentorship);
+
+            var goal = new MentorshipGoal
+            {
+                Id = 1, MentorshipId = 1, Title = "Marco 1"
+            };
+            context.MentorshipGoals.Add(goal);
+            await context.SaveChangesAsync();
+
+            // 1. Create task
+            var createRes = await service.CreateTaskAsync(1, new CreateMentorshipTaskRequestDto
+            {
+                Title = "Tarefa 1",
+                Description = "Detalhes da tarefa"
+            }, "prof1");
+
+            Assert.True(createRes.Succeeded);
+            var taskId = createRes.Data!.Id;
+            Assert.False(createRes.Data.IsCompleted);
+
+            // 2. Toggle task (concluir)
+            var toggleRes = await service.ToggleTaskAsync(taskId, "student1");
+            Assert.True(toggleRes.Succeeded);
+            Assert.True(toggleRes.Data!.IsCompleted);
+
+            // 3. Delete task
+            var deleteSuccess = await service.DeleteTaskAsync(taskId, "prof1");
+            Assert.True(deleteSuccess);
+            Assert.Empty(context.MentorshipTasks.Where(t => t.Id == taskId));
+        }
+    }
 }

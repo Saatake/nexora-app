@@ -38,4 +38,5 @@ public class MentorshipGoal
     public DateTime? CompletedAt { get; set; }
 
     public DateTime? ReviewedAt { get; set; }
+    public ICollection<MentorshipTask> Tasks { get; set; } = new List<MentorshipTask>();
 }

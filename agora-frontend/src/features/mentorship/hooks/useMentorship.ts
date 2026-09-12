@@ -94,27 +94,43 @@ export const useMentorship = (projectId?: number | string) => {
     }
   };
 
-  // Metas (Goals)
+  const completeMentorship = async (mentorshipId: number) => {
+    try {
+      const res = await api.post(`/mentorships/${mentorshipId}/complete`);
+      setMentorship(res.data);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || 'Erro ao concluir mentoria.' };
+    }
+  };
+
+  // Metas (Goals / Marcos)
   const createGoal = async (title: string, description: string, dueDate?: string): Promise<{ success: boolean; error?: string }> => {
     if (!mentorship) return { success: false, error: 'Mentoria não encontrada.' };
     try {
-      const res = await api.post(`/mentorships/${mentorship.id}/goals`, {
+      await api.post(`/mentorships/${mentorship.id}/goals`, {
         title,
         description,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       });
-      setMentorship((prev) =>
-        prev
-          ? {
-              ...prev,
-              totalGoals: prev.totalGoals + 1,
-              goals: [...prev.goals, res.data],
-            }
-          : prev
-      );
+      await fetchMentorship();
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.response?.data?.message || 'Erro ao criar meta.' };
+    }
+  };
+
+  const updateGoal = async (goalId: number, title: string, description: string, dueDate?: string) => {
+    try {
+      await api.put(`/mentorships/goals/${goalId}`, {
+        title,
+        description,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      });
+      await fetchMentorship();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || 'Erro ao atualizar marco.' };
     }
   };
 
@@ -161,17 +177,51 @@ export const useMentorship = (projectId?: number | string) => {
   const deleteGoal = async (goalId: number) => {
     try {
       await api.delete(`/mentorships/goals/${goalId}`);
-      setMentorship((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          totalGoals: Math.max(0, prev.totalGoals - 1),
-          goals: prev.goals.filter((g) => g.id !== goalId),
-        };
-      });
+      await fetchMentorship();
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.response?.data?.message || 'Erro ao excluir meta.' };
+    }
+  };
+
+  // Tarefas (Tasks)
+  const createTask = async (goalId: number, title: string, description?: string) => {
+    try {
+      await api.post(`/mentorships/goals/${goalId}/tasks`, { title, description });
+      await fetchMentorship();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || 'Erro ao criar tarefa.' };
+    }
+  };
+
+  const toggleTask = async (taskId: number) => {
+    try {
+      await api.put(`/mentorships/tasks/${taskId}/toggle`);
+      await fetchMentorship();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || 'Erro ao alterar status da tarefa.' };
+    }
+  };
+
+  const updateTask = async (taskId: number, title: string, description?: string) => {
+    try {
+      await api.put(`/mentorships/tasks/${taskId}`, { title, description });
+      await fetchMentorship();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || 'Erro ao editar tarefa.' };
+    }
+  };
+
+  const deleteTask = async (taskId: number) => {
+    try {
+      await api.delete(`/mentorships/tasks/${taskId}`);
+      await fetchMentorship();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || 'Erro ao excluir tarefa.' };
     }
   };
 
@@ -199,10 +249,16 @@ export const useMentorship = (projectId?: number | string) => {
     acceptMentorship,
     rejectMentorship,
     revokeMentorship,
+    completeMentorship,
     createGoal,
+    updateGoal,
     submitGoal,
     reviewGoal,
     deleteGoal,
+    createTask,
+    toggleTask,
+    updateTask,
+    deleteTask,
     sendMessage,
     refresh: fetchMentorship,
   };

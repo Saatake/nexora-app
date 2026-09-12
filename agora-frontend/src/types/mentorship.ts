@@ -11,6 +11,16 @@ export type MentorshipGoalStatus =
   | 'Approved'
   | 'NeedsRevision';
 
+export type MentorshipTask = {
+  id: number;
+  mentorshipGoalId: number;
+  title: string;
+  description?: string | null;
+  isCompleted: boolean;
+  completedAt?: string | null;
+  createdAt: string;
+};
+
 export type MentorshipGoal = {
   id: number;
   mentorshipId: number;
@@ -24,6 +34,10 @@ export type MentorshipGoal = {
   createdAt: string;
   completedAt?: string | null;
   reviewedAt?: string | null;
+  tasks?: MentorshipTask[];
+  totalTasks?: number;
+  completedTasks?: number;
+  progressPercent?: number;
 };
 
 export type MentorshipMessage = {
@@ -58,5 +72,8 @@ export type Mentorship = {
   totalGoals: number;
   pendingReviewGoals: number;
   completedGoals: number;
+  totalTasks?: number;
+  completedTasks?: number;
+  overallProgressPercent?: number;
   goals: MentorshipGoal[];
 };

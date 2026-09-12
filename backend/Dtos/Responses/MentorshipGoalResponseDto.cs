@@ -2,6 +2,17 @@ using Nexora.Api.Enums;
 
 namespace Nexora.Api.Dtos.Responses;
 
+public class MentorshipTaskResponseDto
+{
+    public int Id { get; set; }
+    public int MentorshipGoalId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsCompleted { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
 public class MentorshipGoalResponseDto
 {
     public int Id { get; set; }
@@ -16,4 +27,8 @@ public class MentorshipGoalResponseDto
     public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public DateTime? ReviewedAt { get; set; }
+    public int TotalTasks { get; set; }
+    public int CompletedTasks { get; set; }
+    public int ProgressPercent { get; set; }
+    public List<MentorshipTaskResponseDto> Tasks { get; set; } = new();
 }
