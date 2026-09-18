@@ -1,7 +1,6 @@
 import { Upload } from 'lucide-react';
 import type { UserProfile } from '../types';
-import { THEMATIC_AREA_LABELS } from '@/constants/thematicAreas';
-import type { ThematicArea } from '@/constants/thematicAreas';
+import { formatThematicArea } from '@/constants/thematicAreas';
 
 type ProfileHeaderProps = {
   profile: UserProfile;
@@ -89,7 +88,7 @@ const ProfileHeader = ({
                 <div className="flex flex-wrap gap-1 mt-2">
                   {profile.teachingAreas.map((area) => (
                     <span key={area} className="text-xs bg-green-50 text-[#0a5c2f] border border-green-200 px-2 py-0.5 rounded-full font-medium">
-                      {THEMATIC_AREA_LABELS[area as ThematicArea] ?? area}
+                      {formatThematicArea(area)}
                     </span>
                   ))}
                 </div>

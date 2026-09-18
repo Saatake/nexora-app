@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Compass, GraduationCap, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { MentoredProject } from '../types';
-import { THEMATIC_AREA_LABELS, type ThematicArea } from '@/constants/thematicAreas';
+import { formatThematicArea } from '@/constants/thematicAreas';
 
 type MentoredProjectsListProps = {
   projects: MentoredProject[];
@@ -57,7 +57,7 @@ const MentoredProjectsList = ({ projects = [] }: MentoredProjectsListProps) => {
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="inline-flex items-center rounded-full bg-[var(--agora-accent-bg)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--agora-accent)]">
-                    {THEMATIC_AREA_LABELS[project.thematicAreaName as ThematicArea] || project.thematicAreaName}
+                    {formatThematicArea(project.thematicAreaName)}
                   </span>
                   {project.pendingReviewGoals > 0 && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 animate-pulse">

@@ -9,3 +9,17 @@ public enum ThematicArea
     HumanidadesSociedadeDireito = 5,
     ArtesDesignComunicacao = 6
 }
+
+public static class ThematicAreaExtensions
+{
+    public static string ToDisplayName(this ThematicArea area) => area switch
+    {
+        ThematicArea.TecnologiaInovacao => "Tecnologia e Inovação",
+        ThematicArea.NegociosGestao => "Negócios e Gestão",
+        ThematicArea.EngenhariaIndustria => "Engenharia e Indústria",
+        ThematicArea.SaudeBiotecnologia => "Saúde e Biotecnologia",
+        ThematicArea.HumanidadesSociedadeDireito => "Humanidades, Sociedade e Direito",
+        ThematicArea.ArtesDesignComunicacao => "Artes, Design e Comunicação",
+        _ => area.ToString()
+    };
+}

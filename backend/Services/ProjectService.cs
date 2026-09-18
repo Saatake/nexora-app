@@ -246,7 +246,7 @@ public class ProjectService : IProjectService
             Description = p.Description,
             Summary = p.Summary,
             ThematicArea = p.ThematicArea,
-            ThematicAreaName = p.ThematicArea.ToString(),
+            ThematicAreaName = p.ThematicArea.ToDisplayName(),
             Tags = p.Tags,
             Advisor = p.Advisor,
             TeamMembers = p.TeamMembers,

@@ -10,9 +10,10 @@ import {
   Edit2,
   Save,
   MessageSquareQuote,
-  CheckSquare,
-  Square,
-  ListTodo
+  ListTodo,
+  FileText,
+  CheckCheck,
+  Circle
 } from 'lucide-react';
 import type { MentorshipGoal } from '@/types/mentorship';
 
@@ -50,6 +51,7 @@ export const GoalDetailModal = ({
 
   // Nova tarefa
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
 
   // Submissão do aluno
@@ -93,10 +95,11 @@ export const GoalDetailModal = ({
     if (!newTaskTitle.trim()) return;
     setIsProcessing(true);
     setErrorMessage('');
-    const res = await onCreateTask(goal.id, newTaskTitle.trim());
+    const res = await onCreateTask(goal.id, newTaskTitle.trim(), newTaskDescription.trim() || undefined);
     setIsProcessing(false);
     if (res.success) {
       setNewTaskTitle('');
+      setNewTaskDescription('');
       setIsAddingTask(false);
     } else {
       setErrorMessage(res.error || 'Erro ao criar tarefa.');
@@ -331,11 +334,11 @@ export const GoalDetailModal = ({
             </div>
           </div>
 
-          {/* Seção de Tarefas (Checklist Interativo) */}
+          {/* Seção de Tarefas — Cards */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--agora-muted)]">
-                Lista de Tarefas & Entregáveis
+                Tarefas & Entregáveis do Marco
               </h4>
 
               {isProfessor && !isAddingTask && (
@@ -349,92 +352,168 @@ export const GoalDetailModal = ({
               )}
             </div>
 
-            {/* Form inline para nova tarefa */}
+            {/* Form de nova tarefa com título + descrição */}
             {isAddingTask && (
-              <form onSubmit={handleAddTask} className="p-3 rounded-xl border border-[var(--agora-border)] bg-[var(--agora-card-bg)] space-y-2">
-                <input
-                  type="text"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder="Nome da tarefa (ex: Desenvolver diagrama de classes)..."
-                  className="w-full rounded-lg border border-[var(--agora-border)] bg-[var(--agora-input-bg)] px-3 py-2 text-xs text-[var(--agora-ink)] outline-none focus:ring-1 focus:ring-[var(--agora-accent)]"
-                  autoFocus
-                />
+              <form
+                onSubmit={handleAddTask}
+                className="rounded-xl border-2 border-dashed border-[var(--agora-accent)]/50 bg-[var(--agora-card-bg)] p-4 space-y-3"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Plus size={14} className="text-[#0a5c2f]" />
+                  <span className="text-xs font-bold text-[var(--agora-ink)]">Nova Tarefa</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[var(--agora-muted)] mb-1">
+                    Título da Tarefa *
+                  </label>
+                  <input
+                    type="text"
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    placeholder="Ex: Desenvolver diagrama de classes do sistema..."
+                    className="w-full rounded-xl border border-[var(--agora-border)] bg-[var(--agora-input-bg)] px-3 py-2 text-xs text-[var(--agora-ink)] outline-none focus:ring-1 focus:ring-[var(--agora-accent)]"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[var(--agora-muted)] mb-1">
+                    Descrição <span className="font-normal opacity-60">(opcional)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={newTaskDescription}
+                    onChange={(e) => setNewTaskDescription(e.target.value)}
+                    placeholder="Detalhe o que deve ser entregue, critérios de aceitação, referências..."
+                    className="w-full rounded-xl border border-[var(--agora-border)] bg-[var(--agora-input-bg)] p-3 text-xs text-[var(--agora-ink)] outline-none focus:ring-1 focus:ring-[var(--agora-accent)] resize-none"
+                  />
+                </div>
+
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setIsAddingTask(false);
                       setNewTaskTitle('');
+                      setNewTaskDescription('');
                     }}
-                    className="px-3 py-1 rounded text-xs text-[var(--agora-muted)]"
+                    className="px-3 py-1.5 rounded-lg text-xs text-[var(--agora-muted)] hover:text-[var(--agora-ink)]"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={isProcessing || !newTaskTitle.trim()}
-                    className="px-3 py-1 rounded bg-[#0a5c2f] hover:bg-[#084925] text-white text-xs font-semibold disabled:opacity-50"
+                    className="px-4 py-1.5 rounded-lg bg-[#0a5c2f] hover:bg-[#084925] text-white text-xs font-semibold disabled:opacity-50 transition-colors"
                   >
-                    Salvar Tarefa
+                    {isProcessing ? 'Salvando...' : 'Salvar Tarefa'}
                   </button>
                 </div>
               </form>
             )}
 
-            {/* Lista de itens */}
+            {/* Grid de cards de tarefas */}
             {tasks.length === 0 ? (
-              <div className="text-center p-6 border border-dashed border-[var(--agora-border)] rounded-xl text-xs text-[var(--agora-muted)]">
-                Nenhuma tarefa individual adicionada a este marco ainda.
+              <div className="text-center p-8 border border-dashed border-[var(--agora-border)] rounded-xl text-xs text-[var(--agora-muted)]">
+                <FileText size={32} className="mx-auto mb-2 opacity-30" />
+                <p>Nenhuma tarefa adicionada a este marco ainda.</p>
                 {isProfessor && (
-                  <p className="mt-1 font-semibold text-[#0a5c2f] cursor-pointer hover:underline" onClick={() => setIsAddingTask(true)}>
+                  <p
+                    className="mt-1.5 font-semibold text-[#0a5c2f] cursor-pointer hover:underline"
+                    onClick={() => setIsAddingTask(true)}
+                  >
                     Clique aqui para adicionar a primeira tarefa.
                   </p>
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                      task.isCompleted
-                        ? 'border-emerald-500/30 bg-emerald-500/5'
-                        : 'border-[var(--agora-border)] bg-[var(--agora-card-bg)]'
-                    }`}
-                  >
+              <div className="grid grid-cols-1 gap-3">
+                {tasks.map((task) => {
+                  const hasDescription = task.description && task.description.trim().length > 0;
+                  return (
                     <div
-                      className="flex items-center gap-2.5 flex-1 cursor-pointer select-none"
-                      onClick={() => handleToggleTask(task.id)}
+                      key={task.id}
+                      className={`group relative rounded-xl border transition-all ${
+                        task.isCompleted
+                          ? 'border-emerald-500/30 bg-emerald-500/5'
+                          : 'border-[var(--agora-border)] bg-[var(--agora-card-bg)] hover:border-[#0a5c2f]/40'
+                      }`}
                     >
-                      {task.isCompleted ? (
-                        <CheckSquare size={17} className="text-emerald-500 flex-shrink-0" />
-                      ) : (
-                        <Square size={17} className="text-[var(--agora-muted)] hover:text-[#0a5c2f] flex-shrink-0" />
-                      )}
-                      <span
-                        className={`text-xs ${
-                          task.isCompleted
-                            ? 'line-through text-[var(--agora-muted)]'
-                            : 'font-medium text-[var(--agora-ink)]'
-                        }`}
-                      >
-                        {task.title}
-                      </span>
-                    </div>
+                      <div className="p-4">
+                        {/* Cabeçalho do card: ícone de status + título + delete */}
+                        <div className="flex items-start gap-3">
+                          {/* Botão de toggle */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleTask(task.id)}
+                            disabled={!isProfessor && !isStudentMember}
+                            className={`flex-shrink-0 mt-0.5 transition-colors ${
+                              isProfessor || isStudentMember ? 'cursor-pointer' : 'cursor-default'
+                            }`}
+                            title={task.isCompleted ? 'Marcar como pendente' : 'Marcar como concluída'}
+                          >
+                            {task.isCompleted ? (
+                              <CheckCheck size={18} className="text-emerald-500" />
+                            ) : (
+                              <Circle size={18} className="text-[var(--agora-muted)] group-hover:text-[#0a5c2f] transition-colors" />
+                            )}
+                          </button>
 
-                    {isProfessor && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="text-[var(--agora-muted)] hover:text-rose-500 p-1 ml-2 transition-colors"
-                        title="Remover tarefa"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                          {/* Conteúdo principal */}
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`text-sm font-semibold leading-snug ${
+                                task.isCompleted
+                                  ? 'line-through text-[var(--agora-muted)]'
+                                  : 'text-[var(--agora-ink)]'
+                              }`}
+                            >
+                              {task.title}
+                            </p>
+
+                            {hasDescription && (
+                              <p
+                                className={`mt-1.5 text-xs leading-relaxed ${
+                                  task.isCompleted
+                                    ? 'line-through text-[var(--agora-muted)] opacity-60'
+                                    : 'text-[var(--agora-muted)]'
+                                }`}
+                              >
+                                {task.description}
+                              </p>
+                            )}
+
+                            {/* Badge concluído */}
+                            {task.isCompleted && task.completedAt && (
+                              <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 size={11} />
+                                Concluída em {new Date(task.completedAt).toLocaleDateString('pt-BR')}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Botão deletar (professor) */}
+                          {isProfessor && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-[var(--agora-muted)] hover:text-rose-500 p-1 transition-all"
+                              title="Remover tarefa"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Linha de status no fundo do card */}
+                      {task.isCompleted && (
+                        <div className="h-0.5 w-full bg-gradient-to-r from-emerald-500/40 to-emerald-300/20 rounded-b-xl" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

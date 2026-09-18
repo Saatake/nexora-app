@@ -5,6 +5,7 @@ import EvalBar from './EvalBar';
 import BadgeDetailModal from './BadgeDetailModal';
 import type { Project, Evaluation, ProjectBadge } from '../types';
 import { BADGE_LABELS, BADGE_COLORS, ALL_BADGES } from '@/constants/badges';
+import { formatThematicArea } from '@/constants/thematicAreas';
 
 type ProjectSidebarProps = {
   project: Project;
@@ -80,10 +81,12 @@ const ProjectSidebar = ({
             <p className="font-semibold text-[var(--agora-ink)]">{project.advisor}</p>
           </div>
         ) : null}
-        {project.thematicAreaName && (
+        {(project.thematicAreaName || project.thematicArea) && (
           <div>
             <p className="text-[var(--agora-muted)] text-xs mb-0.5">Área Temática</p>
-            <p className="font-semibold text-[var(--agora-ink)]">{project.thematicAreaName}</p>
+            <p className="font-semibold text-[var(--agora-ink)]">
+              {formatThematicArea(project.thematicAreaName || project.thematicArea)}
+            </p>
           </div>
         )}
         {project.tags && (

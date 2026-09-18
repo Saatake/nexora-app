@@ -15,6 +15,11 @@ export const THEMATIC_AREA_LABELS: Record<ThematicArea, string> = {
   ArtesDesignComunicacao: 'Artes, Design e Comunicação',
 };
 
+export const formatThematicArea = (area?: string | null): string => {
+  if (!area) return '';
+  return THEMATIC_AREA_LABELS[area as ThematicArea] ?? area;
+};
+
 export const THEMATIC_AREAS: ThematicArea[] = [
   'TecnologiaInovacao',
   'NegociosGestao',
