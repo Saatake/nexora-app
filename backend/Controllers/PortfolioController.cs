@@ -73,6 +73,8 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         request.Slug = request.Slug.Trim().ToLowerInvariant();
         request.ProjectIds = request.ProjectIds.Distinct().ToList();
         if (request.ProjectIds.Count > 12) return BadRequest(new { message = "Escolha no máximo 12 projetos." });
+        if (request.ProjectDrafts.Any(draft => !request.ProjectIds.Contains(draft.ProjectId)) || request.ProjectDrafts.Select(draft => draft.ProjectId).Distinct().Count() != request.ProjectDrafts.Count)
+            return BadRequest(new { message = "As descrições enviadas devem corresponder aos projetos selecionados." });
         if (request.IsPublished && (string.IsNullOrWhiteSpace(request.Headline) || string.IsNullOrWhiteSpace(request.Bio)))
             return BadRequest(new { message = "Adicione um título e uma apresentação antes de publicar." });
 
@@ -101,12 +103,17 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         portfolio.Theme = request.Theme;
         portfolio.IsPublished = request.IsPublished;
         portfolio.UpdatedAt = DateTime.UtcNow;
+        var existingDrafts = portfolio.Projects.ToDictionary(link => link.ProjectId);
         db.PortfolioProjects.RemoveRange(portfolio.Projects);
+        var draftsByProject = request.ProjectDrafts.ToDictionary(draft => draft.ProjectId);
         portfolio.Projects = selected.Select((project, index) => new PortfolioProject
         {
             Portfolio = portfolio,
             ProjectId = project.Id,
-            SortOrder = index
+            SortOrder = index,
+            PortfolioSummary = draftsByProject.TryGetValue(project.Id, out var draft) ? (string.IsNullOrWhiteSpace(draft.PortfolioSummary) ? null : draft.PortfolioSummary.Trim()) : existingDrafts.GetValueOrDefault(project.Id)?.PortfolioSummary,
+            Contribution = draftsByProject.TryGetValue(project.Id, out draft) ? (string.IsNullOrWhiteSpace(draft.Contribution) ? null : draft.Contribution.Trim()) : existingDrafts.GetValueOrDefault(project.Id)?.Contribution,
+            VisualSummary = draftsByProject.TryGetValue(project.Id, out draft) ? (string.IsNullOrWhiteSpace(draft.VisualSummary) ? null : draft.VisualSummary.Trim()) : existingDrafts.GetValueOrDefault(project.Id)?.VisualSummary
         }).ToList();
 
         await db.SaveChangesAsync();
@@ -136,7 +143,9 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
             {
                 Id = link.Project!.Id,
                 Title = link.Project.Title,
-                Summary = link.Project.Summary ?? string.Empty,
+                Summary = link.PortfolioSummary ?? link.Project.Summary ?? string.Empty,
+                Contribution = link.Contribution,
+                VisualSummary = link.VisualSummary,
                 Description = link.Project.Description,
                 Category = link.Project.Category.ToString(),
                 ThematicArea = link.Project.ThematicArea.ToString(),

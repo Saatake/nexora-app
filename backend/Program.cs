@@ -182,6 +182,8 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRankingService, RankingService>();
 builder.Services.AddScoped<BadgeService>();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("portfolio-images", client => client.Timeout = TimeSpan.FromSeconds(12))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, ConnectTimeout = TimeSpan.FromSeconds(5) });
 builder.Services.AddScoped<IAiReviewService, AiReviewService>();
 builder.Services.AddScoped<IPortfolioAiDraftService, PortfolioAiDraftService>();
 builder.Services.AddScoped<IStorageService, StorageService>();

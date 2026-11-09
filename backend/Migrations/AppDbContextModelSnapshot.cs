@@ -471,9 +471,20 @@ namespace backend.Migrations
 
             modelBuilder.Entity("Nexora.Api.Models.PortfolioProject", b =>
                 {
+                    b.Property<string>("Contribution")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)");
+
+                    b.Property<string>("PortfolioSummary")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
                     b.Property<int>("PortfolioId").HasColumnType("integer");
                     b.Property<int>("ProjectId").HasColumnType("integer");
                     b.Property<int>("SortOrder").HasColumnType("integer");
+                    b.Property<string>("VisualSummary")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
                     b.HasKey("PortfolioId", "ProjectId");
                     b.HasIndex("ProjectId");
                     b.ToTable("PortfolioProjects");

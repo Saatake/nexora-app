@@ -19,6 +19,8 @@ public class PortfolioProjectResponseDto
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Summary { get; set; } = string.Empty;
+    public string? Contribution { get; set; }
+    public string? VisualSummary { get; set; }
     public string Description { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string ThematicArea { get; set; } = string.Empty;

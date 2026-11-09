@@ -12,4 +12,13 @@ public class SavePortfolioRequestDto
     [RegularExpression("^(forest|ocean|sunset)$")] public string Theme { get; set; } = "forest";
     public bool IsPublished { get; set; }
     public List<int> ProjectIds { get; set; } = new();
+    public List<SavePortfolioProjectDraftDto> ProjectDrafts { get; set; } = new();
+}
+
+public class SavePortfolioProjectDraftDto
+{
+    public int ProjectId { get; set; }
+    [MaxLength(1200)] public string PortfolioSummary { get; set; } = string.Empty;
+    [MaxLength(800)] public string Contribution { get; set; } = string.Empty;
+    [MaxLength(500)] public string VisualSummary { get; set; } = string.Empty;
 }

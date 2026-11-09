@@ -38,4 +38,13 @@ public class PortfolioProject
     public int ProjectId { get; set; }
     public Project? Project { get; set; }
     public int SortOrder { get; set; }
+
+    [MaxLength(1200)]
+    public string? PortfolioSummary { get; set; }
+
+    [MaxLength(800)]
+    public string? Contribution { get; set; }
+
+    [MaxLength(500)]
+    public string? VisualSummary { get; set; }
 }

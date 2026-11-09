@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import api from '@/api/axios';
 
-type ProjectOption = { id: number; title: string; summary?: string; description: string; imageUrl?: string | null; isPrivate: boolean };
+type ProjectOption = { id: number; title: string; summary?: string; contribution?: string | null; visualSummary?: string | null; description: string; imageUrl?: string | null; isPrivate: boolean };
+type ProjectDraft = { projectId: number; summary: string; contribution: string; visualSummary: string };
 type PortfolioData = {
   name: string; course: string; photoUrl?: string | null; slug: string; headline: string; bio: string;
   skills: string[]; theme: string; isPublished: boolean; projects: ProjectOption[];
@@ -19,6 +20,7 @@ const PortfolioEditorPage = () => {
   const [portfolio, setPortfolio] = useState<PortfolioData>(blankPortfolio);
   const [availableProjects, setAvailableProjects] = useState<ProjectOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [projectDrafts, setProjectDrafts] = useState<Record<number, ProjectDraft>>({});
   const [skillsText, setSkillsText] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,6 +38,7 @@ const PortfolioEditorPage = () => {
       const data = portfolioResponse.data;
       setPortfolio(data);
       setSelectedIds(data.projects.map((project) => project.id));
+      setProjectDrafts(Object.fromEntries(data.projects.map((project) => [project.id, { projectId: project.id, summary: project.summary ?? '', contribution: project.contribution ?? '', visualSummary: project.visualSummary ?? '' }])));
       setSkillsText(data.skills.join(', '));
       setAvailableProjects(projectsResponse.data.items ?? []);
     }).catch(() => {
@@ -57,9 +60,11 @@ const PortfolioEditorPage = () => {
       const response = await api.put<PortfolioData>('/portfolios/me', {
         slug: portfolio.slug.trim().toLowerCase(), headline: portfolio.headline, bio: portfolio.bio,
         skills: skillsText, theme: portfolio.theme, isPublished: publish, projectIds: selectedIds,
+        projectDrafts: selectedIds.map((id) => projectDrafts[id] ?? { projectId: id, summary: '', contribution: '', visualSummary: '' }),
       });
       setPortfolio(response.data);
       setSelectedIds(response.data.projects.map((project) => project.id));
+      setProjectDrafts(Object.fromEntries(response.data.projects.map((project) => [project.id, { projectId: project.id, summary: project.summary ?? '', contribution: project.contribution ?? '', visualSummary: project.visualSummary ?? '' }])));
       setSkillsText(response.data.skills.join(', '));
       setNotice(publish ? 'Portfólio publicado. Seu endereço já está disponível.' : 'Rascunho salvo.');
     } catch (saveError: unknown) {
@@ -75,10 +80,11 @@ const PortfolioEditorPage = () => {
     }
     setError(''); setNotice(''); setGenerating(true);
     try {
-      const response = await api.post<{ headline: string; bio: string; skills: string[] }>('/portfolios/me/ai-draft', { projectIds: selectedIds });
+      const response = await api.post<{ headline: string; bio: string; skills: string[]; imagesAnalyzed: number; imagesUnavailable: number; projects: Array<{ projectId: number; summary: string; contribution: string; visualSummary: string }> }>('/portfolios/me/ai-draft', { projectIds: selectedIds });
       setPortfolio((current) => ({ ...current, headline: response.data.headline, bio: response.data.bio }));
       setSkillsText(response.data.skills.join(', '));
-      setNotice('Rascunho gerado. Revise as sugestões antes de salvar ou publicar.');
+      setProjectDrafts((current) => ({ ...current, ...Object.fromEntries(response.data.projects.map((draft) => [draft.projectId, draft])) }));
+      setNotice(`Rascunho gerado a partir dos projetos. ${response.data.imagesAnalyzed} capa(s) analisada(s)${response.data.imagesUnavailable ? `; ${response.data.imagesUnavailable} imagem(ns) indisponível(is)` : ''}. Revise as sugestões antes de salvar ou publicar.`);
     } catch (draftError: unknown) {
       const message = (draftError as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(message || 'Não foi possível gerar sugestões agora. Tente novamente em alguns instantes.');
@@ -98,7 +104,7 @@ const PortfolioEditorPage = () => {
               {portfolio.isPublished && <Link to={`/portfolio/${portfolio.slug}`} target="_blank" className="inline-flex items-center gap-2 text-sm font-semibold text-[#0a5c2f] hover:underline"><ExternalLink size={16} /> Ver página</Link>}
             </div>
             <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50/70 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
-              <div><p className="font-semibold text-emerald-950">Quer ajuda para começar?</p><p className="mt-1 text-xs leading-5 text-emerald-900/75">A IA usa seus dados de perfil e os projetos selecionados para sugerir um rascunho. Revise tudo antes de publicar.</p></div>
+              <div><p className="font-semibold text-emerald-950">Quer ajuda para começar?</p><p className="mt-1 text-xs leading-5 text-emerald-900/75">A IA usa principalmente descrições e capas dos projetos selecionados, além dos dados do perfil, para sugerir sua apresentação. Esses dados e imagens são enviados ao Gemini quando você pede o rascunho. Revise tudo antes de publicar.</p></div>
               <button type="button" disabled={generating || selectedIds.length === 0} onClick={generateDraft} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0a5c2f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#084925] disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0"><Sparkles size={16} />{generating ? 'Gerando rascunho...' : 'Gerar com IA'}</button>
             </div>
             <label className="mb-2 block text-sm font-semibold">Endereço público</label>
@@ -123,11 +129,20 @@ const PortfolioEditorPage = () => {
               <div className="grid gap-3 sm:grid-cols-2">
                 {availableProjects.map((project) => {
                   const checked = selectedIds.includes(project.id);
-                  return <label key={project.id} className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${checked ? 'border-emerald-600 bg-emerald-50/50' : 'border-[var(--agora-border)] hover:border-emerald-400'}`}>
-                    <input type="checkbox" checked={checked} disabled={!checked && selectedIds.length >= 12} onChange={() => toggleProject(project.id)} className="mt-1 accent-emerald-700" />
-                    {project.imageUrl && <img src={project.imageUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />}
-                    <span className="min-w-0"><span className="block font-semibold">{project.title}</span><span className="mt-1 line-clamp-2 block text-xs text-[var(--agora-muted)]">{project.summary || project.description}</span>{project.isPrivate && <span className="mt-2 inline-block rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">Privado</span>}</span>
-                  </label>;
+                  const draft = projectDrafts[project.id] ?? { projectId: project.id, summary: '', contribution: '', visualSummary: '' };
+                  const updateDraft = (key: keyof Omit<ProjectDraft, 'projectId'>, value: string) => setProjectDrafts((current) => ({ ...current, [project.id]: { ...draft, [key]: value } }));
+                  return <div key={project.id} className={`rounded-xl border p-4 transition-colors ${checked ? 'border-emerald-600 bg-emerald-50/50' : 'border-[var(--agora-border)] hover:border-emerald-400'}`}>
+                    <label className="flex cursor-pointer gap-3">
+                      <input type="checkbox" checked={checked} disabled={!checked && selectedIds.length >= 12} onChange={() => toggleProject(project.id)} className="mt-1 accent-emerald-700" />
+                      {project.imageUrl && <img src={project.imageUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />}
+                      <span className="min-w-0"><span className="block font-semibold">{project.title}</span><span className="mt-1 line-clamp-2 block text-xs text-[var(--agora-muted)]">{project.summary || project.description}</span>{project.isPrivate && <span className="mt-2 inline-block rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">Privado</span>}</span>
+                    </label>
+                    {checked && <div className="mt-4 space-y-3 border-t border-emerald-100 pt-4">
+                      <label className="block text-xs font-semibold">O que é este projeto<textarea value={draft.summary} onChange={(event) => updateDraft('summary', event.target.value)} maxLength={1200} rows={3} placeholder="Revise ou escreva um resumo para o portfólio" className="mt-1 w-full rounded-lg border border-[var(--agora-border)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-emerald-600" /></label>
+                      <label className="block text-xs font-semibold">Minha contribuição<textarea value={draft.contribution} onChange={(event) => updateDraft('contribution', event.target.value)} maxLength={800} rows={2} placeholder="Descreva o que você fez neste projeto" className="mt-1 w-full rounded-lg border border-[var(--agora-border)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-emerald-600" /></label>
+                      {draft.visualSummary && <p className="rounded-lg bg-white/70 p-3 text-xs leading-5 text-[var(--agora-muted)]"><strong>Leitura da capa pela IA:</strong> {draft.visualSummary}</p>}
+                    </div>}
+                  </div>;
                 })}
               </div>
             )}
