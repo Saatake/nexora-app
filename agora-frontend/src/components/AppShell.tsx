@@ -12,7 +12,8 @@ import {
   X,
   Moon,
   Sun,
-  ChevronRight
+  ChevronRight,
+  BriefcaseBusiness
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -58,6 +59,7 @@ const AppShell = ({
     { label: 'Meus projetos', icon: FolderKanban, to: '/projects' },
     { label: 'Explorar projetos', icon: Compass, to: '/explore' },
     { label: 'Ranking', icon: Trophy, to: '/ranking' },
+    { label: 'Meu portfólio', icon: BriefcaseBusiness, to: '/portfolio/edit' },
     { label: 'Perfil', icon: User2, to: '/profile' }
   ];
 

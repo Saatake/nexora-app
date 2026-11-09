@@ -16,6 +16,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
     public DbSet<UserTeachingArea> UserTeachingAreas { get; set; }
     public DbSet<ProjectBadge> ProjectBadges { get; set; }
+    public DbSet<Portfolio> Portfolios { get; set; }
+    public DbSet<PortfolioProject> PortfolioProjects { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -59,5 +61,22 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(b => b.Professor)
             .WithMany()
             .HasForeignKey(b => b.ProfessorId);
+
+        builder.Entity<Portfolio>()
+            .HasIndex(p => p.UserId)
+            .IsUnique();
+        builder.Entity<Portfolio>()
+            .HasIndex(p => p.Slug)
+            .IsUnique();
+        builder.Entity<PortfolioProject>()
+            .HasKey(p => new { p.PortfolioId, p.ProjectId });
+        builder.Entity<PortfolioProject>()
+            .HasOne(p => p.Portfolio)
+            .WithMany(p => p.Projects)
+            .HasForeignKey(p => p.PortfolioId);
+        builder.Entity<PortfolioProject>()
+            .HasOne(p => p.Project)
+            .WithMany()
+            .HasForeignKey(p => p.ProjectId);
     }
 }

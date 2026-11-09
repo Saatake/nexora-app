@@ -15,6 +15,8 @@ import ExploreProjectsPage from '../pages/ExploreProjectsPage';
 import RankingPage from '../pages/RankingPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectDetailsPage from '../pages/ProjectDetailsPage';
+import PortfolioEditorPage from '../pages/PortfolioEditorPage';
+import PublicPortfolioPage from '../pages/PublicPortfolioPage';
 
 const PrivateRoute = ({ children }: { children: ReactElement }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,6 +36,7 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/confirmar-email" element={<ConfirmEmailPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/portfolio/:slug" element={<PublicPortfolioPage />} />
         
         <Route 
           path="/dashboard" 
@@ -98,6 +101,14 @@ const AppRoutes = () => {
               <ProfilePage />
             </PrivateRoute>
           } 
+        />
+        <Route
+          path="/portfolio/edit"
+          element={
+            <PrivateRoute>
+              <PortfolioEditorPage />
+            </PrivateRoute>
+          }
         />
         <Route 
           path="/profile/:id" 

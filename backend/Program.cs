@@ -13,6 +13,7 @@ using Nexora.Api.Interfaces;
 using Nexora.Api.Repositories;
 using Nexora.Api.Middlewares;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
 using System.Threading.RateLimiting;
 using Resend;
 
@@ -22,8 +23,15 @@ var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173
 
 // DB
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var useInMemoryDatabase = builder.Environment.IsDevelopment()
+    && builder.Configuration.GetValue<bool>("Database:UseInMemory");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    if (useInMemoryDatabase)
+        options.UseInMemoryDatabase("AgoraLocalPortfolioTest");
+    else
+        options.UseNpgsql(connectionString);
+});
 
 // Identity (sem endpoints automáticos)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -175,6 +183,7 @@ builder.Services.AddScoped<IRankingService, RankingService>();
 builder.Services.AddScoped<BadgeService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAiReviewService, AiReviewService>();
+builder.Services.AddScoped<IPortfolioAiDraftService, PortfolioAiDraftService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 
 builder.Services.AddControllers()
@@ -195,7 +204,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        context.Database.Migrate();
+        if (context.Database.IsRelational())
+            context.Database.Migrate();
+        else
+            context.Database.EnsureCreated();
     }
     catch (Exception ex)
     {
@@ -214,6 +226,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Database:UseInMemory"))
+{
+    var localWebRoot = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    Directory.CreateDirectory(localWebRoot);
+    app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(localWebRoot) });
+}
+else
+{
+    app.UseStaticFiles();
+}
 
 // CSRF: rejeita requisições com cookie jwt vindas de origens não permitidas
 var allowedOrigins = new[] { frontendUrl, "http://localhost:3000", "http://localhost:5173" };
