@@ -10,6 +10,7 @@ public class PortfolioResponseDto
     public string Bio { get; set; } = string.Empty;
     public List<string> Skills { get; set; } = new();
     public string Theme { get; set; } = "forest";
+    public PortfolioDesignSpecDto DesignSpec { get; set; } = PortfolioDesignSpecDto.CreateDefault();
     public bool IsPublished { get; set; }
     public List<PortfolioProjectResponseDto> Projects { get; set; } = new();
 }

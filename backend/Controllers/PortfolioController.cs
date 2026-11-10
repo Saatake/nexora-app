@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -134,6 +135,27 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         return Ok(ToResponse(portfolio, includePrivate: false));
     }
 
+    private static readonly JsonSerializerOptions DesignJsonOptions = new(JsonSerializerDefaults.Web);
+
+    private static PortfolioDesignSpecDto ReadDesignSpec(string? json, IReadOnlyList<PortfolioProjectResponseDto> projects)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return PortfolioDesignSpecDto.CreateDefault();
+
+        try
+        {
+            var spec = JsonSerializer.Deserialize<PortfolioDesignSpecDto>(json, DesignJsonOptions);
+            if (spec is null || !spec.IsValid()) return PortfolioDesignSpecDto.CreateDefault();
+
+            var visibleProjectIds = projects.Select(project => project.Id).ToHashSet();
+            spec.ProjectCards.RemoveAll(card => !visibleProjectIds.Contains(card.ProjectId));
+            return spec;
+        }
+        catch (JsonException)
+        {
+            return PortfolioDesignSpecDto.CreateDefault();
+        }
+    }
+
     private static PortfolioResponseDto ToResponse(Portfolio portfolio, bool includePrivate)
     {
         var projects = portfolio.Projects
@@ -164,6 +186,7 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
             Bio = portfolio.Bio,
             Skills = portfolio.Skills.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
             Theme = portfolio.Theme,
+            DesignSpec = ReadDesignSpec(portfolio.DesignSpecJson, projects),
             IsPublished = portfolio.IsPublished,
             Projects = projects
         };

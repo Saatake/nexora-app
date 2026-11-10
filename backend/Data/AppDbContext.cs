@@ -68,6 +68,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Portfolio>()
             .HasIndex(p => p.Slug)
             .IsUnique();
+        builder.Entity<Portfolio>()
+            .Property(p => p.DesignSpecJson)
+            .HasColumnType("jsonb");
         builder.Entity<PortfolioProject>()
             .HasKey(p => new { p.PortfolioId, p.ProjectId });
         builder.Entity<PortfolioProject>()

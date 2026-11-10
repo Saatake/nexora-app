@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Nexora.Api.Dtos.Responses;
 
 namespace Nexora.Api.Dtos.Requests;
 
@@ -10,6 +11,7 @@ public class SavePortfolioRequestDto
     [MaxLength(2000)] public string Bio { get; set; } = string.Empty;
     [MaxLength(1000)] public string Skills { get; set; } = string.Empty;
     [RegularExpression("^(forest|ocean|sunset)$")] public string Theme { get; set; } = "forest";
+    public PortfolioDesignSpecDto? DesignSpec { get; set; }
     public bool IsPublished { get; set; }
     public List<int> ProjectIds { get; set; } = new();
     public List<SavePortfolioProjectDraftDto> ProjectDrafts { get; set; } = new();

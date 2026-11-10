@@ -5,6 +5,7 @@ public class PortfolioAiDraftDto
     public string Headline { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
     public List<string> Skills { get; set; } = new();
+    public PortfolioDesignSpecDto DesignSpec { get; set; } = PortfolioDesignSpecDto.CreateDefault();
     public int ImagesAnalyzed { get; set; }
     public int ImagesUnavailable { get; set; }
     public List<PortfolioAiProjectDraftDto> Projects { get; set; } = new();

@@ -456,6 +456,7 @@ namespace backend.Migrations
                     b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
                     b.Property<string>("Bio").IsRequired().HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<string>("DesignSpecJson").HasColumnType("jsonb");
                     b.Property<string>("Headline").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)");
                     b.Property<bool>("IsPublished").HasColumnType("boolean");
                     b.Property<string>("Skills").IsRequired().HasMaxLength(1000).HasColumnType("character varying(1000)");

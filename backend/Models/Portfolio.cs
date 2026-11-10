@@ -25,6 +25,8 @@ public class Portfolio
     [MaxLength(32)]
     public string Theme { get; set; } = "forest";
 
+    public string? DesignSpecJson { get; set; }
+
     public bool IsPublished { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
