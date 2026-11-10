@@ -97,14 +97,11 @@ const mediaLayouts = {
 const linkClass = 'inline-flex min-h-11 items-center gap-1.5 rounded-sm text-sm font-bold text-(--portfolio-accent) hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--portfolio-accent)';
 
 function safeWebUrl(value: string | null | undefined): string | undefined {
-  if (!value) return undefined;
-
-  const url = value.trim();
-  if (/^\/(?![/\\])/.test(url) && !/[\u0000-\u001f\u007f]/.test(url)) return url;
+  if (!value?.trim()) return undefined;
 
   try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : undefined;
+    const { protocol } = new URL(value, document.baseURI);
+    return protocol === 'https:' || protocol === 'http:' ? value : undefined;
   } catch {
     return undefined;
   }
