@@ -55,6 +55,7 @@ export type PortfolioDraft = {
   bio: string;
   skills: string[];
   designSpec: PortfolioDesignSpec;
+  designExplanation: string;
   projects: Array<{
     projectId: number;
     summary: string;
@@ -71,6 +72,22 @@ export type PortfolioAiDraft = PortfolioDraft & {
   imagesAnalyzed: number;
   imagesUnavailable: number;
 };
+
+export function normalizePortfolioSkills(entries: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const skills: string[] = [];
+  for (const entry of entries) {
+    for (const token of entry.split(',')) {
+      const skill = token.trim().slice(0, 80).trim();
+      const key = skill.toUpperCase();
+      if (!skill || seen.has(key)) continue;
+      seen.add(key);
+      skills.push(skill);
+      if (skills.length === 10) return skills;
+    }
+  }
+  return skills;
+}
 
 const defaultDesignSpec: PortfolioDesignSpec = {
   version: 1,

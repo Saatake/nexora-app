@@ -1,11 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Nexora.Api.Dtos.Responses;
 
 public class PortfolioAiDraftDto
 {
+    public const int MaxDesignExplanationLength = 500;
+
     public string Headline { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
     public List<string> Skills { get; set; } = new();
     public PortfolioDesignSpecDto DesignSpec { get; set; } = PortfolioDesignSpecDto.CreateDefault();
+    [MaxLength(MaxDesignExplanationLength)]
+    public string DesignExplanation { get; set; } = string.Empty;
     public string ModelId { get; set; } = string.Empty;
     public int? InputTokenCount { get; set; }
     public int? OutputTokenCount { get; set; }

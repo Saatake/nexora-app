@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import api from '@/api/axios';
 import AppShell from '@/components/AppShell';
 import PortfolioRenderer from '@/features/portfolio/PortfolioRenderer';
-import { normalizePortfolioDesignSpec } from '@/features/portfolio/types';
+import { normalizePortfolioDesignSpec, normalizePortfolioSkills } from '@/features/portfolio/types';
 import type { Portfolio, PortfolioAiDraft, PortfolioDraft, PortfolioProject } from '@/features/portfolio/types';
 
 type ProjectOption = Omit<PortfolioProject, 'summary' | 'thematicArea'> & {
@@ -55,8 +55,7 @@ function createPreview(draft: PortfolioAiDraft, portfolio: Portfolio, selectedPr
     ...portfolio,
     headline: draft.headline.trim(),
     bio: draft.bio.trim(),
-    // The save endpoint stores skills as comma-separated text.
-    skills: draft.skills.join(',').split(',').map((skill) => skill.trim()).filter(Boolean),
+    skills: normalizePortfolioSkills(draft.skills),
     theme: draft.designSpec.colors,
     designSpec: draft.designSpec,
     projects: selectedProjects.map((project) => {
@@ -89,8 +88,9 @@ function reopenDraft(portfolio: Portfolio | null): PortfolioDraft | null {
   return {
     headline: portfolio.headline,
     bio: portfolio.bio,
-    skills: portfolio.skills,
+    skills: normalizePortfolioSkills(portfolio.skills),
     designSpec: portfolio.designSpec,
+    designExplanation: '',
     projects: portfolio.projects.map((project) => ({
       projectId: project.id,
       summary: project.summary,
@@ -123,7 +123,7 @@ const PortfolioEditorPage = () => {
     Promise.all([api.get<Portfolio>('/portfolios/me'), loadProjectOptions()])
       .then(([{ data }, projects]) => {
         if (!active) return;
-        setSavedPortfolio(data);
+        setSavedPortfolio({ ...data, skills: normalizePortfolioSkills(data.skills) });
         setSlug(data.slug);
         setSelectedIds(data.projects.map((project) => project.id));
         setAvailableProjects(projects);
@@ -178,9 +178,10 @@ const PortfolioEditorPage = () => {
     setSaveError('');
     try {
       const { data } = await api.post<PortfolioAiDraft>('/portfolios/me/ai-draft', { projectIds: selectedIds });
+      const draft = { ...data, skills: normalizePortfolioSkills(data.skills) };
       setGenerated({
-        draft: data,
-        portfolio: createPreview(data, savedPortfolio, selectedProjects),
+        draft,
+        portfolio: createPreview(draft, savedPortfolio, selectedProjects),
         imageCounts: { imagesAnalyzed: data.imagesAnalyzed, imagesUnavailable: data.imagesUnavailable },
       });
       setInstruction('');
@@ -203,9 +204,10 @@ const PortfolioEditorPage = () => {
     setSaveError('');
     try {
       const { data } = await api.post<PortfolioAiDraft>('/portfolios/me/ai-revision', { draft: revisionDraft, instruction: request });
+      const draft = { ...data, skills: normalizePortfolioSkills(data.skills) };
       setGenerated({
-        draft: data,
-        portfolio: createPreview(data, preview, preview.projects),
+        draft,
+        portfolio: createPreview(draft, preview, preview.projects),
         imageCounts: generated?.imageCounts,
       });
       setInstruction('');
@@ -235,7 +237,7 @@ const PortfolioEditorPage = () => {
         slug,
         headline: preview.headline,
         bio: preview.bio,
-        skills: preview.skills.join(', '),
+        skills: normalizePortfolioSkills(preview.skills).join(', '),
         theme: preview.theme,
         designSpec,
         isPublished: publish,
@@ -247,7 +249,7 @@ const PortfolioEditorPage = () => {
           visualSummary: project.visualSummary ?? '',
         })),
       });
-      setSavedPortfolio(data);
+      setSavedPortfolio({ ...data, skills: normalizePortfolioSkills(data.skills) });
       setSlug(data.slug);
       setSaveNotice(publish ? 'Portfólio publicado. Seu endereço já está disponível.' : 'Rascunho salvo.');
     } catch (error) {
@@ -375,6 +377,11 @@ const PortfolioEditorPage = () => {
             <div className="mb-3 px-1">
               <p className={stepClass}>03 / Prévia</p>
               <h2 id="portfolio-preview" className="mt-2 text-xl font-bold tracking-tight">Confira sua página</h2>
+              {generated?.draft.designExplanation && (
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-(--agora-muted)">
+                  <strong>Sobre o visual · só para você:</strong> {generated.draft.designExplanation}
+                </p>
+              )}
               {previewIsStale && <p className="mt-1 text-sm text-(--agora-muted)">Mostrando a prévia da seleção anterior.</p>}
             </div>
             <div className="overflow-hidden rounded-2xl border border-(--agora-border)">

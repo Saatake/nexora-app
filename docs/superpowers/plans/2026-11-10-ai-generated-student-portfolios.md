@@ -84,10 +84,10 @@
 
 **Interfaces:**
 - Keep `POST /api/portfolios/me/ai-draft` authenticated and ownership-checked; return the full draft including `DesignSpec` and usage metadata.
-- Add authenticated `POST /api/portfolios/me/ai-revision` with `{ draft, instruction }`; enforce a short maximum instruction length and the existing authenticated rate-limit policy.
+- Add authenticated `POST /api/portfolios/me/ai-revision` with `{ draft, instruction }`; enforce a maximum instruction length of 1,000 characters and a dedicated per-user five-requests-per-minute AI rate limit.
 - `PUT /api/portfolios/me` persists the submitted validated design spec along with text and project drafts; public `GET /api/portfolios/{slug}` returns saved spec only.
 
-- [x] Add bounded revision request validation and route it to `ReviseAsync` without fetching or transmitting new profile/project material.
+- [x] Add bounded revision request validation and an ID-only caller-ownership query before `ReviseAsync`, without fetching or transmitting new profile/project details.
 - [x] Validate submitted design specs server-side against the same allowlists before saving; reject invalid specs rather than storing arbitrary values.
 - [x] Preserve existing user ownership checks, 1–12 project limit, private-project publication restriction, slug uniqueness, and selected-project response filtering.
 - [x] Keep generation failure behavior recoverable and preserve the existing saved portfolio on generation/revision errors.
@@ -141,3 +141,10 @@
 - [ ] Verify two distinct selected project sets produce clearly different saved compositions, refresh/public views stay stable, legacy portfolios use the default, and non-owned/private project protections still hold. Live generation/revision is left for the user’s local test.
 - [ ] Inspect the editor preview and public portfolio visually at desktop/mobile widths with three design specs and a legacy response. The Computer Use runtime could not initialize, so visual inspection is deferred to the user’s local test.
 - [ ] Review changed files for credentials, prompt logging, raw model markup, unbounded retries, or unallowlisted values; leave the branch ready for the user to test locally.
+
+### Final review fixes
+
+- [x] Check revision project IDs against caller-owned IDs before Gemini; return a generic 400 for mismatches.
+- [x] Canonicalize skills at generation, revision input/merge, preview, save and reopen: split commas, trim, truncate tokens to 80 characters, deduplicate case-insensitively, and retain the first 10. Retain the canonical draft in editor state.
+- [x] Share a dedicated `portfolio-ai` sliding limit across generation/revision: five requests per user per minute, NameIdentifier partition with remote-IP fallback, after authentication. Keep the existing `auth` policy unchanged.
+- [x] Generate and sparsely revise a private `designExplanation` of up to 500 characters, displayed beside the editor preview only. Do not persist it or include it in public responses; reopen with an empty explanation.

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nexora.Api.Data;
+using Nexora.Api.Dtos;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Dtos.Responses;
 using Nexora.Api.Models;
@@ -18,7 +19,7 @@ namespace Nexora.Api.Controllers;
 public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portfolioAiDraftService, ILogger<PortfolioController> logger) : ControllerBase
 {
     [Authorize]
-    [EnableRateLimiting("auth")]
+    [EnableRateLimiting("portfolio-ai")]
     [HttpPost("me/ai-draft")]
     public async Task<ActionResult<PortfolioAiDraftDto>> GenerateDraft([FromBody] PortfolioAiDraftRequestDto request)
     {
@@ -39,12 +40,28 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
     }
 
     [Authorize]
-    [EnableRateLimiting("auth")]
+    [EnableRateLimiting("portfolio-ai")]
     [HttpPost("me/ai-revision")]
     public async Task<ActionResult<PortfolioAiDraftDto>> ReviseDraft([FromBody] PortfolioAiRevisionRequestDto request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+
+        if (request.Draft?.Projects is not { Count: >= 1 and <= 12 } projects ||
+            projects.Any(project => project is null || project.ProjectId <= 0))
+            return BadRequest(new { message = "Confira os projetos ou gere um novo rascunho antes de revisar." });
+
+        var projectIds = projects.Select(project => project.ProjectId).ToHashSet();
+        if (projectIds.Count != projects.Count)
+            return BadRequest(new { message = "Confira os projetos ou gere um novo rascunho antes de revisar." });
+
+        // Ownership check only: revisions never load new project details for Gemini.
+        var ownedIds = await db.Projects
+            .Where(project => projectIds.Contains(project.Id) && project.UserId == userId)
+            .Select(project => project.Id)
+            .ToListAsync();
+        if (!projectIds.SetEquals(ownedIds))
+            return BadRequest(new { message = "Confira os projetos ou gere um novo rascunho antes de revisar." });
 
         return await RunDraftOperation(
             userId, "revisão", () => portfolioAiDraftService.ReviseAsync(request.Draft, request.Instruction),
@@ -107,7 +124,7 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         portfolio.Slug = request.Slug;
         portfolio.Headline = request.Headline.Trim();
         portfolio.Bio = request.Bio.Trim();
-        portfolio.Skills = request.Skills.Trim();
+        portfolio.Skills = string.Join(", ", PortfolioSkills.Normalize([request.Skills]));
         portfolio.Theme = request.Theme;
         portfolio.DesignSpecJson = JsonSerializer.Serialize(
             request.DesignSpec ?? ReconcileDesignSpec(portfolio.DesignSpecJson, request.ProjectIds),
@@ -230,7 +247,7 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
             Slug = portfolio.Slug,
             Headline = portfolio.Headline,
             Bio = portfolio.Bio,
-            Skills = portfolio.Skills.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
+            Skills = PortfolioSkills.Normalize([portfolio.Skills]),
             Theme = portfolio.Theme,
             DesignSpec = designSpec,
             IsPublished = portfolio.IsPublished,
