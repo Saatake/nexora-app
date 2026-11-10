@@ -8,3 +8,7 @@ public interface IPortfolioAiDraftService
     Task<PortfolioAiDraftDto> GenerateAsync(ApplicationUser user, IReadOnlyCollection<Project> projects);
     Task<PortfolioAiDraftDto> ReviseAsync(PortfolioAiDraftDto currentDraft, string instruction);
 }
+
+public sealed class InvalidPortfolioRevisionRequestException : Exception
+{
+}

@@ -152,6 +152,11 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         {
             return Ok(await run());
         }
+        catch (InvalidPortfolioRevisionRequestException ex)
+        {
+            logger.LogWarning("Falha na {Operation} de rascunho de portfólio para {UserId}: {Reason}", operation, userId, ex.GetType().Name);
+            return BadRequest(new { message = "Confira os projetos e a instrução ou gere um novo rascunho antes de revisar." });
+        }
         catch (InvalidOperationException ex)
         {
             logger.LogWarning("Falha na {Operation} de rascunho de portfólio para {UserId}: {Reason}", operation, userId, ex.GetType().Name);

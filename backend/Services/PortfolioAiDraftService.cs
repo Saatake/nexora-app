@@ -142,15 +142,15 @@ public class PortfolioAiDraftService(
     public async Task<PortfolioAiDraftDto> ReviseAsync(PortfolioAiDraftDto currentDraft, string instruction)
     {
         if (string.IsNullOrWhiteSpace(instruction) || instruction.Length > MaxRevisionInstructionLength)
-            throw new InvalidOperationException($"Informe uma instrução de revisão de até {MaxRevisionInstructionLength} caracteres.");
+            throw new InvalidPortfolioRevisionRequestException();
 
-        if (currentDraft.Projects is not { Count: >= 1 and <= MaxProjects } ||
+        if (currentDraft is null || currentDraft.Projects is not { Count: >= 1 and <= MaxProjects } ||
             currentDraft.Projects.Any(project => project is null || project.ProjectId <= 0))
-            throw InvalidDraft();
+            throw new InvalidPortfolioRevisionRequestException();
 
         var projectIds = currentDraft.Projects.Select(project => project.ProjectId).ToHashSet();
         if (!HasValidContent(currentDraft, projectIds, MaxRevisionBio))
-            throw InvalidDraft();
+            throw new InvalidPortfolioRevisionRequestException();
 
         var input = JsonSerializer.Serialize(new
         {
