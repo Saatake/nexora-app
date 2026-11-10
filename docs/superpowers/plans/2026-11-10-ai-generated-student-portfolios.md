@@ -136,8 +136,8 @@
 **Files:**
 - No new files unless a defect found in Tasks 1–5.
 
-- [ ] Apply the new migration only to the configured Neon development database; confirm the migration status and existing project row count before and after are unchanged.
-- [ ] Build backend and frontend, then run both locally using the existing dev configuration without exposing or committing credentials.
-- [ ] Verify two distinct selected project sets produce clearly different saved compositions, refresh/public views stay stable, legacy portfolios use the default, and non-owned/private project protections still hold.
-- [ ] Inspect the editor preview and public portfolio visually at desktop/mobile widths with three design specs and a legacy response.
+- [x] Apply the new migration only to the configured Neon development database; confirm the migration status and existing project row count before and after are unchanged (7 rows).
+- [x] Build backend and frontend, then run both locally using the existing dev configuration without exposing or committing credentials.
+- [ ] Verify two distinct selected project sets produce clearly different saved compositions, refresh/public views stay stable, legacy portfolios use the default, and non-owned/private project protections still hold. Live generation/revision is left for the user’s local test.
+- [ ] Inspect the editor preview and public portfolio visually at desktop/mobile widths with three design specs and a legacy response. The Computer Use runtime could not initialize, so visual inspection is deferred to the user’s local test.
 - [ ] Review changed files for credentials, prompt logging, raw model markup, unbounded retries, or unallowlisted values; leave the branch ready for the user to test locally.
