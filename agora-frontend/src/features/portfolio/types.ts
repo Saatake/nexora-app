@@ -50,6 +50,28 @@ export type Portfolio = {
   designSpec?: PortfolioDesignSpec | null;
 };
 
+export type PortfolioDraft = {
+  headline: string;
+  bio: string;
+  skills: string[];
+  designSpec: PortfolioDesignSpec;
+  projects: Array<{
+    projectId: number;
+    summary: string;
+    contribution: string;
+    visualSummary: string;
+  }>;
+};
+
+export type PortfolioAiDraft = PortfolioDraft & {
+  modelId: string;
+  inputTokenCount: number | null;
+  outputTokenCount: number | null;
+  generationLatencyMs: number;
+  imagesAnalyzed: number;
+  imagesUnavailable: number;
+};
+
 const defaultDesignSpec: PortfolioDesignSpec = {
   version: 1,
   direction: 'classic-editorial',

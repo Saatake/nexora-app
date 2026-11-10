@@ -1,167 +1,440 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ExternalLink, Eye, EyeOff, Plus, Save, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { isAxiosError } from 'axios';
+import { ExternalLink, Eye, Plus, Save, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import AppShell from '@/components/AppShell';
 import api from '@/api/axios';
+import AppShell from '@/components/AppShell';
+import PortfolioRenderer from '@/features/portfolio/PortfolioRenderer';
+import { normalizePortfolioDesignSpec } from '@/features/portfolio/types';
+import type { Portfolio, PortfolioAiDraft, PortfolioDraft, PortfolioProject } from '@/features/portfolio/types';
 
-type ProjectOption = { id: number; title: string; summary?: string; contribution?: string | null; visualSummary?: string | null; description: string; imageUrl?: string | null; isPrivate: boolean };
-type ProjectDraft = { projectId: number; summary: string; contribution: string; visualSummary: string };
-type PortfolioData = {
-  name: string; course: string; photoUrl?: string | null; slug: string; headline: string; bio: string;
-  skills: string[]; theme: string; isPublished: boolean; projects: ProjectOption[];
+type ProjectOption = Omit<PortfolioProject, 'summary' | 'thematicArea'> & {
+  summary?: string | null;
+  thematicAreaName: string;
+  isPrivate: boolean;
 };
-type Page<T> = { items: T[] };
 
-const blankPortfolio: PortfolioData = {
-  name: '', course: '', slug: '', headline: '', bio: '', skills: [], theme: 'forest', isPublished: false, projects: [],
-};
+type ProjectPage = { items: ProjectOption[]; totalPages: number };
+type ProjectSource = Pick<PortfolioProject, 'id' | 'title' | 'description' | 'thematicArea' | 'category' | 'imageUrl' | 'githubLink' | 'fileUrl'>;
+type ImageCounts = Pick<PortfolioAiDraft, 'imagesAnalyzed' | 'imagesUnavailable'>;
+type GeneratedPreview = { draft: PortfolioDraft; portfolio: Portfolio; imageCounts?: ImageCounts };
+type PendingAction = 'generate' | 'revise' | 'save' | 'publish';
+
+const maxProjects = 12;
+const maxInstruction = 1000;
+const panelClass = 'rounded-2xl border border-(--agora-border) bg-(--agora-card-bg) p-5 sm:p-7';
+const stepClass = 'text-xs font-bold tracking-[0.14em] text-(--agora-accent) uppercase';
+const buttonClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--agora-accent) disabled:cursor-not-allowed disabled:opacity-50 active:enabled:brightness-95';
+const primaryButton = `${buttonClass} bg-(--agora-accent) text-white hover:enabled:bg-(--agora-accent-hover)`;
+const secondaryButton = `${buttonClass} border border-(--agora-border) text-(--agora-accent) hover:enabled:bg-(--agora-accent-bg)`;
+
+async function loadProjectOptions() {
+  const getPage = (page: number) => api.get<ProjectPage>('/projects/me', { params: { page, pageSize: 50 } });
+  const { data: first } = await getPage(1);
+  const remaining = await Promise.all(Array.from({ length: first.totalPages - 1 }, (_, index) => getPage(index + 2)));
+  return [...first.items, ...remaining.flatMap(({ data }) => data.items)];
+}
+
+function hasExactIds(expected: number[], actual: number[]) {
+  const actualIds = new Set(actual);
+  return actual.length === expected.length && actualIds.size === actual.length && expected.every((id) => actualIds.has(id));
+}
+
+function createPreview(draft: PortfolioAiDraft, portfolio: Portfolio, selectedProjects: ProjectSource[]): Portfolio {
+  const selectedIds = selectedProjects.map((project) => project.id);
+  if (
+    !hasExactIds(selectedIds, draft.projects.map((project) => project.projectId)) ||
+    !hasExactIds(selectedIds, draft.designSpec.projectCards.map((card) => card.projectId))
+  ) {
+    throw new Error('Os projetos do rascunho não correspondem à seleção.');
+  }
+
+  const draftsById = new Map(draft.projects.map((project) => [project.projectId, project]));
+
+  return {
+    ...portfolio,
+    headline: draft.headline.trim(),
+    bio: draft.bio.trim(),
+    // The save endpoint stores skills as comma-separated text.
+    skills: draft.skills.join(',').split(',').map((skill) => skill.trim()).filter(Boolean),
+    theme: draft.designSpec.colors,
+    designSpec: draft.designSpec,
+    projects: selectedProjects.map((project) => {
+      const copy = draftsById.get(project.id);
+      if (!copy) throw new Error('Um projeto ficou sem texto no rascunho.');
+      return {
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        thematicArea: project.thematicArea,
+        category: project.category,
+        imageUrl: project.imageUrl,
+        githubLink: project.githubLink,
+        fileUrl: project.fileUrl,
+        summary: copy.summary.trim(),
+        contribution: copy.contribution.trim(),
+        visualSummary: copy.visualSummary.trim(),
+      };
+    }),
+  };
+}
+
+function reopenDraft(portfolio: Portfolio | null): PortfolioDraft | null {
+  if (!portfolio?.designSpec || !portfolio.headline.trim() || !portfolio.bio.trim() || !portfolio.projects.length ||
+    portfolio.projects.some((project) => !project.summary.trim() || !project.contribution?.trim()) ||
+    !hasExactIds(portfolio.projects.map((project) => project.id), portfolio.designSpec.projectCards.map((card) => card.projectId))) {
+    return null;
+  }
+
+  return {
+    headline: portfolio.headline,
+    bio: portfolio.bio,
+    skills: portfolio.skills,
+    designSpec: portfolio.designSpec,
+    projects: portfolio.projects.map((project) => ({
+      projectId: project.id,
+      summary: project.summary,
+      contribution: project.contribution ?? '',
+      visualSummary: project.visualSummary ?? '',
+    })),
+  };
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return (isAxiosError<{ message?: string }>(error) && error.response?.data?.message) || fallback;
+}
 
 const PortfolioEditorPage = () => {
-  const [portfolio, setPortfolio] = useState<PortfolioData>(blankPortfolio);
+  const [savedPortfolio, setSavedPortfolio] = useState<Portfolio | null>(null);
   const [availableProjects, setAvailableProjects] = useState<ProjectOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [projectDrafts, setProjectDrafts] = useState<Record<number, ProjectDraft>>({});
-  const [skillsText, setSkillsText] = useState('');
+  const [generated, setGenerated] = useState<GeneratedPreview | null>(null);
+  const [instruction, setInstruction] = useState('');
+  const [slug, setSlug] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [pending, setPending] = useState<PendingAction | null>(null);
+  const [aiError, setAiError] = useState('');
+  const [aiNotice, setAiNotice] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [saveNotice, setSaveNotice] = useState('');
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      api.get<PortfolioData>('/portfolios/me'),
-      api.get<Page<ProjectOption>>('/projects/me', { params: { page: 1, pageSize: 50 } }),
-    ]).then(([portfolioResponse, projectsResponse]) => {
-      if (!active) return;
-      const data = portfolioResponse.data;
-      setPortfolio(data);
-      setSelectedIds(data.projects.map((project) => project.id));
-      setProjectDrafts(Object.fromEntries(data.projects.map((project) => [project.id, { projectId: project.id, summary: project.summary ?? '', contribution: project.contribution ?? '', visualSummary: project.visualSummary ?? '' }])));
-      setSkillsText(data.skills.join(', '));
-      setAvailableProjects(projectsResponse.data.items ?? []);
-    }).catch(() => {
-      if (active) setError('Não foi possível carregar o editor de portfólio.');
-    }).finally(() => { if (active) setLoading(false); });
+    Promise.all([api.get<Portfolio>('/portfolios/me'), loadProjectOptions()])
+      .then(([{ data }, projects]) => {
+        if (!active) return;
+        setSavedPortfolio(data);
+        setSlug(data.slug);
+        setSelectedIds(data.projects.map((project) => project.id));
+        setAvailableProjects(projects);
+      })
+      .catch(() => {
+        if (active) setSavedPortfolio(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => { active = false; };
   }, []);
 
-  const selectedProjects = useMemo(() => availableProjects.filter((project) => selectedIds.includes(project.id)), [availableProjects, selectedIds]);
-  const slugValid = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/.test(portfolio.slug);
-  const publicUrl = `${window.location.origin}/portfolio/${portfolio.slug}`;
+  const savedPreview = savedPortfolio && (savedPortfolio.projects.length > 0 || savedPortfolio.headline || savedPortfolio.bio)
+    ? savedPortfolio
+    : null;
+  const preview = generated?.portfolio ?? savedPreview;
+  const revisionDraft = generated?.draft ?? reopenDraft(savedPreview);
+  const selectionValid = selectedIds.length >= 1 && selectedIds.length <= maxProjects;
+  const previewIds = preview?.projects.map((project) => project.id);
+  const previewIsStale = !!previewIds && (
+    previewIds.length !== selectedIds.length || previewIds.some((id, index) => id !== selectedIds[index])
+  );
+  const slugValid = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/.test(slug);
+  const publicPath = savedPortfolio?.isPublished ? `/portfolio/${savedPortfolio.slug}` : '';
+  const publicUrl = publicPath && new URL(publicPath, window.location.origin).href;
+  const canSave = !pending && !!preview && !previewIsStale && slugValid && selectedIds.length <= maxProjects;
 
-  const update = <K extends keyof PortfolioData>(key: K, value: PortfolioData[K]) => setPortfolio((current) => ({ ...current, [key]: value }));
-  const toggleProject = (id: number) => setSelectedIds((ids) => ids.includes(id) ? ids.filter((current) => current !== id) : [...ids, id]);
-
-  const save = async (publish: boolean) => {
-    setError(''); setNotice(''); setSaving(true);
-    try {
-      const response = await api.put<PortfolioData>('/portfolios/me', {
-        slug: portfolio.slug.trim().toLowerCase(), headline: portfolio.headline, bio: portfolio.bio,
-        skills: skillsText, theme: portfolio.theme, isPublished: publish, projectIds: selectedIds,
-        projectDrafts: selectedIds.map((id) => projectDrafts[id] ?? { projectId: id, summary: '', contribution: '', visualSummary: '' }),
-      });
-      setPortfolio(response.data);
-      setSelectedIds(response.data.projects.map((project) => project.id));
-      setProjectDrafts(Object.fromEntries(response.data.projects.map((project) => [project.id, { projectId: project.id, summary: project.summary ?? '', contribution: project.contribution ?? '', visualSummary: project.visualSummary ?? '' }])));
-      setSkillsText(response.data.skills.join(', '));
-      setNotice(publish ? 'Portfólio publicado. Seu endereço já está disponível.' : 'Rascunho salvo.');
-    } catch (saveError: unknown) {
-      const message = (saveError as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(message || 'Não foi possível salvar. Confira o endereço e tente novamente.');
-    } finally { setSaving(false); }
+  const toggleProject = (id: number) => {
+    setSelectedIds((ids) => ids.includes(id) ? ids.filter((selected) => selected !== id) : [...ids, id]);
+    setAiNotice('');
+    setSaveNotice('');
+    setSaveError('');
   };
 
   const generateDraft = async () => {
-    if (selectedIds.length === 0) {
-      setError('Selecione pelo menos um projeto para gerar sugestões.');
+    if (pending || !selectionValid || !savedPortfolio) return;
+    const projectsById = new Map(availableProjects.map((project) => [project.id, project]));
+    const selectedProjects = selectedIds.flatMap((id) => {
+      const project = projectsById.get(id);
+      return project ? [{ ...project, thematicArea: project.thematicAreaName }] : [];
+    });
+    if (selectedProjects.length !== selectedIds.length) {
+      setAiError('Um dos projetos selecionados não está disponível. Confira a seleção.');
       return;
     }
-    setError(''); setNotice(''); setGenerating(true);
+
+    setPending('generate');
+    setAiError('');
+    setAiNotice('');
+    setSaveNotice('');
+    setSaveError('');
     try {
-      const response = await api.post<{ headline: string; bio: string; skills: string[]; imagesAnalyzed: number; imagesUnavailable: number; projects: Array<{ projectId: number; summary: string; contribution: string; visualSummary: string }> }>('/portfolios/me/ai-draft', { projectIds: selectedIds });
-      setPortfolio((current) => ({ ...current, headline: response.data.headline, bio: response.data.bio }));
-      setSkillsText(response.data.skills.join(', '));
-      setProjectDrafts((current) => ({ ...current, ...Object.fromEntries(response.data.projects.map((draft) => [draft.projectId, draft])) }));
-      setNotice(`Rascunho gerado a partir dos projetos. ${response.data.imagesAnalyzed} capa(s) analisada(s)${response.data.imagesUnavailable ? `; ${response.data.imagesUnavailable} imagem(ns) indisponível(is)` : ''}. Revise as sugestões antes de salvar ou publicar.`);
-    } catch (draftError: unknown) {
-      const message = (draftError as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(message || 'Não foi possível gerar sugestões agora. Tente novamente em alguns instantes.');
-    } finally { setGenerating(false); }
+      const { data } = await api.post<PortfolioAiDraft>('/portfolios/me/ai-draft', { projectIds: selectedIds });
+      setGenerated({
+        draft: data,
+        portfolio: createPreview(data, savedPortfolio, selectedProjects),
+        imageCounts: { imagesAnalyzed: data.imagesAnalyzed, imagesUnavailable: data.imagesUnavailable },
+      });
+      setInstruction('');
+      setAiNotice('Prévia pronta. Confira a apresentação antes de salvar ou publicar.');
+    } catch (error) {
+      setAiError(errorMessage(error, 'Não foi possível gerar o portfólio. Tente novamente em alguns instantes.'));
+    } finally {
+      setPending(null);
+    }
   };
 
+  const reviseDraft = async () => {
+    const request = instruction.trim();
+    if (pending || !revisionDraft || !preview || previewIsStale || !request || request.length > maxInstruction) return;
+
+    setPending('revise');
+    setAiError('');
+    setAiNotice('');
+    setSaveNotice('');
+    setSaveError('');
+    try {
+      const { data } = await api.post<PortfolioAiDraft>('/portfolios/me/ai-revision', { draft: revisionDraft, instruction: request });
+      setGenerated({
+        draft: data,
+        portfolio: createPreview(data, preview, preview.projects),
+        imageCounts: generated?.imageCounts,
+      });
+      setInstruction('');
+      setAiNotice('Prévia revisada. Confira as mudanças antes de salvar ou publicar.');
+    } catch (error) {
+      setAiError(errorMessage(error, 'Não foi possível revisar o portfólio. A prévia anterior foi mantida.'));
+    } finally {
+      setPending(null);
+    }
+  };
+
+  const save = async (publish: boolean) => {
+    if (!canSave || !preview) return;
+    const spec = normalizePortfolioDesignSpec(preview.designSpec);
+    const variants = new Map(spec.projectCards.map((card) => [card.projectId, card.cardVariant]));
+    // Legacy portfolios can have implicit standard cards.
+    const designSpec = generated?.draft.designSpec ?? (hasExactIds(selectedIds, spec.projectCards.map((card) => card.projectId)) ? spec : {
+      ...spec,
+      projectCards: selectedIds.map((projectId) => ({ projectId, cardVariant: variants.get(projectId) ?? 'standard' })),
+    });
+
+    setPending(publish ? 'publish' : 'save');
+    setSaveError('');
+    setSaveNotice('');
+    try {
+      const { data } = await api.put<Portfolio>('/portfolios/me', {
+        slug,
+        headline: preview.headline,
+        bio: preview.bio,
+        skills: preview.skills.join(', '),
+        theme: preview.theme,
+        designSpec,
+        isPublished: publish,
+        projectIds: selectedIds,
+        projectDrafts: preview.projects.map((project) => ({
+          projectId: project.id,
+          portfolioSummary: project.summary,
+          contribution: project.contribution ?? '',
+          visualSummary: project.visualSummary ?? '',
+        })),
+      });
+      setSavedPortfolio(data);
+      setSlug(data.slug);
+      setSaveNotice(publish ? 'Portfólio publicado. Seu endereço já está disponível.' : 'Rascunho salvo.');
+    } catch (error) {
+      setSaveError(errorMessage(error, 'Não foi possível salvar. Confira o endereço e tente novamente.'));
+    } finally {
+      setPending(null);
+    }
+  };
+
+  const availableIds = new Set(availableProjects.map((project) => project.id));
+  const missingProjects = savedPortfolio?.projects.filter((project) => !availableIds.has(project.id)) ?? [];
+  const projectOptions = [...availableProjects, ...missingProjects];
+
   return (
-    <AppShell title="Seu portfólio" subtitle="Monte uma página para apresentar quem você é e o que já criou." showSearch={false}>
-      {loading ? <p className="mt-8 text-center text-[var(--agora-muted)]">Carregando portfólio...</p> : (
-        <div className="mx-auto mt-8 max-w-4xl space-y-6 pb-12">
-          {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
-          {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
-
-          <section className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-card)] p-6 sm:p-8">
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16804b]">Apresentação</p><h2 className="mt-2 text-xl font-bold">Conte sobre você</h2></div>
-              {portfolio.isPublished && <Link to={`/portfolio/${portfolio.slug}`} target="_blank" className="inline-flex items-center gap-2 text-sm font-semibold text-[#0a5c2f] hover:underline"><ExternalLink size={16} /> Ver página</Link>}
+    <AppShell title="Seu portfólio" subtitle="Apresente seu percurso a partir dos projetos que você criou." showSearch={false}>
+      {loading ? (
+        <p role="status" className="mt-8 text-center text-(--agora-muted)">Carregando portfólio...</p>
+      ) : !savedPortfolio ? (
+        <p role="alert" className="mt-8 text-center text-sm text-rose-700">Não foi possível carregar o editor de portfólio.</p>
+      ) : (
+        <div className="mx-auto mt-8 max-w-6xl space-y-8 pb-12">
+          <section className={panelClass} aria-labelledby="portfolio-projects">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className={stepClass}>01 / Projetos</p>
+                <h2 id="portfolio-projects" className="mt-2 text-xl font-bold tracking-tight">Escolha o que quer destacar</h2>
+                <p className="mt-1 text-sm text-(--agora-muted)">Escolha de 1 a 12 projetos. Projetos privados só podem ficar no rascunho.</p>
+              </div>
+              <p className="rounded-full bg-(--agora-accent-bg) px-3 py-1 text-sm font-bold text-(--agora-accent) tabular-nums" aria-live="polite">
+                {selectedIds.length} de {maxProjects} selecionados
+              </p>
             </div>
-            <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50/70 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
-              <div><p className="font-semibold text-emerald-950">Quer ajuda para começar?</p><p className="mt-1 text-xs leading-5 text-emerald-900/75">A IA usa principalmente descrições e capas dos projetos selecionados, além dos dados do perfil, para sugerir sua apresentação. Esses dados e imagens são enviados ao Gemini quando você pede o rascunho. Revise tudo antes de publicar.</p></div>
-              <button type="button" disabled={generating || selectedIds.length === 0} onClick={generateDraft} className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0a5c2f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#084925] disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0"><Sparkles size={16} />{generating ? 'Gerando rascunho...' : 'Gerar com IA'}</button>
-            </div>
-            <label className="mb-2 block text-sm font-semibold">Endereço público</label>
-            <div className="mb-1 flex items-center rounded-xl border border-[var(--agora-border)] bg-white px-3 focus-within:ring-2 focus-within:ring-emerald-600">
-              <span className="shrink-0 text-sm text-gray-400">agora.dev.br/portfolio/</span>
-              <input value={portfolio.slug} onChange={(event) => update('slug', event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} maxLength={40} className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none" aria-label="Nome do endereço do portfólio" />
-            </div>
-            <p className={`mb-5 text-xs ${slugValid ? 'text-gray-500' : 'text-rose-600'}`}>{slugValid ? 'Use letras minúsculas, números e hífens.' : 'O endereço deve ter de 3 a 40 caracteres e começar e terminar com letra ou número.'}</p>
-            <label className="mb-2 block text-sm font-semibold">Título profissional</label>
-            <input value={portfolio.headline} onChange={(event) => update('headline', event.target.value)} maxLength={120} placeholder="Ex.: Estudante de design apaixonada por pesquisa e impacto social" className="mb-5 w-full rounded-xl border border-[var(--agora-border)] bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-600" />
-            <label className="mb-2 block text-sm font-semibold">Sobre você</label>
-            <textarea value={portfolio.bio} onChange={(event) => update('bio', event.target.value)} maxLength={2000} rows={5} placeholder="Apresente sua trajetória, interesses e o tipo de problema que gosta de resolver." className="mb-1 w-full resize-y rounded-xl border border-[var(--agora-border)] bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-600" />
-            <p className="mb-5 text-right text-xs text-gray-400">{portfolio.bio.length}/2000</p>
-            <label className="mb-2 block text-sm font-semibold">Habilidades e interesses</label>
-            <input value={skillsText} onChange={(event) => setSkillsText(event.target.value)} maxLength={1000} placeholder="Ex.: pesquisa, prototipagem, escrita, análise de dados" className="w-full rounded-xl border border-[var(--agora-border)] bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-600" />
-            <p className="mt-1 text-xs text-gray-400">Separe os itens por vírgula.</p>
-          </section>
-
-          <section className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-card)] p-6 sm:p-8">
-            <div className="mb-5"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16804b]">Projetos</p><h2 className="mt-2 text-xl font-bold">Escolha o que quer destacar</h2><p className="mt-1 text-sm text-[var(--agora-muted)]">Você pode selecionar até 12 projetos. Projetos privados não podem aparecer em uma página publicada.</p></div>
-            {availableProjects.length === 0 ? <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center"><p className="font-semibold">Você ainda não publicou projetos</p><Link to="/projects/new" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#0a5c2f]"><Plus size={16} /> Criar primeiro projeto</Link></div> : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {availableProjects.map((project) => {
+            {projectOptions.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-(--agora-border) p-6 text-center">
+                <p className="font-semibold">Você ainda não tem projetos</p>
+                <Link to="/projects/new" className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-(--agora-accent) hover:underline">
+                  <Plus size={16} aria-hidden="true" /> Criar primeiro projeto
+                </Link>
+              </div>
+            ) : (
+              <div className="grid max-h-96 gap-2 overflow-y-auto p-1 sm:grid-cols-2">
+                {projectOptions.map((project) => {
                   const checked = selectedIds.includes(project.id);
-                  const draft = projectDrafts[project.id] ?? { projectId: project.id, summary: '', contribution: '', visualSummary: '' };
-                  const updateDraft = (key: keyof Omit<ProjectDraft, 'projectId'>, value: string) => setProjectDrafts((current) => ({ ...current, [project.id]: { ...draft, [key]: value } }));
-                  return <div key={project.id} className={`rounded-xl border p-4 transition-colors ${checked ? 'border-emerald-600 bg-emerald-50/50' : 'border-[var(--agora-border)] hover:border-emerald-400'}`}>
-                    <label className="flex cursor-pointer gap-3">
-                      <input type="checkbox" checked={checked} disabled={!checked && selectedIds.length >= 12} onChange={() => toggleProject(project.id)} className="mt-1 accent-emerald-700" />
-                      {project.imageUrl && <img src={project.imageUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />}
-                      <span className="min-w-0"><span className="block font-semibold">{project.title}</span><span className="mt-1 line-clamp-2 block text-xs text-[var(--agora-muted)]">{project.summary || project.description}</span>{project.isPrivate && <span className="mt-2 inline-block rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">Privado</span>}</span>
+                  const disabled = !!pending || (!checked && (!availableIds.has(project.id) || selectedIds.length >= maxProjects));
+                  return (
+                    <label
+                      key={project.id}
+                      className={`flex min-w-0 items-start gap-3 rounded-xl border p-3 transition-colors focus-within:ring-2 focus-within:ring-(--agora-accent) ${checked ? 'border-(--agora-accent) bg-(--agora-accent-bg)' : 'border-(--agora-border)'} ${disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-(--agora-accent)'}`}
+                    >
+                      <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleProject(project.id)} className="mt-1 accent-(--agora-accent)" />
+                      {project.imageUrl && <img src={project.imageUrl} alt="" loading="lazy" className="size-12 shrink-0 rounded-md object-cover" />}
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold wrap-anywhere">{project.title}</span>
+                        <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-(--agora-muted)">{project.summary || project.description}</span>
+                        {'isPrivate' in project && project.isPrivate && <span className="mt-1 block text-xs font-semibold text-amber-800">Privado</span>}
+                      </span>
                     </label>
-                    {checked && <div className="mt-4 space-y-3 border-t border-emerald-100 pt-4">
-                      <label className="block text-xs font-semibold">O que é este projeto<textarea value={draft.summary} onChange={(event) => updateDraft('summary', event.target.value)} maxLength={1200} rows={3} placeholder="Revise ou escreva um resumo para o portfólio" className="mt-1 w-full rounded-lg border border-[var(--agora-border)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-emerald-600" /></label>
-                      <label className="block text-xs font-semibold">Minha contribuição<textarea value={draft.contribution} onChange={(event) => updateDraft('contribution', event.target.value)} maxLength={800} rows={2} placeholder="Descreva o que você fez neste projeto" className="mt-1 w-full rounded-lg border border-[var(--agora-border)] bg-white px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-emerald-600" /></label>
-                      {draft.visualSummary && <p className="rounded-lg bg-white/70 p-3 text-xs leading-5 text-[var(--agora-muted)]"><strong>Leitura da capa pela IA:</strong> {draft.visualSummary}</p>}
-                    </div>}
-                  </div>;
+                  );
                 })}
               </div>
             )}
-            <p className="mt-4 text-xs text-gray-500">{selectedProjects.length} de 12 selecionados</p>
           </section>
 
-          <section className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-card)] p-6 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#16804b]">Visual</p><h2 className="mb-5 mt-2 text-xl font-bold">Escolha uma identidade</h2>
-            <div className="grid grid-cols-3 gap-3">
-              {[{ key: 'forest', label: 'Floresta', color: '#0a5c2f' }, { key: 'ocean', label: 'Oceano', color: '#155e9b' }, { key: 'sunset', label: 'Entardecer', color: '#a34228' }].map((theme) => <button type="button" key={theme.key} onClick={() => update('theme', theme.key)} className={`rounded-xl border p-3 text-left ${portfolio.theme === theme.key ? 'border-gray-900 ring-2 ring-gray-900' : 'border-[var(--agora-border)]'}`}><span className="mb-3 block h-8 rounded-lg" style={{ backgroundColor: theme.color }} /><span className="text-sm font-semibold">{theme.label}</span></button>)}
+          <section className={panelClass} aria-labelledby="portfolio-draft">
+            <p className={stepClass}>02 / Rascunho</p>
+            <h2 id="portfolio-draft" className="mt-2 text-xl font-bold tracking-tight">Crie sua apresentação</h2>
+            <p className="mt-1 text-sm text-(--agora-muted)">A partir dos projetos escolhidos, o Gemini sugere os textos e o visual da sua página.</p>
+            <p id="portfolio-ai-disclosure" className="mt-4 max-w-3xl rounded-lg bg-(--agora-bg) px-4 py-3 text-sm leading-relaxed">
+              <strong>Uso de dados reais no Gemini.</strong> Ao gerar, você autoriza o envio dos textos do seu perfil e dos projetos selecionados, além das capas disponíveis. No plano gratuito, o Google pode usar os prompts para melhorar seus produtos. Ao revisar, você autoriza o envio apenas do rascunho atual e do seu pedido, sem reenviar as capas.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <button
+                type="button"
+                disabled={!!pending || !selectionValid}
+                onClick={generateDraft}
+                aria-describedby="portfolio-ai-disclosure"
+                className={primaryButton}
+              >
+                <Sparkles size={16} aria-hidden="true" />
+                {pending === 'generate' ? 'Gerando seu portfólio…' : 'Gerar meu portfólio'}
+              </button>
+              {!selectionValid && <p className="text-sm text-(--agora-muted)">Selecione de 1 a {maxProjects} projetos para gerar.</p>}
+              {generated?.imageCounts && (
+                <p className="text-xs text-(--agora-muted) tabular-nums">
+                  Última geração · {generated.imageCounts.imagesAnalyzed} {generated.imageCounts.imagesAnalyzed === 1 ? 'capa analisada' : 'capas analisadas'} · {generated.imageCounts.imagesUnavailable} {generated.imageCounts.imagesUnavailable === 1 ? 'indisponível' : 'indisponíveis'}
+                </p>
+              )}
+            </div>
+
+            {revisionDraft && !previewIsStale && (
+              <div className="mt-5 border-t border-(--agora-border) pt-5">
+                <label htmlFor="portfolio-instruction" className="block text-sm font-bold">O que você quer ajustar?</label>
+                <textarea
+                  id="portfolio-instruction"
+                  value={instruction}
+                  onChange={(event) => setInstruction(event.target.value)}
+                  maxLength={maxInstruction}
+                  disabled={!!pending}
+                  rows={3}
+                  placeholder="Deixe minha apresentação mais curta e dê destaque aos projetos."
+                  className="mt-2 w-full resize-y rounded-lg border border-(--agora-border) bg-(--agora-input-bg) px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-(--agora-accent) disabled:opacity-60"
+                />
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    disabled={!!pending || !instruction.trim()}
+                    onClick={reviseDraft}
+                    aria-describedby="portfolio-ai-disclosure"
+                    className={secondaryButton}
+                  >
+                    {pending === 'revise' ? 'Revisando prévia…' : 'Revisar prévia'}
+                  </button>
+                  <p className="text-xs text-(--agora-muted) tabular-nums">{instruction.length}/{maxInstruction} caracteres</p>
+                </div>
+              </div>
+            )}
+            {pending === 'generate' && <p role="status" className="mt-3 text-sm text-(--agora-muted)">Analisando os projetos e preparando a prévia…</p>}
+            {pending === 'revise' && <p role="status" className="mt-3 text-sm text-(--agora-muted)">Aplicando o pedido à prévia…</p>}
+            {previewIsStale && <p role="status" className="mt-3 text-sm font-semibold text-amber-800">A seleção mudou. Gere uma nova prévia para salvar ou publicar.</p>}
+            {aiError && <p role="alert" className="mt-3 text-sm font-semibold text-rose-700">{aiError}</p>}
+            {aiNotice && <p role="status" className="mt-3 text-sm text-(--agora-accent)">{aiNotice}</p>}
+          </section>
+
+          <section aria-labelledby="portfolio-preview">
+            <div className="mb-3 px-1">
+              <p className={stepClass}>03 / Prévia</p>
+              <h2 id="portfolio-preview" className="mt-2 text-xl font-bold tracking-tight">Confira sua página</h2>
+              {previewIsStale && <p className="mt-1 text-sm text-(--agora-muted)">Mostrando a prévia da seleção anterior.</p>}
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-(--agora-border)">
+              {preview ? (
+                <PortfolioRenderer portfolio={preview} />
+              ) : (
+                <p className="bg-(--agora-card-bg) px-5 py-10 text-center text-sm text-(--agora-muted)">Sua apresentação e seus projetos aparecerão aqui após a geração.</p>
+              )}
             </div>
           </section>
 
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-            <button type="button" disabled={saving || !slugValid} onClick={() => save(false)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--agora-border)] px-5 py-3 text-sm font-bold disabled:opacity-50"><Save size={16} />{saving ? 'Salvando...' : 'Salvar rascunho'}</button>
-            <button type="button" disabled={saving || !slugValid || !portfolio.headline.trim() || !portfolio.bio.trim()} onClick={() => save(true)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0a5c2f] px-5 py-3 text-sm font-bold text-white hover:bg-[#084925] disabled:opacity-50">{portfolio.isPublished ? <EyeOff size={16} /> : <Eye size={16} />}{saving ? 'Publicando...' : portfolio.isPublished ? 'Salvar e manter publicado' : 'Publicar portfólio'}</button>
-          </div>
-          <p className="text-center text-xs text-gray-500">Rascunhos são visíveis apenas para você. Ao publicar, qualquer pessoa com o link poderá ver sua apresentação e projetos selecionados.</p>
-          {portfolio.isPublished && <p className="text-center text-sm">Seu link: <a className="font-semibold text-[#0a5c2f] underline" href={publicUrl} target="_blank" rel="noreferrer">{publicUrl}</a></p>}
+          <section className={panelClass} aria-labelledby="portfolio-publish">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className={stepClass}>04 / Publicação</p>
+                <h2 id="portfolio-publish" className="mt-2 text-xl font-bold tracking-tight">Salve ou publique</h2>
+              </div>
+              {publicPath && (
+                <Link to={publicPath} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-(--agora-accent) hover:underline">
+                  <ExternalLink size={16} aria-hidden="true" /> Ver página publicada
+                </Link>
+              )}
+            </div>
+            <label htmlFor="portfolio-slug" className="mt-5 block text-sm font-bold">Endereço público</label>
+            <div className="mt-2 flex max-w-xl items-center rounded-lg border border-(--agora-border) bg-(--agora-input-bg) px-3 focus-within:ring-2 focus-within:ring-(--agora-accent)">
+              <span aria-hidden="true" className="shrink-0 text-sm text-(--agora-muted)">agora.dev.br/portfolio/</span>
+              <input
+                id="portfolio-slug"
+                value={slug}
+                onChange={(event) => {
+                  setSlug(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                  setSaveNotice('');
+                  setSaveError('');
+                }}
+                maxLength={40}
+                disabled={!!pending}
+                aria-invalid={!slugValid}
+                aria-describedby="portfolio-slug-hint"
+                className="min-h-11 min-w-0 flex-1 bg-transparent py-2.5 text-sm outline-none"
+              />
+            </div>
+            <p id="portfolio-slug-hint" className={`mt-2 text-xs ${slugValid ? 'text-(--agora-muted)' : 'text-rose-700'}`}>
+              Use de 3 a 40 letras minúsculas, números ou hífens. Comece e termine com letra ou número.
+            </p>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-(--agora-muted)">Rascunhos são visíveis apenas para você. Ao publicar, qualquer pessoa com o link poderá ver sua apresentação e os projetos selecionados.</p>
+            {saveError && <p role="alert" className="mt-3 text-sm font-semibold text-rose-700">{saveError}</p>}
+            {saveNotice && <p role="status" className="mt-3 text-sm text-(--agora-accent)">{saveNotice}</p>}
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row">
+              <button type="button" disabled={!canSave} onClick={() => save(false)} className={secondaryButton}>
+                <Save size={16} aria-hidden="true" /> {pending === 'save' ? 'Salvando…' : 'Salvar rascunho'}
+              </button>
+              <button type="button" disabled={!canSave || !preview?.headline.trim() || !preview?.bio.trim()} onClick={() => save(true)} className={primaryButton}>
+                <Eye size={16} aria-hidden="true" />
+                {pending === 'publish' ? 'Publicando…' : publicPath ? 'Salvar e manter publicado' : 'Publicar portfólio'}
+              </button>
+            </div>
+            {publicUrl && (
+              <p className="mt-4 text-sm wrap-anywhere"><a className="font-bold text-(--agora-accent) underline" href={publicUrl} target="_blank" rel="noreferrer">{publicUrl}</a></p>
+            )}
+          </section>
         </div>
       )}
     </AppShell>

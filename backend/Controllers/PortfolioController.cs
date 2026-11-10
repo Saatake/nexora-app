@@ -117,14 +117,14 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         var existingDrafts = portfolio.Projects.ToDictionary(link => link.ProjectId);
         db.PortfolioProjects.RemoveRange(portfolio.Projects);
         var draftsByProject = request.ProjectDrafts.ToDictionary(draft => draft.ProjectId);
-        portfolio.Projects = selected.Select((project, index) => new PortfolioProject
+        portfolio.Projects = request.ProjectIds.Select((projectId, index) => new PortfolioProject
         {
             Portfolio = portfolio,
-            ProjectId = project.Id,
+            ProjectId = projectId,
             SortOrder = index,
-            PortfolioSummary = draftsByProject.TryGetValue(project.Id, out var draft) ? (string.IsNullOrWhiteSpace(draft.PortfolioSummary) ? null : draft.PortfolioSummary.Trim()) : existingDrafts.GetValueOrDefault(project.Id)?.PortfolioSummary,
-            Contribution = draftsByProject.TryGetValue(project.Id, out draft) ? (string.IsNullOrWhiteSpace(draft.Contribution) ? null : draft.Contribution.Trim()) : existingDrafts.GetValueOrDefault(project.Id)?.Contribution,
-            VisualSummary = draftsByProject.TryGetValue(project.Id, out draft) ? (string.IsNullOrWhiteSpace(draft.VisualSummary) ? null : draft.VisualSummary.Trim()) : existingDrafts.GetValueOrDefault(project.Id)?.VisualSummary
+            PortfolioSummary = draftsByProject.TryGetValue(projectId, out var draft) ? (string.IsNullOrWhiteSpace(draft.PortfolioSummary) ? null : draft.PortfolioSummary.Trim()) : existingDrafts.GetValueOrDefault(projectId)?.PortfolioSummary,
+            Contribution = draftsByProject.TryGetValue(projectId, out draft) ? (string.IsNullOrWhiteSpace(draft.Contribution) ? null : draft.Contribution.Trim()) : existingDrafts.GetValueOrDefault(projectId)?.Contribution,
+            VisualSummary = draftsByProject.TryGetValue(projectId, out draft) ? (string.IsNullOrWhiteSpace(draft.VisualSummary) ? null : draft.VisualSummary.Trim()) : existingDrafts.GetValueOrDefault(projectId)?.VisualSummary
         }).ToList();
 
         await db.SaveChangesAsync();
