@@ -6,6 +6,10 @@ public class PortfolioAiDraftDto
     public string Bio { get; set; } = string.Empty;
     public List<string> Skills { get; set; } = new();
     public PortfolioDesignSpecDto DesignSpec { get; set; } = PortfolioDesignSpecDto.CreateDefault();
+    public string ModelId { get; set; } = string.Empty;
+    public int? InputTokenCount { get; set; }
+    public int? OutputTokenCount { get; set; }
+    public long GenerationLatencyMs { get; set; }
     public int ImagesAnalyzed { get; set; }
     public int ImagesUnavailable { get; set; }
     public List<PortfolioAiProjectDraftDto> Projects { get; set; } = new();
