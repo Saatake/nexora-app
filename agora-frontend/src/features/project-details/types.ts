@@ -25,6 +25,16 @@ export type Collaborator = {
   name: string;
   photoUrl?: string | null;
   course?: string | null;
+  contribution?: string | null;
+};
+
+export type ProjectContentBlock = {
+  id: string | number;
+  type: string | number;
+  text?: string | null;
+  url?: string | null;
+  caption?: string | null;
+  sortOrder: number;
 };
 
 export type Project = {
@@ -40,6 +50,9 @@ export type Project = {
   githubLink: string;
   fileUrl: string;
   imageUrl?: string | null;
+  authorContribution?: string | null;
+  selectedTags?: string[];
+  contentBlocks?: ProjectContentBlock[];
   category: string;
   authorId: string;
   authorName: string;

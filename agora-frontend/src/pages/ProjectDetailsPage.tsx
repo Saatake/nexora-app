@@ -13,6 +13,8 @@ import ProjectSidebar from '@/features/project-details/components/ProjectSidebar
 import EvaluationFormModal from '@/features/project-details/components/EvaluationFormModal';
 import AllEvaluationsModal from '@/features/project-details/components/AllEvaluationsModal';
 import MembersModal from '@/features/project-details/components/MembersModal';
+import ProjectContentBlocks from '@/features/project-details/components/ProjectContentBlocks';
+import ProjectContributions from '@/features/project-details/components/ProjectContributions';
 
 const ProjectDetailsPage = () => {
   const navigate = useNavigate();
@@ -103,6 +105,9 @@ const ProjectDetailsPage = () => {
                     {project.description}
                   </p>
                 </div>
+
+                <ProjectContentBlocks blocks={project.contentBlocks} />
+                <ProjectContributions project={project} />
 
                 {aiReview && (
                   <AiReviewCard

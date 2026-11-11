@@ -46,6 +46,9 @@ public class Project
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
+    [MaxLength(800)]
+    public string? AuthorContribution { get; set; }
+
     [Required]
     public string UserId { get; set; } = string.Empty;
 
@@ -56,6 +59,7 @@ public class Project
     public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
     public ICollection<ProjectCollaborator> Collaborators { get; set; } = new List<ProjectCollaborator>();
     public ICollection<ProjectBadge> Badges { get; set; } = new List<ProjectBadge>();
+    public ICollection<ProjectContentBlock> ContentBlocks { get; set; } = new List<ProjectContentBlock>();
 
     // indica se o projeto é privado ou público
     public bool IsPrivate { get; set; } = false;

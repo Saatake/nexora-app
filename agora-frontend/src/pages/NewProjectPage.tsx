@@ -6,6 +6,7 @@ import ProjectFormTeam from '@/features/project-form/components/ProjectFormTeam'
 import ProjectFormDescription from '@/features/project-form/components/ProjectFormDescription';
 import ProjectFormFiles from '@/features/project-form/components/ProjectFormFiles';
 import ProjectFormPrivacy from '@/features/project-form/components/ProjectFormPrivacy';
+import ProjectContentBuilder from '@/features/project-form/components/ProjectContentBuilder';
 
 const NewProjectPage = () => {
   const {
@@ -13,9 +14,10 @@ const NewProjectPage = () => {
     category, setCategory,
     summary, setSummary,
     description, setDescription,
-    githubLink, setGithubLink,
     thematicArea, setThematicArea,
     tags, setTags,
+    authorContribution, setAuthorContribution,
+    contentBlocks, setContentBlocks,
     advisor, setAdvisor,
     collaborators, setCollaborators,
     isPrivate, setIsPrivate,
@@ -48,6 +50,8 @@ const NewProjectPage = () => {
           excludeIds={currentUser?.id ? [currentUser.id] : []}
           advisor={advisor}
           setAdvisor={setAdvisor}
+          authorContribution={authorContribution}
+          setAuthorContribution={setAuthorContribution}
         />
 
         <ProjectFormDescription
@@ -55,17 +59,17 @@ const NewProjectPage = () => {
           description={description} setDescription={setDescription}
         />
 
+        <ProjectContentBuilder
+          blocks={contentBlocks} onChange={setContentBlocks}
+          uploadImage={fileUpload.uploadContentImage}
+          uploadDocument={fileUpload.uploadContentDocument}
+        />
+
         <ProjectFormFiles
-          githubLink={githubLink} setGithubLink={setGithubLink}
-          fileUrl={fileUpload.fileUrl} setFileUrl={fileUpload.setFileUrl}
           coverPreview={fileUpload.coverPreview}
           isUploadingCover={fileUpload.isUploadingCover}
-          isUploading={fileUpload.isUploading}
-          uploadedFileName={fileUpload.uploadedFileName}
-          uploadError={fileUpload.uploadError}
           coverInputRef={fileUpload.coverInputRef}
           onCoverFileSelected={fileUpload.handleCoverFileSelected}
-          onFileUpload={fileUpload.handleFileUpload}
           onRemoveCover={() => { fileUpload.setCoverPreview(null); fileUpload.setImageUrl(''); }}
         />
 

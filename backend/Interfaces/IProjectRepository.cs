@@ -1,5 +1,6 @@
 using Nexora.Api.Enums;
 using Nexora.Api.Models;
+using Nexora.Api.Dtos.Requests;
 
 namespace Nexora.Api.Interfaces;
 
@@ -15,5 +16,5 @@ public interface IProjectRepository
     Task<Project?> GetByIdAsync(int id);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
-    Task SetCollaboratorsAsync(int projectId, List<string> userIds);
+    Task SetCollaboratorsAsync(int projectId, List<ProjectCollaboratorRequestDto> collaborators);
 }

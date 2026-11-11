@@ -6,6 +6,8 @@ import type { ProjectCategory } from '../types';
 import type { ThematicArea } from '@/constants/thematicAreas';
 import type { CollaboratorUser } from '@/components/UserTagInput';
 import { useProjectFileUpload } from './useProjectFileUpload';
+import { createProjectSubmission } from '../projectSubmission';
+import type { ProjectContentBlockDraft } from '../projectContent';
 
 export const useNewProject = () => {
   const navigate = useNavigate();
@@ -17,7 +19,9 @@ export const useNewProject = () => {
   const [description, setDescription] = useState('');
   const [githubLink, setGithubLink] = useState('');
   const [thematicArea, setThematicArea] = useState<ThematicArea>('TecnologiaInovacao');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [authorContribution, setAuthorContribution] = useState('');
+  const [contentBlocks, setContentBlocks] = useState<ProjectContentBlockDraft[]>([]);
   const [advisor, setAdvisor] = useState('');
   const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
@@ -31,24 +35,30 @@ export const useNewProject = () => {
     setError('');
     setIsSaving(true);
     try {
-      await api.post('/projects', {
+      const submission = createProjectSubmission({
         title,
+        category,
         description,
-        summary,
-        thematicArea,
         tags,
-        advisor,
+        authorContribution,
+        collaborators,
+        contentBlocks,
         githubLink,
         fileUrl: fileUpload.fileUrl,
+      });
+      await api.post('/projects', {
+        ...submission,
+        summary,
+        thematicArea,
+        advisor,
         imageUrl: fileUpload.imageUrl,
-        category,
         isPrivate,
-        collaboratorIds: collaborators.map((c) => c.id),
       });
       navigate('/projects');
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : '') ||
         'Não foi possível publicar o projeto.';
       setError(message);
     } finally {
@@ -64,6 +74,8 @@ export const useNewProject = () => {
     githubLink, setGithubLink,
     thematicArea, setThematicArea,
     tags, setTags,
+    authorContribution, setAuthorContribution,
+    contentBlocks, setContentBlocks,
     advisor, setAdvisor,
     collaborators, setCollaborators,
     isPrivate, setIsPrivate,

@@ -332,6 +332,93 @@ namespace backend.Migrations
                     b.ToTable("Evaluations");
                 });
 
+            modelBuilder.Entity("Nexora.Api.Models.Portfolio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bio")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("DesignSpecJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Headline")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Skills")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Theme")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Portfolios");
+                });
+
+            modelBuilder.Entity("Nexora.Api.Models.PortfolioProject", b =>
+                {
+                    b.Property<int>("PortfolioId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Contribution")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)");
+
+                    b.Property<string>("PortfolioSummary")
+                        .HasMaxLength(1200)
+                        .HasColumnType("character varying(1200)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VisualSummary")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("PortfolioId", "ProjectId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("PortfolioProjects");
+                });
+
             modelBuilder.Entity("Nexora.Api.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -343,6 +430,10 @@ namespace backend.Migrations
                     b.Property<string>("Advisor")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
+
+                    b.Property<string>("AuthorContribution")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)");
 
                     b.Property<int>("Category")
                         .HasColumnType("integer");
@@ -444,6 +535,10 @@ namespace backend.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
+                    b.Property<string>("Contribution")
+                        .HasMaxLength(800)
+                        .HasColumnType("character varying(800)");
+
                     b.HasKey("ProjectId", "UserId");
 
                     b.HasIndex("UserId");
@@ -451,58 +546,40 @@ namespace backend.Migrations
                     b.ToTable("ProjectCollaborators");
                 });
 
-            modelBuilder.Entity("Nexora.Api.Models.Portfolio", b =>
+            modelBuilder.Entity("Nexora.Api.Models.ProjectContentBlock", b =>
                 {
-                    b.Property<int>("Id").ValueGeneratedOnAdd().HasColumnType("integer");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-                    b.Property<string>("Bio").IsRequired().HasMaxLength(2000).HasColumnType("character varying(2000)");
-                    b.Property<string>("DesignSpecJson").HasColumnType("jsonb");
-                    b.Property<string>("Headline").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)");
-                    b.Property<bool>("IsPublished").HasColumnType("boolean");
-                    b.Property<string>("Skills").IsRequired().HasMaxLength(1000).HasColumnType("character varying(1000)");
-                    b.Property<string>("Slug").IsRequired().HasMaxLength(40).HasColumnType("character varying(40)");
-                    b.Property<string>("Theme").IsRequired().HasMaxLength(32).HasColumnType("character varying(32)");
-                    b.Property<DateTime>("UpdatedAt").HasColumnType("timestamp with time zone");
-                    b.Property<string>("UserId").IsRequired().HasColumnType("text");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.HasKey("Id");
-                    b.HasIndex("Slug").IsUnique();
-                    b.HasIndex("UserId").IsUnique();
-                    b.ToTable("Portfolios");
-                });
 
-            modelBuilder.Entity("Nexora.Api.Models.PortfolioProject", b =>
-                {
-                    b.Property<string>("Contribution")
-                        .HasMaxLength(800)
-                        .HasColumnType("character varying(800)");
-
-                    b.Property<string>("PortfolioSummary")
-                        .HasMaxLength(1200)
-                        .HasColumnType("character varying(1200)");
-
-                    b.Property<int>("PortfolioId").HasColumnType("integer");
-                    b.Property<int>("ProjectId").HasColumnType("integer");
-                    b.Property<int>("SortOrder").HasColumnType("integer");
-                    b.Property<string>("VisualSummary")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-                    b.HasKey("PortfolioId", "ProjectId");
                     b.HasIndex("ProjectId");
-                    b.ToTable("PortfolioProjects");
-                });
 
-            modelBuilder.Entity("Nexora.Api.Models.Portfolio", b =>
-                {
-                    b.HasOne("Nexora.Api.Models.ApplicationUser", "User").WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade).IsRequired();
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Nexora.Api.Models.PortfolioProject", b =>
-                {
-                    b.HasOne("Nexora.Api.Models.Portfolio", "Portfolio").WithMany("Projects").HasForeignKey("PortfolioId").OnDelete(DeleteBehavior.Cascade).IsRequired();
-                    b.HasOne("Nexora.Api.Models.Project", "Project").WithMany().HasForeignKey("ProjectId").OnDelete(DeleteBehavior.Cascade).IsRequired();
-                    b.Navigation("Portfolio");
-                    b.Navigation("Project");
+                    b.ToTable("ProjectContentBlocks");
                 });
 
             modelBuilder.Entity("Nexora.Api.Models.UserTeachingArea", b =>
@@ -607,6 +684,36 @@ namespace backend.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Nexora.Api.Models.Portfolio", b =>
+                {
+                    b.HasOne("Nexora.Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Nexora.Api.Models.PortfolioProject", b =>
+                {
+                    b.HasOne("Nexora.Api.Models.Portfolio", "Portfolio")
+                        .WithMany("Projects")
+                        .HasForeignKey("PortfolioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nexora.Api.Models.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Portfolio");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Nexora.Api.Models.Project", b =>
                 {
                     b.HasOne("Nexora.Api.Models.ApplicationUser", "User")
@@ -656,6 +763,17 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Nexora.Api.Models.ProjectContentBlock", b =>
+                {
+                    b.HasOne("Nexora.Api.Models.Project", "Project")
+                        .WithMany("ContentBlocks")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Nexora.Api.Models.UserTeachingArea", b =>
                 {
                     b.HasOne("Nexora.Api.Models.ApplicationUser", "User")
@@ -684,6 +802,8 @@ namespace backend.Migrations
                     b.Navigation("Collaborators");
 
                     b.Navigation("Comments");
+
+                    b.Navigation("ContentBlocks");
 
                     b.Navigation("Evaluations");
                 });

@@ -6,6 +6,8 @@ import type { ProjectCategory } from '../types';
 import type { ThematicArea } from '@/constants/thematicAreas';
 import type { CollaboratorUser } from '@/components/UserTagInput';
 import { useProjectFileUpload } from './useProjectFileUpload';
+import { createProjectSubmission } from '../projectSubmission';
+import type { ProjectContentBlockDraft } from '../projectContent';
 
 export const useEditProject = () => {
   const { id } = useParams();
@@ -19,7 +21,9 @@ export const useEditProject = () => {
   const [description, setDescription] = useState('');
   const [githubLink, setGithubLink] = useState('');
   const [thematicArea, setThematicArea] = useState<ThematicArea>('TecnologiaInovacao');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [authorContribution, setAuthorContribution] = useState('');
+  const [contentBlocks, setContentBlocks] = useState<ProjectContentBlockDraft[]>([]);
   const [advisor, setAdvisor] = useState('');
   const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
@@ -46,7 +50,9 @@ export const useEditProject = () => {
         setGithubLink(project.githubLink);
         fileUpload.setFileUrl(project.fileUrl);
         setThematicArea((project.thematicArea as ThematicArea) || 'TecnologiaInovacao');
-        setTags(project.tags || '');
+        setTags(project.selectedTags?.length ? project.selectedTags : (project.tags || '').split(',').map((tag: string) => tag.trim()).filter(Boolean));
+        setAuthorContribution(project.authorContribution || '');
+        setContentBlocks((project.contentBlocks || []).map((block: Omit<ProjectContentBlockDraft, 'id'> & { id?: string | number }) => ({ ...block, id: String(block.id ?? crypto.randomUUID()) })));
         setAdvisor(project.advisor || '');
         fileUpload.setImageUrl(project.imageUrl || '');
         setIsPrivate(project.isPrivate || false);
@@ -67,24 +73,30 @@ export const useEditProject = () => {
     setError('');
     setIsSaving(true);
     try {
-      await api.put(`/projects/${id}`, {
+      const submission = createProjectSubmission({
         title,
+        category,
         description,
-        summary,
-        thematicArea,
         tags,
-        advisor,
+        authorContribution,
+        collaborators,
+        contentBlocks,
         githubLink,
         fileUrl: fileUpload.fileUrl,
+      });
+      await api.put(`/projects/${id}`, {
+        ...submission,
+        summary,
+        thematicArea,
+        advisor,
         imageUrl: fileUpload.imageUrl,
-        category,
         isPrivate,
-        collaboratorIds: collaborators.map((c) => c.id),
       });
       navigate('/projects');
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : '') ||
         'Não foi possível atualizar o projeto.';
       setError(message);
     } finally {
@@ -101,6 +113,8 @@ export const useEditProject = () => {
     githubLink, setGithubLink,
     thematicArea, setThematicArea,
     tags, setTags,
+    authorContribution, setAuthorContribution,
+    contentBlocks, setContentBlocks,
     advisor, setAdvisor,
     collaborators, setCollaborators,
     isPrivate, setIsPrivate,

@@ -5,6 +5,13 @@ export const formatCategory = (category: string): string => {
     IniciacaoCientifica: 'IC',
     Relatorio: 'Relatório',
     ProjetoEscrito: 'Projeto escrito',
+    PesquisaCientifica: 'Pesquisa científica',
+    Prototipo: 'Protótipo',
+    ProducaoArtistica: 'Produção artística',
+    IntervencaoSocial: 'Intervenção social',
+    Negocio: 'Negócio ou empreendimento',
+    EstudoDeCaso: 'Estudo de caso',
+    Outro: 'Outro',
   };
   return lookup[category] ?? category;
 };

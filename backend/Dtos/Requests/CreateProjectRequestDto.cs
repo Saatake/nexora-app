@@ -35,12 +35,18 @@ public class CreateProjectRequestDto
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
+    [MaxLength(800)]
+    public string? AuthorContribution { get; set; }
+
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }
 
     public bool IsPrivate { get; set; } = false;
 
     public List<string> CollaboratorIds { get; set; } = new();
+    public List<ProjectCollaboratorRequestDto>? Collaborators { get; set; }
+    public List<ProjectContentBlockRequestDto>? ContentBlocks { get; set; }
+    public List<string>? SelectedTags { get; set; }
 }
 
 public class UpdateProjectRequestDto
@@ -75,10 +81,16 @@ public class UpdateProjectRequestDto
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
+    [MaxLength(800)]
+    public string? AuthorContribution { get; set; }
+
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }
 
     public bool IsPrivate { get; set; } = false;
 
     public List<string> CollaboratorIds { get; set; } = new();
+    public List<ProjectCollaboratorRequestDto>? Collaborators { get; set; }
+    public List<ProjectContentBlockRequestDto>? ContentBlocks { get; set; }
+    public List<string>? SelectedTags { get; set; }
 }

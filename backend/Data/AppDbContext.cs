@@ -16,6 +16,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
     public DbSet<UserTeachingArea> UserTeachingAreas { get; set; }
     public DbSet<ProjectBadge> ProjectBadges { get; set; }
+    public DbSet<ProjectContentBlock> ProjectContentBlocks { get; set; }
     public DbSet<Portfolio> Portfolios { get; set; }
     public DbSet<PortfolioProject> PortfolioProjects { get; set; }
 
@@ -61,6 +62,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(b => b.Professor)
             .WithMany()
             .HasForeignKey(b => b.ProfessorId);
+
+        builder.Entity<ProjectContentBlock>()
+            .HasOne(block => block.Project)
+            .WithMany(project => project.ContentBlocks)
+            .HasForeignKey(block => block.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Portfolio>()
             .HasIndex(p => p.UserId)

@@ -59,13 +59,33 @@ public class UploadsController : ControllerBase
         return Ok(new { url, fileName = file.FileName });
     }
 
+    [HttpPost("project-content-image")]
+    [RequestSizeLimit(5_000_000)]
+    public async Task<IActionResult> UploadProjectContentImage(IFormFile file)
+    {
+        var validationError = ValidateImageInput(file);
+        if (validationError != null) return validationError;
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anon";
+        var url = await _storageService.UploadFileAsync(file, userId, "project-content");
+        return Ok(new { url, fileName = file.FileName });
+    }
+
     private IActionResult? ValidateImageInput(IFormFile file)
     {
         if (file == null || file.Length == 0) return BadRequest(new { message = "Arquivo vazio." });
         if (file.Length > 5_000_000) return BadRequest(new { message = "Arquivo acima de 5mb." });
 
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext))
+        var expectedContentType = ext switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => null
+        };
+        var contentType = file.ContentType.Split(';', 2)[0].Trim();
+        if (expectedContentType is null || !string.Equals(contentType, expectedContentType, StringComparison.OrdinalIgnoreCase))
         {
             return BadRequest(new { message = "Envie uma imagem (jpg, png ou webp)." });
         }

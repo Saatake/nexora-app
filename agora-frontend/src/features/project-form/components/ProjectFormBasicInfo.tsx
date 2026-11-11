@@ -1,5 +1,6 @@
 import { THEMATIC_AREAS, THEMATIC_AREA_LABELS, type ThematicArea } from '@/constants/thematicAreas';
 import type { ProjectCategory } from '../types';
+import ProjectTagPicker from './ProjectTagPicker';
 
 const inputCls =
   'w-full px-4 py-3 border border-[var(--agora-border)] rounded bg-[var(--agora-input-bg)] focus:ring-1 focus:ring-[var(--agora-accent)] focus:border-[var(--agora-accent)] transition-all font-medium text-[var(--agora-ink)] placeholder:text-[var(--agora-muted)] outline-none';
@@ -11,8 +12,8 @@ type Props = {
   setCategory: (v: ProjectCategory) => void;
   thematicArea: ThematicArea;
   setThematicArea: (v: ThematicArea) => void;
-  tags: string;
-  setTags: (v: string) => void;
+  tags: string[];
+  setTags: (v: string[]) => void;
 };
 
 const ProjectFormBasicInfo = ({
@@ -52,6 +53,13 @@ const ProjectFormBasicInfo = ({
             <option value="IniciacaoCientifica">Iniciação Científica</option>
             <option value="Relatorio">Relatório</option>
             <option value="ProjetoEscrito">Projeto Escrito</option>
+            <option value="PesquisaCientifica">Pesquisa científica</option>
+            <option value="Prototipo">Protótipo</option>
+            <option value="ProducaoArtistica">Produção artística</option>
+            <option value="IntervencaoSocial">Intervenção social</option>
+            <option value="Negocio">Negócio ou empreendimento</option>
+            <option value="EstudoDeCaso">Estudo de caso</option>
+            <option value="Outro">Outro</option>
           </select>
         </div>
         <div>
@@ -71,16 +79,7 @@ const ProjectFormBasicInfo = ({
         </div>
       </div>
 
-      <div>
-        <label className="text-sm font-semibold text-[var(--agora-ink)]">Tags</label>
-        <input
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="Ex: python, machine learning, api rest"
-          className={`mt-2 ${inputCls}`}
-        />
-        <p className="mt-1 text-xs text-[var(--agora-muted)]">Separe por vírgulas. Ajuda outras pessoas a encontrarem o projeto.</p>
-      </div>
+      <ProjectTagPicker selected={tags} onChange={setTags} />
     </div>
   </section>
 );

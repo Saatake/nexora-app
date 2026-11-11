@@ -16,6 +16,7 @@ public class ProjectResponseDto
     public string GithubLink { get; set; } = string.Empty;
     public string FileUrl { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+    public string? AuthorContribution { get; set; }
     public string Category { get; set; } = string.Empty;
     public string AuthorId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
@@ -29,6 +30,8 @@ public class ProjectResponseDto
     public int ProfessorCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsPrivate { get; set; }
+    public List<string> SelectedTags { get; set; } = new();
+    public List<ProjectContentBlockResponseDto> ContentBlocks { get; set; } = new();
     public List<CollaboratorDto> Collaborators { get; set; } = new();
     public List<ProjectBadgeDto> Badges { get; set; } = new();
 }

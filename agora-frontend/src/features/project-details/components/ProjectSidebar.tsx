@@ -57,11 +57,11 @@ const ProjectSidebar = ({
             <p className="font-semibold text-[var(--agora-ink)]">{project.thematicAreaName}</p>
           </div>
         )}
-        {project.tags && (
+        {(project.selectedTags?.length || project.tags) && (
           <div>
             <p className="text-[var(--agora-muted)] text-xs mb-1">Tags</p>
             <div className="flex flex-wrap gap-1.5">
-              {project.tags.split(',').map((t) => t.trim()).filter(Boolean).map((tag) => (
+              {(project.selectedTags?.length ? project.selectedTags : project.tags?.split(',').map((t) => t.trim()).filter(Boolean) ?? []).map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center rounded-full bg-[var(--agora-accent-bg)] px-2.5 py-0.5 text-xs font-medium text-[var(--agora-accent)]"
