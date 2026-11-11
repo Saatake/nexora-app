@@ -54,7 +54,7 @@ const ProfileProjectsList = ({ projects, collaboratedProjects }: ProfileProjects
 
     {collaboratedProjects.length > 0 && (
       <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
-        <h3 className="text-xl font-bold text-[var(--agora-ink)] mb-6">Colaborações</h3>
+        <h3 className="text-xl font-bold text-[var(--agora-ink)] mb-6">Projetos em que participa</h3>
         <div className="space-y-4">
           {collaboratedProjects.map((project) => (
             <Link
@@ -72,6 +72,7 @@ const ProfileProjectsList = ({ projects, collaboratedProjects }: ProfileProjects
                   <span>•</span>
                   <span>{new Date(project.createdAt).getFullYear()}</span>
                 </div>
+                {project.memberRole && <p className="mt-2 text-xs font-semibold text-[var(--agora-accent)]">Função: {project.memberRole}</p>}
               </div>
               {project.averageGrade != null && (
                 <div className="flex items-center gap-2 text-emerald-600 font-bold text-lg">

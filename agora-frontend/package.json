@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test src/features/project-form/projectContent.test.ts src/features/project-form/projectTags.test.ts src/features/project-form/projectSubmission.test.ts"
+    "test": "node --experimental-strip-types --test src/features/project-form/projectContent.test.ts src/features/project-form/projectTags.test.ts src/features/project-form/projectSubmission.test.ts src/features/project-form/thematicArea.test.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",

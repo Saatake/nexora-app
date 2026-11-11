@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Award, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import EvalBar from './EvalBar';
 import BadgeDetailModal from './BadgeDetailModal';
 import type { Project, Evaluation, ProjectBadge } from '../types';
 import { BADGE_LABELS, BADGE_COLORS, ALL_BADGES } from '@/constants/badges';
+import { formatThematicArea } from '@/shared/utils/formatters';
 
 type ProjectSidebarProps = {
   project: Project;
@@ -41,6 +43,21 @@ const ProjectSidebar = ({
   return (
   <>
   <div className="space-y-5">
+    <section className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
+      <h2 className="mb-4 text-sm font-bold text-[var(--agora-ink)]">Equipe do projeto</h2>
+      <div className="space-y-4">
+        <Link to={`/profile/${project.authorId}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0a5c2f] text-sm font-bold text-white">{project.authorName.charAt(0).toUpperCase()}</div>
+          <div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--agora-ink)]">{project.authorName} <span className="font-normal text-[var(--agora-muted)]">(autor)</span></p>{project.authorRole && <p className="text-xs font-medium text-[var(--agora-accent)]">{project.authorRole}</p>}{project.authorContribution && <p className="mt-1 text-xs leading-relaxed text-[var(--agora-muted)]">{project.authorContribution}</p>}</div>
+        </Link>
+        {(project.collaborators ?? []).map((member) => <Link key={member.id} to={`/profile/${member.id}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">
+          {member.photoUrl ? <img src={member.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">{member.name.charAt(0).toUpperCase()}</div>}
+          <div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--agora-ink)]">{member.name}</p>{member.role && <p className="text-xs font-medium text-[var(--agora-accent)]">{member.role}</p>}{member.contribution && <p className="mt-1 text-xs leading-relaxed text-[var(--agora-muted)]">{member.contribution}</p>}</div>
+        </Link>)}
+        {(project.collaborators?.length ?? 0) > 0 && <button type="button" onClick={onShowMembers} className="text-xs font-semibold text-[var(--agora-accent)] hover:underline">Ver todos os integrantes</button>}
+      </div>
+    </section>
+
     {/* Detalhes */}
     <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
       <h2 className="text-sm font-bold text-[var(--agora-ink)] mb-4">Detalhes</h2>
@@ -51,10 +68,10 @@ const ProjectSidebar = ({
             <p className="font-semibold text-[var(--agora-ink)]">{project.advisor}</p>
           </div>
         )}
-        {project.thematicAreaName && (
+        {(project.thematicAreaName || project.thematicArea) && (
           <div>
             <p className="text-[var(--agora-muted)] text-xs mb-0.5">Área Temática</p>
-            <p className="font-semibold text-[var(--agora-ink)]">{project.thematicAreaName}</p>
+            <p className="font-semibold text-[var(--agora-ink)]">{formatThematicArea(project.thematicAreaName || project.thematicArea)}</p>
           </div>
         )}
         {(project.selectedTags?.length || project.tags) && (
@@ -73,52 +90,7 @@ const ProjectSidebar = ({
           </div>
         )}
 
-        {project.collaborators && project.collaborators.length > 0 && (
-          <div>
-            <p className="text-[var(--agora-muted)] text-xs mb-2">Equipe</p>
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {[
-                  {
-                    id: project.authorId,
-                    name: project.authorName,
-                    photoUrl: undefined as string | null | undefined,
-                  },
-                  ...(project.collaborators ?? []),
-                ]
-                  .slice(0, 4)
-                  .map((m, i) => (
-                    <div
-                      key={m.id}
-                      className="h-7 w-7 rounded-full border-2 border-[var(--agora-panel)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden"
-                      style={{ zIndex: 4 - i, background: i === 0 ? '#0a5c2f' : '#059669' }}
-                    >
-                      {m.photoUrl ? (
-                        <img src={m.photoUrl} alt={m.name} className="h-full w-full object-cover" />
-                      ) : (
-                        m.name.charAt(0).toUpperCase()
-                      )}
-                    </div>
-                  ))}
-              </div>
-              <button
-                type="button"
-                onClick={onShowMembers}
-                className="text-xs font-semibold text-[var(--agora-accent)] hover:underline"
-              >
-                Ver membros
-              </button>
-            </div>
-          </div>
-        )}
-
-        {(!project.collaborators || project.collaborators.length === 0) &&
-          teamMembers.length > 0 && (
-            <div>
-              <p className="text-[var(--agora-muted)] text-xs mb-0.5">Equipe</p>
-              <p className="font-semibold text-[var(--agora-ink)]">{teamMembers.join(', ')}</p>
-            </div>
-          )}
+        {teamMembers.length > 0 && (!project.collaborators || project.collaborators.length === 0) && <div><p className="text-[var(--agora-muted)] text-xs mb-0.5">Equipe</p><p className="font-semibold text-[var(--agora-ink)]">{teamMembers.join(', ')}</p></div>}
 
         {project.githubLink && (
           <a

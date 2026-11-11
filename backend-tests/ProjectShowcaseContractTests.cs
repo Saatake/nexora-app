@@ -29,7 +29,9 @@ public class ProjectShowcaseContractTests
         Assert.NotNull(blockType);
         Assert.NotNull(typeof(Project).GetProperty("ContentBlocks"));
         Assert.NotNull(typeof(Project).GetProperty("AuthorContribution"));
+        Assert.NotNull(typeof(Project).GetProperty("AuthorRole"));
         Assert.NotNull(typeof(ProjectCollaborator).GetProperty("Contribution"));
+        Assert.NotNull(typeof(ProjectCollaborator).GetProperty("Role"));
         Assert.NotNull(blockType.GetProperty("SortOrder"));
         Assert.NotNull(blockType.GetProperty("Url"));
         Assert.NotNull(blockType.GetProperty("Text"));
@@ -60,6 +62,33 @@ public class ProjectShowcaseContractTests
         var errors = ValidateBlock("Text");
 
         Assert.NotEmpty(errors);
+    }
+
+    [Fact]
+    public void ContentValidator_AllowsOnlyOneYouTubePitchPerProject()
+    {
+        var validatorType = ApiAssembly.GetType("Nexora.Api.Services.ProjectContentBlockValidator");
+        var requestType = ApiAssembly.GetType("Nexora.Api.Dtos.Requests.ProjectContentBlockRequestDto");
+        var kindType = ApiAssembly.GetType("Nexora.Api.Enums.ProjectContentBlockType");
+        Assert.NotNull(validatorType);
+        Assert.NotNull(requestType);
+        Assert.NotNull(kindType);
+
+        var collectionType = typeof(List<>).MakeGenericType(requestType);
+        var requests = (IList)Activator.CreateInstance(collectionType)!;
+        for (var i = 0; i < 2; i++)
+        {
+            var request = Activator.CreateInstance(requestType)!;
+            requestType.GetProperty("Type")!.SetValue(request, Enum.Parse(kindType, "YouTube"));
+            requestType.GetProperty("Url")!.SetValue(request, "https://youtu.be/dQw4w9WgXcQ");
+            requestType.GetProperty("SortOrder")!.SetValue(request, i);
+            requests.Add(request);
+        }
+
+        var validate = validatorType.GetMethod("Validate", BindingFlags.Public | BindingFlags.Static)!;
+        var errors = Assert.IsAssignableFrom<IReadOnlyCollection<string>>(validate.Invoke(null, [requests]));
+
+        Assert.Contains(errors, error => error.Contains("vídeo pitch", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

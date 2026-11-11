@@ -49,6 +49,9 @@ public class Project
     [MaxLength(800)]
     public string? AuthorContribution { get; set; }
 
+    [MaxLength(100)]
+    public string? AuthorRole { get; set; }
+
     [Required]
     public string UserId { get; set; } = string.Empty;
 

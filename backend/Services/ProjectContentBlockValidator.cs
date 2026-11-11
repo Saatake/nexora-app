@@ -16,6 +16,8 @@ public static partial class ProjectContentBlockValidator
         var errors = new List<string>();
         if (blocks.Count > MaximumBlocks)
             errors.Add($"Um projeto pode ter no máximo {MaximumBlocks} blocos de conteúdo.");
+        if (blocks.Count(block => block.Type == ProjectContentBlockType.YouTube) > 1)
+            errors.Add("Um projeto pode ter apenas um vídeo pitch do YouTube.");
 
         foreach (var block in blocks)
         {

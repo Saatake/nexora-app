@@ -16,7 +16,7 @@ const NewProjectPage = () => {
     description, setDescription,
     thematicArea, setThematicArea,
     tags, setTags,
-    authorContribution, setAuthorContribution,
+    authorContribution, setAuthorContribution, authorRole, setAuthorRole,
     contentBlocks, setContentBlocks,
     advisor, setAdvisor,
     collaborators, setCollaborators,
@@ -52,6 +52,8 @@ const NewProjectPage = () => {
           setAdvisor={setAdvisor}
           authorContribution={authorContribution}
           setAuthorContribution={setAuthorContribution}
+          authorRole={authorRole}
+          setAuthorRole={setAuthorRole}
         />
 
         <ProjectFormDescription

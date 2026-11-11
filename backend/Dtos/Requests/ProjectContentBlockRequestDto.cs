@@ -26,4 +26,7 @@ public class ProjectCollaboratorRequestDto
 
     [MaxLength(800)]
     public string? Contribution { get; set; }
+
+    [MaxLength(100)]
+    public string? Role { get; set; }
 }

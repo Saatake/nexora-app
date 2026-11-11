@@ -62,7 +62,10 @@ export const useProfile = () => {
             : await api.get(`/projects/user/${userId}/collaborations`, {
                 params: { page: 1, pageSize: 10 },
               });
-          collaborations = collaborationsResponse.data?.items || [];
+          collaborations = (collaborationsResponse.data?.items || []).map((project: ProfileProject & { collaborators?: Array<{ id: string; role?: string | null }> }) => ({
+            ...project,
+            memberRole: project.collaborators?.find((member) => member.id === userId)?.role ?? null,
+          }));
         } catch {
           // endpoint opcional, não bloqueia
         }

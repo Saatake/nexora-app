@@ -17,6 +17,7 @@ public class ProjectResponseDto
     public string FileUrl { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public string? AuthorContribution { get; set; }
+    public string? AuthorRole { get; set; }
     public string Category { get; set; } = string.Empty;
     public string AuthorId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;

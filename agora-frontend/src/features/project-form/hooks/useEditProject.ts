@@ -23,6 +23,7 @@ export const useEditProject = () => {
   const [thematicArea, setThematicArea] = useState<ThematicArea>('TecnologiaInovacao');
   const [tags, setTags] = useState<string[]>([]);
   const [authorContribution, setAuthorContribution] = useState('');
+  const [authorRole, setAuthorRole] = useState('');
   const [contentBlocks, setContentBlocks] = useState<ProjectContentBlockDraft[]>([]);
   const [advisor, setAdvisor] = useState('');
   const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
@@ -52,6 +53,7 @@ export const useEditProject = () => {
         setThematicArea((project.thematicArea as ThematicArea) || 'TecnologiaInovacao');
         setTags(project.selectedTags?.length ? project.selectedTags : (project.tags || '').split(',').map((tag: string) => tag.trim()).filter(Boolean));
         setAuthorContribution(project.authorContribution || '');
+        setAuthorRole(project.authorRole || '');
         setContentBlocks((project.contentBlocks || []).map((block: Omit<ProjectContentBlockDraft, 'id'> & { id?: string | number }) => ({ ...block, id: String(block.id ?? crypto.randomUUID()) })));
         setAdvisor(project.advisor || '');
         fileUpload.setImageUrl(project.imageUrl || '');
@@ -79,6 +81,7 @@ export const useEditProject = () => {
         description,
         tags,
         authorContribution,
+        authorRole,
         collaborators,
         contentBlocks,
         githubLink,
@@ -114,6 +117,7 @@ export const useEditProject = () => {
     thematicArea, setThematicArea,
     tags, setTags,
     authorContribution, setAuthorContribution,
+    authorRole, setAuthorRole,
     contentBlocks, setContentBlocks,
     advisor, setAdvisor,
     collaborators, setCollaborators,

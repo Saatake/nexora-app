@@ -26,7 +26,8 @@ public class ProjectServiceContentTests
             Category = ProjectCategory.PesquisaCientifica,
             SelectedTags = ["Historia", "IA"],
             AuthorContribution = "Conduzi as entrevistas.",
-            Collaborators = [new ProjectCollaboratorRequestDto { Id = "member", Contribution = "Organizou a exposição." }],
+            AuthorRole = "Coordenação",
+            Collaborators = [new ProjectCollaboratorRequestDto { Id = "member", Role = "Produção e montagem", Contribution = "Organizou a exposição." }],
             ContentBlocks =
             [
                 new ProjectContentBlockRequestDto { Type = ProjectContentBlockType.Text, Text = "Contexto", SortOrder = 1 },
@@ -36,9 +37,41 @@ public class ProjectServiceContentTests
 
         Assert.Equal("História, Inteligência artificial", result.Tags);
         Assert.Equal("Conduzi as entrevistas.", result.AuthorContribution);
+        Assert.Equal("Coordenação", result.AuthorRole);
+        Assert.Equal("Humanidades, Sociedade e Direito", result.ThematicAreaName);
         Assert.Equal(["Image", "Text"], result.ContentBlocks.Select(block => block.Type));
         Assert.Equal("Organizou a exposição.", Assert.Single(result.Collaborators).Contribution);
+        Assert.Equal("Produção e montagem", Assert.Single(result.Collaborators).Role);
         Assert.Equal(2, await context.ProjectContentBlocks.CountAsync());
+
+        var memberProjects = await service.GetCollaboratedProjectsAsync("member", 1, 10);
+        Assert.Equal("Exposição de memória local", Assert.Single(memberProjects.Items).Title);
+    }
+
+    [Fact]
+    public async Task CreateProject_PersistsAuthorRoleAndCollaboratorRoleForTheProfile()
+    {
+        await using var context = CreateContext();
+        context.Users.AddRange(new ApplicationUser { Id = "author", Name = "Autoria" }, new ApplicationUser { Id = "member", Name = "Integrante" });
+        await context.SaveChangesAsync();
+        var service = new ProjectService(new ProjectRepository(context), null!, null!);
+
+        var result = await service.CreateProjectAsync(new CreateProjectRequestDto
+        {
+            Title = "Projeto de demonstração",
+            Description = "Descrição curta.",
+            ThematicArea = ThematicArea.ArtesDesignComunicacao,
+            Category = ProjectCategory.ProducaoArtistica,
+            AuthorRole = "Direção artística",
+            Collaborators = [new ProjectCollaboratorRequestDto { Id = "member", Role = "Fotografia", Contribution = "Fez os registros visuais." }]
+        }, "author");
+
+        Assert.Equal("Direção artística", result.AuthorRole);
+        var collaborator = Assert.Single(result.Collaborators);
+        Assert.Equal("Fotografia", collaborator.Role);
+        Assert.Equal("Fez os registros visuais.", collaborator.Contribution);
+        var participation = await service.GetCollaboratedProjectsAsync("member", 1, 10);
+        Assert.Equal("Fotografia", Assert.Single(Assert.Single(participation.Items).Collaborators).Role);
     }
 
     [Fact]

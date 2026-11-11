@@ -17,7 +17,8 @@ test('createProjectSubmission sends content blocks, canonical tags and individua
     description: 'Pesquisa interdisciplinar',
     tags: ['História', 'Pesquisa qualitativa'],
     authorContribution: 'Conduzi as entrevistas e analisei os dados.',
-    collaborators: [{ id: 'member-1', name: 'Ana', contribution: 'Revisão bibliográfica' }],
+    authorRole: 'Coordenação',
+    collaborators: [{ id: 'member-1', name: 'Ana', role: 'Pesquisa', contribution: 'Revisão bibliográfica' }],
     contentBlocks: [block('YouTube', 'https://youtu.be/abcdefghijk')],
     githubLink: '',
     fileUrl: '',
@@ -25,7 +26,8 @@ test('createProjectSubmission sends content blocks, canonical tags and individua
 
   assert.deepEqual(payload.selectedTags, ['História', 'Pesquisa qualitativa']);
   assert.equal(payload.authorContribution, 'Conduzi as entrevistas e analisei os dados.');
-  assert.deepEqual(payload.collaborators, [{ id: 'member-1', contribution: 'Revisão bibliográfica' }]);
+  assert.equal(payload.authorRole, 'Coordenação');
+  assert.deepEqual(payload.collaborators, [{ id: 'member-1', role: 'Pesquisa', contribution: 'Revisão bibliográfica' }]);
   assert.equal(payload.contentBlocks[0].sortOrder, 0);
   assert.equal(payload.githubLink, '');
 });
@@ -48,4 +50,13 @@ test('legacy Github and PDF links remain represented when editing old projects',
   assert.equal(payload.githubLink, 'https://github.com/agora/projeto');
   assert.equal(payload.fileUrl, 'https://files.example.test/paper.pdf');
   assert.deepEqual(payload.contentBlocks, []);
+});
+
+test('one project cannot submit more than one YouTube video pitch', () => {
+  assert.throws(() => createProjectSubmission({
+    title: 'Projeto', category: 'Outro', description: 'Descrição', tags: [],
+    authorContribution: '', authorRole: '', collaborators: [],
+    contentBlocks: [block('YouTube', 'https://youtu.be/abcdefghijk', 0), block('YouTube', 'https://youtu.be/zyxwvutsrqp', 1)],
+    githubLink: '', fileUrl: '',
+  }), /vídeo pitch/i);
 });

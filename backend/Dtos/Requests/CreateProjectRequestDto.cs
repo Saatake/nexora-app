@@ -38,6 +38,9 @@ public class CreateProjectRequestDto
     [MaxLength(800)]
     public string? AuthorContribution { get; set; }
 
+    [MaxLength(100)]
+    public string? AuthorRole { get; set; }
+
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }
 
@@ -83,6 +86,9 @@ public class UpdateProjectRequestDto
 
     [MaxLength(800)]
     public string? AuthorContribution { get; set; }
+
+    [MaxLength(100)]
+    public string? AuthorRole { get; set; }
 
     [Required(ErrorMessage = "categoria é obrigatória.")]
     public ProjectCategory Category { get; set; }

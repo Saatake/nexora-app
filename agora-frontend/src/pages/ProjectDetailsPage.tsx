@@ -14,7 +14,6 @@ import EvaluationFormModal from '@/features/project-details/components/Evaluatio
 import AllEvaluationsModal from '@/features/project-details/components/AllEvaluationsModal';
 import MembersModal from '@/features/project-details/components/MembersModal';
 import ProjectContentBlocks from '@/features/project-details/components/ProjectContentBlocks';
-import ProjectContributions from '@/features/project-details/components/ProjectContributions';
 
 const ProjectDetailsPage = () => {
   const navigate = useNavigate();
@@ -90,8 +89,8 @@ const ProjectDetailsPage = () => {
               onAiReview={handleAiReview}
             />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:gap-8">
+              <div className="min-w-0 space-y-6">
                 {project.summary && (
                   <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
                     <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Resumo</h2>
@@ -107,8 +106,6 @@ const ProjectDetailsPage = () => {
                 </div>
 
                 <ProjectContentBlocks blocks={project.contentBlocks} />
-                <ProjectContributions project={project} />
-
                 {aiReview && (
                   <AiReviewCard
                     aiReview={aiReview}

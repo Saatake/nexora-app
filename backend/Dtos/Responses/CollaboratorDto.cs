@@ -7,4 +7,5 @@ public class CollaboratorDto
     public string? PhotoUrl { get; set; }
     public string? Course { get; set; }
     public string? Contribution { get; set; }
+    public string? Role { get; set; }
 }

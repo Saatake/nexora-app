@@ -26,6 +26,7 @@ export type Collaborator = {
   photoUrl?: string | null;
   course?: string | null;
   contribution?: string | null;
+  role?: string | null;
 };
 
 export type ProjectContentBlock = {
@@ -51,6 +52,7 @@ export type Project = {
   fileUrl: string;
   imageUrl?: string | null;
   authorContribution?: string | null;
+  authorRole?: string | null;
   selectedTags?: string[];
   contentBlocks?: ProjectContentBlock[];
   category: string;

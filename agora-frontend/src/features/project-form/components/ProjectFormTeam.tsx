@@ -11,9 +11,13 @@ type Props = {
   setAdvisor: (v: string) => void;
   authorContribution: string;
   setAuthorContribution: (v: string) => void;
+  authorRole: string;
+  setAuthorRole: (v: string) => void;
 };
 
-const ProjectFormTeam = ({ collaborators, setCollaborators, excludeIds, advisor, setAdvisor, authorContribution, setAuthorContribution }: Props) => (
+const roles = ['Coordenação', 'Pesquisa e investigação', 'Criação e design', 'Produção e execução', 'Desenvolvimento técnico', 'Análise', 'Comunicação e apresentação', 'Outro'];
+
+const ProjectFormTeam = ({ collaborators, setCollaborators, excludeIds, advisor, setAdvisor, authorContribution, setAuthorContribution, authorRole, setAuthorRole }: Props) => (
   <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl shadow-[var(--agora-shadow)] p-6">
     <h2 className="text-lg font-semibold">Equipe</h2>
     <div className="mt-4 space-y-4">
@@ -24,13 +28,26 @@ const ProjectFormTeam = ({ collaborators, setCollaborators, excludeIds, advisor,
         </div>
       </div>
       <div>
-        <label className="text-sm font-semibold text-[var(--agora-ink)]">Minha participação</label>
+        <label className="text-sm font-semibold text-[var(--agora-ink)]">Minha função no projeto</label>
+        <select value={authorRole} onChange={(event) => setAuthorRole(event.target.value)} className={`mt-2 ${inputCls}`}>
+          <option value="">Selecione uma função (opcional)</option>
+          {roles.map((role) => <option key={role} value={role}>{role}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="text-sm font-semibold text-[var(--agora-ink)]">Minha contribuição</label>
         <textarea value={authorContribution} onChange={(event) => setAuthorContribution(event.target.value)} maxLength={800} rows={3} placeholder="O que você fez neste projeto?" className={`mt-2 ${inputCls}`} />
       </div>
       {collaborators.map((member) => (
-        <div key={member.id}>
-          <label className="text-sm font-semibold text-[var(--agora-ink)]">Participação de {member.name}</label>
-          <input value={member.contribution ?? ''} maxLength={800} onChange={(event) => setCollaborators(collaborators.map((item) => item.id === member.id ? { ...item, contribution: event.target.value } : item))} placeholder="Ex.: pesquisa, fotografia, análise, edição…" className={`mt-2 ${inputCls}`} />
+        <div key={member.id} className="rounded-lg border border-[var(--agora-border)] p-4">
+          <h3 className="text-sm font-bold text-[var(--agora-ink)]">{member.name}</h3>
+          <label className="mt-3 block text-sm font-semibold text-[var(--agora-ink)]">Função no projeto</label>
+          <select value={member.role ?? ''} onChange={(event) => setCollaborators(collaborators.map((item) => item.id === member.id ? { ...item, role: event.target.value } : item))} className={`mt-2 ${inputCls}`}>
+            <option value="">Selecione uma função (opcional)</option>
+            {roles.map((role) => <option key={role} value={role}>{role}</option>)}
+          </select>
+          <label className="mt-3 block text-sm font-semibold text-[var(--agora-ink)]">Contribuição de {member.name}</label>
+          <input value={member.contribution ?? ''} maxLength={800} onChange={(event) => setCollaborators(collaborators.map((item) => item.id === member.id ? { ...item, contribution: event.target.value } : item))} placeholder="O que essa pessoa fez no projeto?" className={`mt-2 ${inputCls}`} />
         </div>
       ))}
       <div>

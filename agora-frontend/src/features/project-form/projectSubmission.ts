@@ -6,7 +6,8 @@ export type ProjectSubmissionInput = {
   description: string;
   tags: string[];
   authorContribution: string;
-  collaborators: Array<{ id: string; name?: string; contribution?: string }>;
+  authorRole?: string;
+  collaborators: Array<{ id: string; name?: string; role?: string; contribution?: string }>;
   contentBlocks: ProjectContentBlockDraft[];
   githubLink: string;
   fileUrl: string;
@@ -15,6 +16,7 @@ export type ProjectSubmissionInput = {
 export const createProjectSubmission = (input: ProjectSubmissionInput) => {
   const errors = input.contentBlocks.map(validateProjectContentBlock).filter(Boolean);
   if (input.contentBlocks.length > 30) errors.push('Um projeto pode ter no máximo 30 blocos de conteúdo.');
+  if (input.contentBlocks.filter((block) => block.type === 'YouTube').length > 1) errors.push('Um projeto pode ter apenas um vídeo pitch.');
   if (errors.length) throw new Error(errors[0] ?? 'Revise os conteúdos do projeto.');
 
   return {
@@ -23,7 +25,8 @@ export const createProjectSubmission = (input: ProjectSubmissionInput) => {
     description: input.description,
     selectedTags: [...new Set(input.tags.map((tag) => tag.trim()).filter(Boolean))],
     authorContribution: input.authorContribution.trim(),
-    collaborators: input.collaborators.map(({ id, contribution }) => ({ id, contribution: contribution?.trim() || null })),
+    authorRole: input.authorRole?.trim() || null,
+    collaborators: input.collaborators.map(({ id, role, contribution }) => ({ id, role: role?.trim() || null, contribution: contribution?.trim() || null })),
     collaboratorIds: input.collaborators.map(({ id }) => id),
     contentBlocks: input.contentBlocks.map(({ type, text, url, caption, sortOrder }) => ({
       type,

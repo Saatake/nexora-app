@@ -1,3 +1,8 @@
+import { THEMATIC_AREA_LABELS, type ThematicArea } from '../../constants/thematicAreas.ts';
+
+export const formatThematicArea = (area: string): string =>
+  THEMATIC_AREA_LABELS[area as ThematicArea] ?? area;
+
 export const formatCategory = (category: string): string => {
   const lookup: Record<string, string> = {
     Tcc: 'TCC',

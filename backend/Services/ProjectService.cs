@@ -36,6 +36,7 @@ public class ProjectService : IProjectService
             FileUrl = request.FileUrl,
             ImageUrl = request.ImageUrl,
             AuthorContribution = request.AuthorContribution?.Trim(),
+            AuthorRole = request.AuthorRole?.Trim(),
             Category = request.Category,
             IsPrivate = request.IsPrivate,
             UserId = userId,
@@ -118,6 +119,7 @@ public class ProjectService : IProjectService
         project.FileUrl = model.FileUrl;
         project.ImageUrl = model.ImageUrl;
         project.AuthorContribution = model.AuthorContribution?.Trim();
+        project.AuthorRole = model.AuthorRole?.Trim();
         project.Category = model.Category;
         project.IsPrivate = model.IsPrivate;
 
@@ -199,6 +201,17 @@ public class ProjectService : IProjectService
     // peso da nota de professor na média ponderada final (interna, para ranking)
     private const double ProfessorWeight = 3.0;
 
+    private static string FormatThematicArea(ThematicArea area) => area switch
+    {
+        ThematicArea.TecnologiaInovacao => "Tecnologia e Inovação",
+        ThematicArea.NegociosGestao => "Negócios e Gestão",
+        ThematicArea.EngenhariaIndustria => "Engenharia e Indústria",
+        ThematicArea.SaudeBiotecnologia => "Saúde e Biotecnologia",
+        ThematicArea.HumanidadesSociedadeDireito => "Humanidades, Sociedade e Direito",
+        ThematicArea.ArtesDesignComunicacao => "Artes, Design e Comunicação",
+        _ => area.ToString()
+    };
+
     private static ProjectResponseDto MapToDto(Project p)
     {
         double? communityAvg = null;
@@ -238,7 +251,7 @@ public class ProjectService : IProjectService
             Description = p.Description,
             Summary = p.Summary,
             ThematicArea = p.ThematicArea,
-            ThematicAreaName = p.ThematicArea.ToString(),
+            ThematicAreaName = FormatThematicArea(p.ThematicArea),
             Tags = p.Tags,
             SelectedTags = GetSelectedTags(p.Tags),
             Advisor = p.Advisor,
@@ -247,6 +260,7 @@ public class ProjectService : IProjectService
             FileUrl = p.FileUrl,
             ImageUrl = p.ImageUrl,
             AuthorContribution = p.AuthorContribution,
+            AuthorRole = p.AuthorRole,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             AuthorId = p.UserId,
@@ -279,7 +293,8 @@ public class ProjectService : IProjectService
                     Name = c.User!.Name,
                     PhotoUrl = c.User.PhotoUrl,
                     Course = c.User.Course,
-                    Contribution = c.Contribution
+                    Contribution = c.Contribution,
+                    Role = c.Role
                 }).ToList() ?? new(),
             Badges = p.Badges?
                 .GroupBy(b => b.Badge)

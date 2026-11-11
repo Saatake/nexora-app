@@ -68,10 +68,10 @@ const ProjectContentBuilder = ({ blocks, onChange, uploadImage, uploadDocument }
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
         {kinds.map(({ type, label, icon: Icon }) => (
-          <button key={type} type="button" disabled={uploading || blocks.length >= 30}
+          <button key={type} type="button" disabled={uploading || blocks.length >= 30 || (type === 'YouTube' && blocks.some((block) => block.type === 'YouTube'))}
             onClick={() => type === 'Image' ? document.getElementById('project-content-images')?.click() : type === 'Document' ? document.getElementById('project-content-document')?.click() : onChange([...blocks, newBlock(type, blocks.length)])}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--agora-border)] px-3 py-2.5 text-sm font-semibold text-[var(--agora-ink)] hover:border-[var(--agora-accent)] hover:text-[var(--agora-accent)] disabled:opacity-50">
-            <Icon size={16} /><span>{label}</span>
+            <Icon size={16} /><span>{type === 'YouTube' ? 'Vídeo pitch' : label}</span>
           </button>
         ))}
       </div>
@@ -98,7 +98,8 @@ const ProjectContentBuilder = ({ blocks, onChange, uploadImage, uploadDocument }
               ) : (
                 <>
                   <input value={block.url ?? ''} readOnly={block.type === 'Image' || block.type === 'Document'} onChange={(event) => update(block.id, { url: event.target.value })} placeholder={block.type === 'YouTube' ? 'Cole o link do vídeo do YouTube' : block.type === 'Link' ? 'https://…' : 'Arquivo enviado'} className="w-full rounded border border-[var(--agora-border)] bg-[var(--agora-input-bg)] p-3 text-sm text-[var(--agora-ink)] read-only:opacity-70" />
-                  {block.type === 'YouTube' && block.url && getYouTubeEmbedUrl(block.url) && <div className="mt-3 aspect-video overflow-hidden rounded-lg bg-black"><iframe title={block.caption || 'Vídeo do projeto'} src={getYouTubeEmbedUrl(block.url)!} className="h-full w-full" loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}
+                  {block.type === 'YouTube' && <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--agora-accent)]">Este é o vídeo pitch do projeto</p>}
+                  {block.type === 'YouTube' && block.url && getYouTubeEmbedUrl(block.url) && <div className="mt-3 aspect-video overflow-hidden rounded-lg bg-black"><iframe title="Prévia do vídeo pitch" src={getYouTubeEmbedUrl(block.url)!} className="h-full w-full" loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>}
                 </>
               )}
               <input value={block.caption ?? ''} onChange={(event) => update(block.id, { caption: event.target.value })} maxLength={300} placeholder="Legenda (opcional)" className="mt-2 w-full rounded border border-[var(--agora-border)] bg-[var(--agora-input-bg)] p-2.5 text-sm text-[var(--agora-ink)]" />

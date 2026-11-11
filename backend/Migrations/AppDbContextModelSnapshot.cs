@@ -435,6 +435,10 @@ namespace backend.Migrations
                         .HasMaxLength(800)
                         .HasColumnType("character varying(800)");
 
+                    b.Property<string>("AuthorRole")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
@@ -538,6 +542,10 @@ namespace backend.Migrations
                     b.Property<string>("Contribution")
                         .HasMaxLength(800)
                         .HasColumnType("character varying(800)");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("ProjectId", "UserId");
 

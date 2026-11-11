@@ -106,9 +106,8 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<(IEnumerable<Project> Items, int TotalCount)> GetCollaboratedAsync(string userId, int page, int pageSize)
     {
-        var query = _context.ProjectCollaborators
-            .Where(pc => pc.UserId == userId)
-            .Select(pc => pc.Project!)
+        var query = _context.Projects
+            .Where(project => project.Collaborators.Any(collaborator => collaborator.UserId == userId))
             .Include(p => p.User)
             .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
@@ -161,7 +160,8 @@ public class ProjectRepository : IProjectRepository
             {
                 ProjectId = projectId,
                 UserId = collaborator.Id,
-                Contribution = collaborator.Contribution?.Trim()
+                Contribution = collaborator.Contribution?.Trim(),
+                Role = collaborator.Role?.Trim()
             });
         }
 

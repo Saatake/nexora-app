@@ -21,6 +21,7 @@ export const useNewProject = () => {
   const [thematicArea, setThematicArea] = useState<ThematicArea>('TecnologiaInovacao');
   const [tags, setTags] = useState<string[]>([]);
   const [authorContribution, setAuthorContribution] = useState('');
+  const [authorRole, setAuthorRole] = useState('');
   const [contentBlocks, setContentBlocks] = useState<ProjectContentBlockDraft[]>([]);
   const [advisor, setAdvisor] = useState('');
   const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
@@ -41,6 +42,7 @@ export const useNewProject = () => {
         description,
         tags,
         authorContribution,
+        authorRole,
         collaborators,
         contentBlocks,
         githubLink,
@@ -75,6 +77,7 @@ export const useNewProject = () => {
     thematicArea, setThematicArea,
     tags, setTags,
     authorContribution, setAuthorContribution,
+    authorRole, setAuthorRole,
     contentBlocks, setContentBlocks,
     advisor, setAdvisor,
     collaborators, setCollaborators,
