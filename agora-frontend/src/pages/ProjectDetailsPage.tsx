@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import api from '@/api/axios';
 import { useProjectDetails } from '@/features/project-details/hooks/useProjectDetails';
@@ -17,8 +17,10 @@ import ProjectContentBlocks from '@/features/project-details/components/ProjectC
 
 const ProjectDetailsPage = () => {
   const navigate = useNavigate();
+  const [showProjectPanel, setShowProjectPanel] = useState(false);
   const [showAllEvals, setShowAllEvals] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const closeProjectPanel = useCallback(() => setShowProjectPanel(false), []);
 
   const {
     project, evaluations, isLoading, isDownloading,
@@ -57,13 +59,27 @@ const ProjectDetailsPage = () => {
   return (
     <AppShell title="" subtitle="" showSearch={false}>
       <div>
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm text-[var(--agora-muted)] hover:text-[var(--agora-accent)] mb-6 transition-colors"
-        >
-          <ChevronLeft size={16} />
-          Voltar
-        </button>
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1 text-sm text-[var(--agora-muted)] transition-colors hover:text-[var(--agora-accent)]"
+          >
+            <ChevronLeft size={16} />
+            Voltar
+          </button>
+          {project && (
+            <button
+              type="button"
+              aria-controls="project-info-panel"
+              aria-expanded={showProjectPanel}
+              onClick={() => setShowProjectPanel((visible) => !visible)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--agora-border)] px-3 py-2 text-sm font-semibold text-[var(--agora-ink)] transition-colors hover:border-[var(--agora-accent)] hover:text-[var(--agora-accent)]"
+            >
+              {showProjectPanel ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showProjectPanel ? 'Ocultar equipe e avaliações' : 'Equipe e avaliações'}
+            </button>
+          )}
+        </div>
 
         {error && (
           <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -89,21 +105,21 @@ const ProjectDetailsPage = () => {
               onAiReview={handleAiReview}
             />
 
-            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:gap-8">
-              <div className="min-w-0 space-y-6">
+            <div className="min-w-0">
+              <div className="space-y-10">
                 {project.summary && (
-                  <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
-                    <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Resumo</h2>
-                    <p className="text-sm text-[var(--agora-muted)] leading-relaxed">{project.summary}</p>
-                  </div>
+                  <section className="max-w-5xl border-b border-[var(--agora-border)] pb-8">
+                    <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--agora-muted)]">Resumo</h2>
+                    <p className="text-lg font-medium leading-8 text-[var(--agora-ink)] sm:text-xl">{project.summary}</p>
+                  </section>
                 )}
 
-                <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
-                  <h2 className="text-base font-bold text-[var(--agora-ink)] mb-3">Descrição</h2>
-                  <p className="text-sm text-[var(--agora-muted)] leading-relaxed whitespace-pre-line">
+                <section className="max-w-5xl">
+                  <h2 className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-[var(--agora-muted)]">Sobre o projeto</h2>
+                  <p className="whitespace-pre-line text-base leading-8 text-[var(--agora-ink)] sm:text-lg">
                     {project.description}
                   </p>
-                </div>
+                </section>
 
                 <ProjectContentBlocks blocks={project.contentBlocks} />
                 {aiReview && (
@@ -123,7 +139,9 @@ const ProjectDetailsPage = () => {
                   onSubmit={handleAddComment}
                 />
               </div>
+            </div>
 
+            {showProjectPanel && (
               <ProjectSidebar
                 project={project}
                 evaluations={evaluations}
@@ -132,13 +150,14 @@ const ProjectDetailsPage = () => {
                 canEvaluate={canEvaluate}
                 hasEvaluated={evaluations.some((e) => e.evaluatorId === user?.id)}
                 isProfessor={isProfessor}
-                onShowEvaluationForm={() => setShowEvaluationForm(true)}
-                onShowAllEvals={() => setShowAllEvals(true)}
-                onShowMembers={() => setShowMembersModal(true)}
+                onClose={closeProjectPanel}
+                onShowEvaluationForm={() => { closeProjectPanel(); setShowEvaluationForm(true); }}
+                onShowAllEvals={() => { closeProjectPanel(); setShowAllEvals(true); }}
+                onShowMembers={() => { closeProjectPanel(); setShowMembersModal(true); }}
                 onAwardBadge={isProfessor ? handleAwardBadge : undefined}
                 onRemoveBadge={isProfessor ? handleRemoveBadge : undefined}
               />
-            </div>
+            )}
 
             {showEvaluationForm && (
               <EvaluationFormModal

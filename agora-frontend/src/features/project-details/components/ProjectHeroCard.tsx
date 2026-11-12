@@ -27,14 +27,14 @@ const ProjectHeroCard = ({
   onDownload,
   onAiReview,
 }: ProjectHeroCardProps) => (
-  <div className="mb-6 rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] overflow-hidden">
+  <header className="mb-10">
     {project.imageUrl && (
-      <div className="h-56 w-full overflow-hidden">
-        <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+      <div className="mb-7 h-56 w-full overflow-hidden sm:h-72 lg:h-[30rem]">
+        <img src={project.imageUrl} alt={project.title} className="h-full w-full object-cover" />
       </div>
     )}
-    <div className="p-6">
-      <div className="flex flex-wrap items-center gap-2 mb-3">
+    <div className="max-w-6xl">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[var(--agora-accent-bg)] text-[var(--agora-accent)]">
           {formatCategory(project.category)}
         </span>
@@ -49,7 +49,7 @@ const ProjectHeroCard = ({
       </div>
 
       <h1
-        className="text-2xl sm:text-3xl font-bold text-[var(--agora-ink)] mb-3"
+        className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--agora-ink)] sm:text-4xl lg:text-5xl"
         style={{ fontFamily: 'Space Grotesk, sans-serif' }}
       >
         {project.title}
@@ -101,7 +101,7 @@ const ProjectHeroCard = ({
         )}
       </div>
     </div>
-  </div>
+  </header>
 );
 
 export default ProjectHeroCard;

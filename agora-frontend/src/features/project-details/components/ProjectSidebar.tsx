@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Award, ExternalLink } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Award, ExternalLink, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import EvalBar from './EvalBar';
 import BadgeDetailModal from './BadgeDetailModal';
@@ -15,6 +16,7 @@ type ProjectSidebarProps = {
   canEvaluate: boolean;
   hasEvaluated: boolean;
   isProfessor?: boolean;
+  onClose: () => void;
   onShowEvaluationForm: () => void;
   onShowAllEvals: () => void;
   onShowMembers: () => void;
@@ -30,6 +32,7 @@ const ProjectSidebar = ({
   canEvaluate,
   hasEvaluated,
   isProfessor,
+  onClose,
   onShowEvaluationForm,
   onShowAllEvals,
   onShowMembers,
@@ -37,13 +40,77 @@ const ProjectSidebar = ({
   onRemoveBadge,
 }: ProjectSidebarProps) => {
   const [selectedBadge, setSelectedBadge] = useState<ProjectBadge | null>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const panel = panelRef.current;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !panel) return;
+      const focusable = Array.from(panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    panel?.addEventListener('keydown', handleKeyDown);
+    return () => {
+      panel?.removeEventListener('keydown', handleKeyDown);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [onClose]);
 
   const existingBadgeTypes = (project.badges ?? []).map(b => b.badge);
 
-  return (
+  return createPortal(
   <>
-  <div className="space-y-5">
-    <section className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
+  <button
+    type="button"
+    aria-label="Fechar painel de equipe e avaliações"
+    onClick={onClose}
+    className="fixed inset-0 z-40 cursor-default bg-black/35 backdrop-blur-[1px]"
+  />
+  <aside
+    id="project-info-panel"
+    ref={panelRef}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="project-info-title"
+    className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-[var(--agora-border)] bg-[var(--agora-panel)] text-[var(--agora-ink)] shadow-2xl"
+  >
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-[var(--agora-border)] bg-[var(--agora-panel)] px-5 py-4">
+      <h2 id="project-info-title" className="text-base font-bold">Equipe e avaliações</h2>
+      <button
+        ref={closeButtonRef}
+        type="button"
+        aria-label="Fechar painel"
+        onClick={onClose}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--agora-muted)] transition-colors hover:bg-[var(--agora-bg)] hover:text-[var(--agora-ink)]"
+      >
+        <X size={18} />
+      </button>
+    </header>
+    <div className="space-y-7 px-5 py-6">
+    <section className="border-b border-[var(--agora-border)] pb-6">
       <h2 className="mb-4 text-sm font-bold text-[var(--agora-ink)]">Equipe do projeto</h2>
       <div className="space-y-4">
         <Link to={`/profile/${project.authorId}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">
@@ -59,7 +126,7 @@ const ProjectSidebar = ({
     </section>
 
     {/* Detalhes */}
-    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
+    <section className="border-b border-[var(--agora-border)] pb-6">
       <h2 className="text-sm font-bold text-[var(--agora-ink)] mb-4">Detalhes</h2>
       <div className="space-y-3 text-sm">
         {project.advisor && (
@@ -104,22 +171,22 @@ const ProjectSidebar = ({
           </a>
         )}
       </div>
-    </div>
+    </section>
 
     {/* Avaliação */}
-    <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
+    <section className="border-b border-[var(--agora-border)] pb-6">
       <h2 className="text-sm font-bold text-[var(--agora-ink)] mb-4">Avaliação</h2>
 
       {(project.communityCount > 0 || project.professorCount > 0) && (
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="rounded-lg border border-[var(--agora-border)] px-3 py-2">
+          <div className="border-r border-[var(--agora-border)] pr-2">
             <p className="text-[10px] uppercase tracking-wide text-[var(--agora-muted)]">Comunidade</p>
             <p className="text-lg font-bold text-[var(--agora-ink)]">
               {project.communityAverage != null ? project.communityAverage.toFixed(1) : '—'}
             </p>
             <p className="text-[11px] text-[var(--agora-muted)]">{project.communityCount} avaliações</p>
           </div>
-          <div className="rounded-lg border border-[var(--agora-accent)] bg-[var(--agora-accent-bg)] px-3 py-2">
+          <div className="pl-1">
             <p className="text-[10px] uppercase tracking-wide text-[var(--agora-accent)]">Professores</p>
             <p className="text-lg font-bold text-[var(--agora-ink)]">
               {project.professorAverage != null ? project.professorAverage.toFixed(1) : '—'}
@@ -168,15 +235,15 @@ const ProjectSidebar = ({
         </button>
       )}
       {hasEvaluated && (
-        <div className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 text-center">
+        <div className="mt-3 text-center text-xs font-semibold text-[var(--agora-accent)]">
           ✓ Você já avaliou este projeto.
         </div>
       )}
-    </div>
+    </section>
 
     {/* Badges do projeto */}
     {(isProfessor || (project.badges && project.badges.length > 0)) && (
-      <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-5 shadow-[var(--agora-shadow)]">
+      <section className="border-b border-[var(--agora-border)] pb-6">
         <div className="flex items-center gap-2 mb-3">
           <Award size={16} className="text-yellow-500" />
           <h3 className="text-sm font-semibold text-[var(--agora-ink)]">Badges</h3>
@@ -222,18 +289,18 @@ const ProjectSidebar = ({
             )}
           </div>
         )}
-      </div>
+      </section>
     )}
 
     {/* Stats */}
-    <div className="grid grid-cols-3 gap-2">      {[
+    <div className="grid grid-cols-3 gap-3 pt-1">      {[
         { label: 'Views', value: project.viewCount },
         { label: 'Downloads', value: project.downloadCount },
         { label: 'Avaliações', value: evaluations.length },
       ].map((stat) => (
         <div
           key={stat.label}
-          className="rounded-xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-3 text-center"
+          className="text-center"
         >
           <p className="text-lg font-bold text-[var(--agora-ink)]">
             {new Intl.NumberFormat('pt-BR').format(stat.value)}
@@ -242,12 +309,14 @@ const ProjectSidebar = ({
         </div>
       ))}
     </div>
-  </div>
+    </div>
+  </aside>
 
   {selectedBadge && (
     <BadgeDetailModal badge={selectedBadge} onClose={() => setSelectedBadge(null)} />
   )}
-  </>
+  </>,
+  document.body
   );
 };
 

@@ -9,7 +9,7 @@ type AiReviewCardProps = {
 };
 
 const AiReviewCard = ({ aiReview, showFeedback, onToggleFeedback }: AiReviewCardProps) => (
-  <div className="rounded-2xl border border-violet-200 bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
+  <section className="border-y border-violet-200 py-6">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-base font-bold text-[var(--agora-ink)] flex items-center gap-2">
         ✨ Avaliação por IA
@@ -58,7 +58,7 @@ const AiReviewCard = ({ aiReview, showFeedback, onToggleFeedback }: AiReviewCard
         </div>
       )}
     </div>
-  </div>
+  </section>
 );
 
 export default AiReviewCard;
