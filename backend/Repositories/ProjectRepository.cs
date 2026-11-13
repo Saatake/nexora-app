@@ -89,6 +89,7 @@ public class ProjectRepository : IProjectRepository
             .Include(p => p.User)
             .Include(p => p.Evaluations).ThenInclude(e => e.Professor)
             .Include(p => p.Collaborators).ThenInclude(c => c.User)
+            .Include(p => p.ContentBlocks)
             .Include(p => p.Badges).ThenInclude(b => b.Professor)
             .Where(p => p.UserId == userId)
             .AsQueryable();

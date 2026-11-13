@@ -1,5 +1,7 @@
 # AI-generated student portfolios
 
+> Scope update: `2026-11-12-project-rich-portfolios-design.md` supersedes this document's initial media-only and contribution-data exclusions. The original spec remains the baseline for generation, privacy, persistence, cost, and safe design rendering.
+
 ## Intent
 
 Let a student choose projects and receive a complete portfolio draft without writing the introduction, project summaries, or layout by hand. The projects are the primary source for the student's presentation. The result should feel intentionally designed for that student, remain stable when reopened, and take only light, optional revision before publishing.

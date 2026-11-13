@@ -3,6 +3,7 @@ import { ArrowUpRight, Code2, FileText, GraduationCap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { normalizePortfolioDesignSpec } from './types';
 import type { Portfolio, PortfolioDesignSpec, PortfolioProject, PortfolioProjectCard } from './types';
+import { getSafeExternalUrl, getYouTubeEmbedUrl } from '@/features/project-form/projectContent';
 
 const palettes = {
   forest: { paper: '#f2f7f3', accent: '#0a5c2f', tint: '#e2f0e7' },
@@ -34,6 +35,22 @@ const directions = {
     heading: 'mb-6 @2xl:mb-8',
     projectGrid: 'gap-6 @2xl:grid-cols-2 @2xl:[&>article:first-child]:col-span-full',
     card: 'rounded-xl bg-(--portfolio-tint)',
+  },
+  'field-notes': {
+    shell: 'max-w-4xl',
+    sections: 'space-y-16 @2xl:space-y-24',
+    section: 'border-t border-black/15 pt-6 @2xl:grid @2xl:grid-cols-[9rem_minmax(0,1fr)] @2xl:gap-10',
+    heading: 'mb-5 @2xl:mb-0',
+    projectGrid: 'gap-10',
+    card: 'border-l-2 border-black/15 pl-5 @2xl:pl-8',
+  },
+  'gallery-led': {
+    shell: 'max-w-7xl',
+    sections: 'space-y-12 @2xl:space-y-16',
+    section: 'border-t border-black/10 pt-6',
+    heading: 'mb-6 @2xl:mb-8',
+    projectGrid: 'gap-5 @2xl:grid-cols-12 @2xl:[&>article:first-child]:col-span-12 @2xl:[&>article:not(:first-child)]:col-span-6',
+    card: 'bg-white',
   },
 };
 
@@ -88,10 +105,16 @@ const cardLayouts = {
   },
 };
 
-const mediaLayouts = {
+const cardMediaLayouts = {
   standard: '',
   feature: '@2xl:grid-cols-[minmax(0,5fr)_minmax(0,4fr)]',
   compact: '@xl:grid-cols-[7rem_minmax(0,1fr)]',
+};
+
+const mediaLayouts = {
+  inline: 'space-y-5',
+  gallery: 'grid grid-cols-2 gap-3 @2xl:grid-cols-3',
+  feature: 'grid gap-6 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:items-center',
 };
 
 const linkClass = 'inline-flex min-h-11 items-center gap-1.5 rounded-sm text-sm font-bold text-(--portfolio-accent) hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--portfolio-accent)';
@@ -107,13 +130,13 @@ function safeWebUrl(value: string | null | undefined): string | undefined {
   }
 }
 
-function PortfolioHero({ portfolio, layout }: { portfolio: Portfolio; layout: PortfolioDesignSpec['heroLayout'] }) {
+function PortfolioHero({ portfolio, layout, direction }: { portfolio: Portfolio; layout: PortfolioDesignSpec['heroLayout']; direction: PortfolioDesignSpec['direction'] }) {
   const classes = heroLayouts[layout];
   const photoUrl = safeWebUrl(portfolio.photoUrl);
   const initial = portfolio.name.trim().charAt(0).toUpperCase() || 'Á';
 
   return (
-    <header className={classes.frame}>
+    <header className={`${classes.frame} ${direction === 'field-notes' ? 'border-l-4 border-(--portfolio-accent) pl-5 @2xl:pl-8' : ''} ${direction === 'gallery-led' ? 'py-10 @2xl:py-16' : ''}`}>
       {photoUrl ? (
         <img src={photoUrl} alt={portfolio.name} className={`block object-cover ${classes.portrait}`} />
       ) : (
@@ -155,19 +178,90 @@ function PortfolioSection({ kind, title, direction, meta, children }: {
   );
 }
 
-function ProjectCard({ project, variant, treatment, direction }: {
+function ProjectContentMedia({ project, layout, treatment }: { project: PortfolioProject; layout: PortfolioDesignSpec['mediaLayout']; treatment: PortfolioDesignSpec['imageTreatment'] }) {
+  const blocks = [...(project.contentBlocks ?? [])].sort((left, right) => left.sortOrder - right.sortOrder);
+  if (blocks.length === 0) return null;
+
+  return (
+    <div className={`mt-6 ${mediaLayouts[layout]}`} role="group" aria-label={`Materiais do projeto ${project.title}`}>
+      {blocks.map((block, index) => {
+        const key = `${block.sortOrder}-${block.type}-${index}`;
+        if (block.type === 'Text') {
+          return block.text?.trim() ? (
+            <p key={key} className={`whitespace-pre-line text-sm leading-7 text-gray-700 ${layout === 'gallery' ? 'col-span-full' : ''}`}>
+              {block.text}
+            </p>
+          ) : null;
+        }
+
+        if (block.type === 'Image') {
+          const url = getSafeExternalUrl(block.url);
+          return url ? (
+            <figure key={key} className={layout === 'gallery' ? 'min-w-0' : ''}>
+              <img
+                src={url}
+                alt={block.caption?.trim() || `Imagem do projeto ${project.title}`}
+                loading="lazy"
+                className={`w-full bg-(--portfolio-tint) ${imageTreatments[treatment]} ${layout === 'gallery' ? 'aspect-square' : layout === 'feature' ? 'max-h-[42rem]' : 'max-h-[34rem]'}`}
+              />
+              {block.caption?.trim() && <figcaption className="mt-2 text-xs leading-relaxed text-gray-600">{block.caption}</figcaption>}
+            </figure>
+          ) : null;
+        }
+
+        if (block.type === 'YouTube') {
+          const embedUrl = block.url ? getYouTubeEmbedUrl(block.url) : null;
+          return embedUrl ? (
+            <figure key={key} className={layout === 'gallery' ? 'col-span-full' : ''}>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-(--portfolio-accent)">Vídeo pitch</p>
+              <div className="aspect-video overflow-hidden bg-black">
+                <iframe
+                  src={embedUrl}
+                  title={`Vídeo pitch do projeto ${project.title}`}
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="size-full"
+                />
+              </div>
+              {block.caption?.trim() && <figcaption className="mt-2 text-xs text-gray-600">{block.caption}</figcaption>}
+            </figure>
+          ) : null;
+        }
+
+        if (block.type === 'Document' || block.type === 'Link') {
+          const url = getSafeExternalUrl(block.url);
+          return url ? (
+            <a key={key} href={url} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${layout === 'gallery' ? 'col-span-full' : ''}`}>
+              <FileText size={16} aria-hidden="true" />
+              {block.caption?.trim() || (block.type === 'Document' ? 'Abrir material' : 'Abrir link')}
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
+          ) : null;
+        }
+
+        return null;
+      })}
+    </div>
+  );
+}
+
+function ProjectCard({ project, variant, treatment, mediaLayout, direction }: {
   project: PortfolioProject;
   variant: PortfolioProjectCard['cardVariant'];
   treatment: PortfolioDesignSpec['imageTreatment'];
+  mediaLayout: PortfolioDesignSpec['mediaLayout'];
   direction: PortfolioDesignSpec['direction'];
 }) {
   const layout = cardLayouts[variant];
   const imageUrl = safeWebUrl(project.imageUrl);
   const githubLink = safeWebUrl(project.githubLink);
   const fileUrl = safeWebUrl(project.fileUrl);
+  const contributors = project.contributors ?? [];
 
   return (
-    <article className={`grid overflow-hidden ${directions[direction].card} ${layout.article} ${imageUrl ? mediaLayouts[variant] : ''}`}>
+    <article className={`grid overflow-hidden ${directions[direction].card} ${layout.article} ${imageUrl ? cardMediaLayouts[variant] : ''}`}>
       {imageUrl && (
         <div className={`relative overflow-hidden bg-(--portfolio-tint) ${layout.image}`}>
           <img
@@ -188,12 +282,28 @@ function ProjectCard({ project, variant, treatment, direction }: {
         <h3 className={`font-bold tracking-tight text-balance ${layout.title}`}>{project.title}</h3>
         <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-gray-700">{project.summary || project.description}</p>
         {project.contribution && (
-          <div className="mt-4 rounded-md border border-black/10 bg-white/65 p-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-(--portfolio-accent)">Minha contribuição</p>
+          <div className="mt-5 border-l-2 border-(--portfolio-accent) pl-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-(--portfolio-accent)">Minha participação</p>
             <p className="mt-1 text-sm leading-relaxed whitespace-pre-line text-gray-700">{project.contribution}</p>
           </div>
         )}
-        {project.visualSummary && <p className="mt-3 text-xs leading-relaxed text-gray-600">Sobre a imagem: {project.visualSummary}</p>}
+        {project.visualSummary && <p className="mt-4 max-w-3xl text-sm leading-relaxed text-gray-600">Leitura visual · {project.visualSummary}</p>}
+        <ProjectContentMedia project={project} layout={mediaLayout} treatment={treatment} />
+        {contributors.length > 0 && (
+          <div className="mt-6 border-t border-black/10 pt-4">
+            <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-gray-600">Em colaboração</h4>
+            <ul className="mt-3 space-y-3">
+              {contributors.map((contributor, index) => (
+                <li key={`${contributor.name}-${index}`} className="text-sm leading-relaxed">
+                  <p className="font-semibold text-gray-800">
+                    {contributor.name}{contributor.role ? <span className="font-normal text-gray-600"> · {contributor.role}</span> : null}
+                  </p>
+                  {contributor.contribution && <p className="mt-0.5 text-gray-600">{contributor.contribution}</p>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {(githubLink || fileUrl) && (
           <div className="mt-2 flex flex-wrap gap-x-4">
             {githubLink && (
@@ -249,6 +359,7 @@ export default function PortfolioRenderer({ portfolio }: { portfolio: Portfolio 
               key={project.id}
               project={project}
               direction={spec.direction}
+              mediaLayout={spec.mediaLayout}
               variant={projectCards.get(project.id) ?? 'standard'}
               treatment={spec.imageTreatment}
             />
@@ -270,7 +381,7 @@ export default function PortfolioRenderer({ portfolio }: { portfolio: Portfolio 
           </Link>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-600">Portfólio</span>
         </div>
-        <PortfolioHero portfolio={portfolio} layout={spec.heroLayout} />
+        <PortfolioHero portfolio={portfolio} layout={spec.heroLayout} direction={spec.direction} />
         <div className={`mt-10 @2xl:mt-14 ${layout.sections}`}>
           {spec.sections.map((kind) => {
             const { title, body, meta } = sections[kind];

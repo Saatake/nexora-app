@@ -28,4 +28,13 @@ public class PortfolioProjectResponseDto
     public string? ImageUrl { get; set; }
     public string? GithubLink { get; set; }
     public string? FileUrl { get; set; }
+    public List<ProjectContentBlockResponseDto> ContentBlocks { get; set; } = new();
+    public List<PortfolioContributorResponseDto> Contributors { get; set; } = new();
+}
+
+public class PortfolioContributorResponseDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Role { get; set; }
+    public string? Contribution { get; set; }
 }

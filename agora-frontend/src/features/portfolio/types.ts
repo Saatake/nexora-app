@@ -1,9 +1,10 @@
-const directions = ['classic-editorial', 'studio-grid', 'project-spotlight'] as const;
+const directions = ['classic-editorial', 'studio-grid', 'project-spotlight', 'field-notes', 'gallery-led'] as const;
 const heroLayouts = ['stacked', 'split', 'feature'] as const;
 const sectionKinds = ['about', 'skills', 'projects'] as const;
 const typographyOptions = ['editorial', 'modern', 'mono'] as const;
 const colorOptions = ['forest', 'ocean', 'sunset'] as const;
 const imageTreatments = ['natural', 'cover', 'monochrome'] as const;
+const mediaLayouts = ['inline', 'gallery', 'feature'] as const;
 const cardVariants = ['standard', 'feature', 'compact'] as const;
 
 export type PortfolioProjectCard = {
@@ -12,14 +13,29 @@ export type PortfolioProjectCard = {
 };
 
 export type PortfolioDesignSpec = {
-  version: 1;
+  version: 2;
   direction: typeof directions[number];
   heroLayout: typeof heroLayouts[number];
   sections: readonly (typeof sectionKinds[number])[];
   typography: typeof typographyOptions[number];
   colors: typeof colorOptions[number];
   imageTreatment: typeof imageTreatments[number];
+  mediaLayout: typeof mediaLayouts[number];
   projectCards: readonly PortfolioProjectCard[];
+};
+
+export type PortfolioContentBlock = {
+  type: 'Text' | 'Image' | 'YouTube' | 'Document' | 'Link';
+  text?: string | null;
+  url?: string | null;
+  caption?: string | null;
+  sortOrder: number;
+};
+
+export type PortfolioContributor = {
+  name: string;
+  role?: string | null;
+  contribution?: string | null;
 };
 
 export type PortfolioProject = {
@@ -34,6 +50,8 @@ export type PortfolioProject = {
   imageUrl?: string | null;
   githubLink?: string | null;
   fileUrl?: string | null;
+  contentBlocks?: PortfolioContentBlock[];
+  contributors?: PortfolioContributor[];
 };
 
 export type Portfolio = {
@@ -90,13 +108,14 @@ export function normalizePortfolioSkills(entries: readonly string[]): string[] {
 }
 
 const defaultDesignSpec: PortfolioDesignSpec = {
-  version: 1,
+  version: 2,
   direction: 'classic-editorial',
   heroLayout: 'stacked',
   sections: sectionKinds,
   typography: 'editorial',
   colors: 'forest',
   imageTreatment: 'natural',
+  mediaLayout: 'inline',
   projectCards: [],
 };
 
@@ -111,7 +130,7 @@ function isAllowed<T extends string>(value: unknown, options: readonly T[]): val
 export function normalizePortfolioDesignSpec(value: unknown): PortfolioDesignSpec {
   if (!isRecord(value)) return defaultDesignSpec;
 
-  const { version, direction, heroLayout, sections, typography, colors, imageTreatment, projectCards } = value;
+  const { version, direction, heroLayout, sections, typography, colors, imageTreatment, mediaLayout, projectCards } = value;
   if (
     version !== defaultDesignSpec.version ||
     !isAllowed(direction, directions) ||
@@ -119,6 +138,7 @@ export function normalizePortfolioDesignSpec(value: unknown): PortfolioDesignSpe
     !isAllowed(typography, typographyOptions) ||
     !isAllowed(colors, colorOptions) ||
     !isAllowed(imageTreatment, imageTreatments) ||
+    !isAllowed(mediaLayout, mediaLayouts) ||
     !Array.isArray(sections) ||
     sections.length !== sectionKinds.length ||
     new Set(sections).size !== sections.length ||
@@ -149,5 +169,5 @@ export function normalizePortfolioDesignSpec(value: unknown): PortfolioDesignSpe
     normalizedCards.push({ projectId, cardVariant });
   }
 
-  return { version, direction, heroLayout, sections: normalizedSections, typography, colors, imageTreatment, projectCards: normalizedCards };
+  return { version, direction, heroLayout, sections: normalizedSections, typography, colors, imageTreatment, mediaLayout, projectCards: normalizedCards };
 }

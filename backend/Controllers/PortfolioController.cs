@@ -31,7 +31,11 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
 
         var user = await db.Users.FindAsync(userId);
         if (user is null) return NotFound();
-        var projects = await db.Projects.Where(p => projectIds.Contains(p.Id) && p.UserId == userId).ToListAsync();
+        var projects = await db.Projects
+            .Include(project => project.ContentBlocks)
+            .Include(project => project.Collaborators).ThenInclude(collaborator => collaborator.User)
+            .Where(project => projectIds.Contains(project.Id) && project.UserId == userId)
+            .ToListAsync();
         if (projects.Count != projectIds.Count) return BadRequest(new { message = "Um ou mais projetos não pertencem à sua conta." });
 
         return await RunDraftOperation(
@@ -80,6 +84,8 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         var portfolio = await db.Portfolios
             .Include(p => p.User)
             .Include(p => p.Projects).ThenInclude(p => p.Project)
+            .Include(p => p.Projects).ThenInclude(p => p.Project).ThenInclude(project => project!.ContentBlocks)
+            .Include(p => p.Projects).ThenInclude(p => p.Project).ThenInclude(project => project!.Collaborators).ThenInclude(collaborator => collaborator.User)
             .FirstOrDefaultAsync(p => p.UserId == userId);
         portfolio ??= new Portfolio { User = user, UserId = userId, Slug = MakeSlug(user.Name) };
         return Ok(ToResponse(portfolio, includePrivate: true));
@@ -105,7 +111,11 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
 
         var user = await db.Users.FindAsync(userId);
         if (user is null) return NotFound();
-        var selected = await db.Projects.Where(p => request.ProjectIds.Contains(p.Id) && p.UserId == userId).ToListAsync();
+        var selected = await db.Projects
+            .Include(project => project.ContentBlocks)
+            .Include(project => project.Collaborators).ThenInclude(collaborator => collaborator.User)
+            .Where(project => request.ProjectIds.Contains(project.Id) && project.UserId == userId)
+            .ToListAsync();
         if (selected.Count != request.ProjectIds.Count)
             return BadRequest(new { message = "Um ou mais projetos não pertencem à sua conta." });
         if (request.IsPublished && selected.Any(p => p.IsPrivate))
@@ -157,6 +167,8 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         var portfolio = await db.Portfolios
             .Include(p => p.User)
             .Include(p => p.Projects).ThenInclude(p => p.Project)
+            .Include(p => p.Projects).ThenInclude(p => p.Project).ThenInclude(project => project!.ContentBlocks)
+            .Include(p => p.Projects).ThenInclude(p => p.Project).ThenInclude(project => project!.Collaborators).ThenInclude(collaborator => collaborator.User)
             .FirstOrDefaultAsync(p => p.Slug == slug.ToLower() && p.IsPublished);
         if (portfolio?.User is null) return NotFound();
         return Ok(ToResponse(portfolio, includePrivate: false));
@@ -232,7 +244,26 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
                 ThematicArea = link.Project.ThematicArea.ToString(),
                 ImageUrl = link.Project.ImageUrl,
                 GithubLink = string.IsNullOrWhiteSpace(link.Project.GithubLink) ? null : link.Project.GithubLink,
-                FileUrl = string.IsNullOrWhiteSpace(link.Project.FileUrl) ? null : link.Project.FileUrl
+                FileUrl = string.IsNullOrWhiteSpace(link.Project.FileUrl) ? null : link.Project.FileUrl,
+                ContentBlocks = link.Project.ContentBlocks
+                    .OrderBy(block => block.SortOrder)
+                    .ThenBy(block => block.Id)
+                    .Select(block => new ProjectContentBlockResponseDto
+                    {
+                        Type = block.Type.ToString(),
+                        Text = block.Text,
+                        Url = block.Url,
+                        Caption = block.Caption,
+                        SortOrder = block.SortOrder
+                    }).ToList(),
+                Contributors = link.Project.Collaborators
+                    .Where(collaborator => collaborator.User is not null)
+                    .Select(collaborator => new PortfolioContributorResponseDto
+                    {
+                        Name = collaborator.User!.Name,
+                        Role = collaborator.Role,
+                        Contribution = collaborator.Contribution
+                    }).ToList()
             }).ToList();
 
         var designSpec = ReadDesignSpec(portfolio.DesignSpecJson);

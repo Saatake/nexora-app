@@ -6,16 +6,19 @@ import api from '@/api/axios';
 import AppShell from '@/components/AppShell';
 import PortfolioRenderer from '@/features/portfolio/PortfolioRenderer';
 import { normalizePortfolioDesignSpec, normalizePortfolioSkills } from '@/features/portfolio/types';
-import type { Portfolio, PortfolioAiDraft, PortfolioDraft, PortfolioProject } from '@/features/portfolio/types';
+import type { Portfolio, PortfolioAiDraft, PortfolioContributor, PortfolioDraft, PortfolioProject } from '@/features/portfolio/types';
 
-type ProjectOption = Omit<PortfolioProject, 'summary' | 'thematicArea'> & {
+type ProjectOption = Omit<PortfolioProject, 'summary' | 'thematicArea' | 'contributors'> & {
   summary?: string | null;
   thematicAreaName: string;
   isPrivate: boolean;
+  authorContribution?: string | null;
+  authorRole?: string | null;
+  collaborators?: PortfolioContributor[];
 };
 
 type ProjectPage = { items: ProjectOption[]; totalPages: number };
-type ProjectSource = Pick<PortfolioProject, 'id' | 'title' | 'description' | 'thematicArea' | 'category' | 'imageUrl' | 'githubLink' | 'fileUrl'>;
+type ProjectSource = Pick<ProjectOption, 'id' | 'title' | 'description' | 'category' | 'imageUrl' | 'githubLink' | 'fileUrl' | 'contentBlocks' | 'authorContribution' | 'authorRole' | 'collaborators'> & { thematicArea: string };
 type ImageCounts = Pick<PortfolioAiDraft, 'imagesAnalyzed' | 'imagesUnavailable'>;
 type GeneratedPreview = { draft: PortfolioDraft; portfolio: Portfolio; imageCounts?: ImageCounts };
 type PendingAction = 'generate' | 'revise' | 'save' | 'publish';
@@ -70,6 +73,8 @@ function createPreview(draft: PortfolioAiDraft, portfolio: Portfolio, selectedPr
         imageUrl: project.imageUrl,
         githubLink: project.githubLink,
         fileUrl: project.fileUrl,
+        contentBlocks: project.contentBlocks ?? [],
+        contributors: project.collaborators ?? [],
         summary: copy.summary.trim(),
         contribution: copy.contribution.trim(),
         visualSummary: copy.visualSummary.trim(),
@@ -318,7 +323,7 @@ const PortfolioEditorPage = () => {
             <h2 id="portfolio-draft" className="mt-2 text-xl font-bold tracking-tight">Crie sua apresentação</h2>
             <p className="mt-1 text-sm text-(--agora-muted)">A partir dos projetos escolhidos, o Gemini sugere os textos e o visual da sua página.</p>
             <p id="portfolio-ai-disclosure" className="mt-4 max-w-3xl rounded-lg bg-(--agora-bg) px-4 py-3 text-sm leading-relaxed">
-              <strong>Uso de dados reais no Gemini.</strong> Ao gerar, você autoriza o envio dos textos do seu perfil e dos projetos selecionados, além das capas disponíveis. No plano gratuito, o Google pode usar os prompts para melhorar seus produtos. Ao revisar, você autoriza o envio apenas do rascunho atual e do seu pedido, sem reenviar as capas.
+              <strong>Uso de dados reais no Gemini.</strong> Ao gerar, você autoriza o envio dos textos do seu perfil, dos projetos e seus blocos de conteúdo, dos papéis e contribuições dos membros e de até seis imagens dos projetos selecionados. No plano gratuito, o Google pode usar os prompts para melhorar seus produtos. Ao revisar, você autoriza o envio apenas do rascunho atual e do seu pedido, sem reenviar imagens.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
               <button
@@ -334,7 +339,7 @@ const PortfolioEditorPage = () => {
               {!selectionValid && <p className="text-sm text-(--agora-muted)">Selecione de 1 a {maxProjects} projetos para gerar.</p>}
               {generated?.imageCounts && (
                 <p className="text-xs text-(--agora-muted) tabular-nums">
-                  Última geração · {generated.imageCounts.imagesAnalyzed} {generated.imageCounts.imagesAnalyzed === 1 ? 'capa analisada' : 'capas analisadas'} · {generated.imageCounts.imagesUnavailable} {generated.imageCounts.imagesUnavailable === 1 ? 'indisponível' : 'indisponíveis'}
+                  Última geração · {generated.imageCounts.imagesAnalyzed} {generated.imageCounts.imagesAnalyzed === 1 ? 'imagem analisada' : 'imagens analisadas'} · {generated.imageCounts.imagesUnavailable} {generated.imageCounts.imagesUnavailable === 1 ? 'indisponível' : 'indisponíveis'}
                 </p>
               )}
             </div>
