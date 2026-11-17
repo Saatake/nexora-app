@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '@/api/axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { THEMATIC_AREA_ENUM } from '@/constants/thematicAreas';
+import { normalizeCourseName } from '@/constants/facensCourses';
 import type { UserProfile, ProfileProject, EditData } from '../types';
 
 export const useProfile = () => {
@@ -11,7 +12,17 @@ export const useProfile = () => {
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [projects, setProjects] = useState<ProfileProject[]>([]);
+  const [projectsPage, setProjectsPage] = useState(1);
+  const [projectsTotalPages, setProjectsTotalPages] = useState(1);
+  const [projectsTotalCount, setProjectsTotalCount] = useState(0);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+
   const [collaboratedProjects, setCollaboratedProjects] = useState<ProfileProject[]>([]);
+  const [collabPage, setCollabPage] = useState(1);
+  const [collabTotalPages, setCollabTotalPages] = useState(1);
+  const [collabTotalCount, setCollabTotalCount] = useState(0);
+  const [isLoadingCollabs, setIsLoadingCollabs] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,17 +63,21 @@ export const useProfile = () => {
         }
 
         const projectsResponse = isOwnProfile
-          ? await api.get('/projects/me', { params: { page: 1, pageSize: 10 } })
-          : await api.get(`/projects/user/${userId}`, { params: { page: 1, pageSize: 10 } });
+          ? await api.get('/projects/me', { params: { page: 1, pageSize: 5 } })
+          : await api.get(`/projects/user/${userId}`, { params: { page: 1, pageSize: 5 } });
 
         let collaborations: ProfileProject[] = [];
+        let collabPages = 1;
+        let collabTotal = 0;
         try {
           const collaborationsResponse = isOwnProfile
-            ? await api.get('/projects/me/collaborations', { params: { page: 1, pageSize: 10 } })
+            ? await api.get('/projects/me/collaborations', { params: { page: 1, pageSize: 5 } })
             : await api.get(`/projects/user/${userId}/collaborations`, {
-                params: { page: 1, pageSize: 10 },
+                params: { page: 1, pageSize: 5 },
               });
           collaborations = collaborationsResponse.data?.items || [];
+          collabPages = collaborationsResponse.data?.totalPages ?? 1;
+          collabTotal = collaborationsResponse.data?.totalCount ?? collaborations.length;
         } catch {
           // endpoint opcional, não bloqueia
         }
@@ -71,7 +86,13 @@ export const useProfile = () => {
 
         setProfile({ ...profileResponse.data, ...stats });
         setProjects(projectsResponse.data?.items || []);
+        setProjectsPage(1);
+        setProjectsTotalPages(projectsResponse.data?.totalPages ?? 1);
+        setProjectsTotalCount(projectsResponse.data?.totalCount ?? (projectsResponse.data?.items?.length || 0));
         setCollaboratedProjects(collaborations);
+        setCollabPage(1);
+        setCollabTotalPages(collabPages);
+        setCollabTotalCount(collabTotal);
       } catch {
         if (isMounted) setError('Não foi possível carregar o perfil.');
       } finally {
@@ -88,7 +109,7 @@ export const useProfile = () => {
     if (!profile) return;
     setEditData({
       name: profile.name,
-      course: profile.course,
+      course: normalizeCourseName(profile.course),
       bio: profile.bio || '',
       photoUrl: profile.photoUrl || '',
       interests: profile.interests || '',
@@ -170,10 +191,56 @@ export const useProfile = () => {
     }
   };
 
+  const handleProjectsPageChange = async (newPage: number) => {
+    if (!userId) return;
+    setIsLoadingProjects(true);
+    try {
+      const response = isOwnProfile
+        ? await api.get('/projects/me', { params: { page: newPage, pageSize: 5 } })
+        : await api.get(`/projects/user/${userId}`, { params: { page: newPage, pageSize: 5 } });
+      setProjects(response.data?.items || []);
+      setProjectsPage(newPage);
+      setProjectsTotalPages(response.data?.totalPages ?? 1);
+      setProjectsTotalCount(response.data?.totalCount ?? 0);
+    } catch {
+      setError('Não foi possível carregar os projetos.');
+    } finally {
+      setIsLoadingProjects(false);
+    }
+  };
+
+  const handleCollabPageChange = async (newPage: number) => {
+    if (!userId) return;
+    setIsLoadingCollabs(true);
+    try {
+      const response = isOwnProfile
+        ? await api.get('/projects/me/collaborations', { params: { page: newPage, pageSize: 5 } })
+        : await api.get(`/projects/user/${userId}/collaborations`, { params: { page: newPage, pageSize: 5 } });
+      setCollaboratedProjects(response.data?.items || []);
+      setCollabPage(newPage);
+      setCollabTotalPages(response.data?.totalPages ?? 1);
+      setCollabTotalCount(response.data?.totalCount ?? 0);
+    } catch {
+      setError('Não foi possível carregar as colaborações.');
+    } finally {
+      setIsLoadingCollabs(false);
+    }
+  };
+
   return {
     profile,
     projects,
+    projectsPage,
+    projectsTotalPages,
+    projectsTotalCount,
+    isLoadingProjects,
+    handleProjectsPageChange,
     collaboratedProjects,
+    collabPage,
+    collabTotalPages,
+    collabTotalCount,
+    isLoadingCollabs,
+    handleCollabPageChange,
     isLoading,
     isEditing,
     setIsEditing,

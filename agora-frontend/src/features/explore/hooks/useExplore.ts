@@ -30,6 +30,8 @@ export type Student = {
   roleType: string;
 };
 
+const PROJECTS_PAGE_SIZE = 12;
+
 export const useExplore = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -37,10 +39,18 @@ export const useExplore = () => {
   const tab = searchParams.get('tab') ?? 'projects';
 
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsPage, setProjectsPage] = useState(1);
+  const [projectsTotalPages, setProjectsTotalPages] = useState(1);
+  const [projectsTotalCount, setProjectsTotalCount] = useState(0);
+
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setProjectsPage(1);
+  }, [q]);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,9 +58,14 @@ export const useExplore = () => {
       setIsLoadingProjects(true);
       setError('');
       try {
-        const response = await api.get('/projects', { params: { search: q, page: 1, pageSize: 24 } });
+        const response = await api.get('/projects', {
+          params: { search: q, page: projectsPage, pageSize: PROJECTS_PAGE_SIZE },
+        });
         if (!isMounted) return;
-        setProjects(response.data.items ?? response.data ?? []);
+        const items = response.data.items ?? response.data ?? [];
+        setProjects(items);
+        setProjectsTotalPages(response.data.totalPages ?? 1);
+        setProjectsTotalCount(response.data.totalCount ?? items.length);
       } catch {
         if (isMounted) setError('Não foi possível carregar projetos.');
       } finally {
@@ -59,7 +74,7 @@ export const useExplore = () => {
     };
     load();
     return () => { isMounted = false; };
-  }, [q]);
+  }, [q, projectsPage]);
 
   useEffect(() => {
     if (tab !== 'students') return;
@@ -87,5 +102,18 @@ export const useExplore = () => {
     navigate(`/explore?${params.toString()}`);
   };
 
-  return { tab, projects, students, isLoadingProjects, isLoadingStudents, error, switchTab, formatCategory };
+  return {
+    tab,
+    projects,
+    projectsPage,
+    projectsTotalPages,
+    projectsTotalCount,
+    setProjectsPage,
+    students,
+    isLoadingProjects,
+    isLoadingStudents,
+    error,
+    switchTab,
+    formatCategory,
+  };
 };

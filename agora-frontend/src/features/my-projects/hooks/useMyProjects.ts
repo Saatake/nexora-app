@@ -35,9 +35,14 @@ export const MY_PROJECTS_FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'ProjetoEscrito', label: 'Projeto Escrito' },
 ];
 
+const MY_PROJECTS_PAGE_SIZE = 12;
+
 export const useMyProjects = () => {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
+  const [activeFilter, setActiveFilterState] = useState<FilterKey>('all');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{
@@ -50,6 +55,11 @@ export const useMyProjects = () => {
 
   const filterParam = useMemo(() => (activeFilter === 'all' ? undefined : activeFilter), [activeFilter]);
 
+  const setActiveFilter = (filter: FilterKey) => {
+    setActiveFilterState(filter);
+    setPage(1);
+  };
+
   useEffect(() => {
     let isMounted = true;
     const loadProjects = async () => {
@@ -57,10 +67,13 @@ export const useMyProjects = () => {
       setError('');
       try {
         const response = await api.get<PagedResponse<Project>>('/projects/me', {
-          params: { page: 1, pageSize: 12, type: filterParam },
+          params: { page, pageSize: MY_PROJECTS_PAGE_SIZE, type: filterParam },
         });
         if (!isMounted) return;
-        setProjects(response.data.items ?? []);
+        const items = response.data.items ?? [];
+        setProjects(items);
+        setTotalPages(response.data.totalPages ?? 1);
+        setTotalCount(response.data.totalCount ?? items.length);
       } catch {
         if (isMounted) setError('Não foi possível carregar seus projetos.');
       } finally {
@@ -69,7 +82,7 @@ export const useMyProjects = () => {
     };
     loadProjects();
     return () => { isMounted = false; };
-  }, [filterParam]);
+  }, [filterParam, page]);
 
   const handleDelete = async () => {
     if (!deleteModal.projectId) return;
@@ -77,7 +90,8 @@ export const useMyProjects = () => {
     setError('');
     try {
       await api.delete(`/projects/${deleteModal.projectId}`);
-      setProjects(projects.filter((p) => p.id !== deleteModal.projectId));
+      setProjects((prev) => prev.filter((p) => p.id !== deleteModal.projectId));
+      setTotalCount((prev) => Math.max(0, prev - 1));
       setDeleteModal({ show: false, projectId: null, projectTitle: '' });
     } catch (err: unknown) {
       const message =
@@ -106,6 +120,10 @@ export const useMyProjects = () => {
   return {
     activeFilter,
     setActiveFilter,
+    page,
+    totalPages,
+    totalCount,
+    setPage,
     projects,
     isLoading,
     deleteModal,

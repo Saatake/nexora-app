@@ -1,11 +1,64 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Download, Eye, Star, Users } from 'lucide-react';
 import AppShell from '@/components/AppShell';
+import Pagination from '@/components/Pagination';
 import RoleBadge from '@/components/RoleBadge';
 import { useExplore } from '@/features/explore/hooks/useExplore';
 
+const ExploreProjectCardSkeleton = () => (
+  <div className="flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] overflow-hidden animate-pulse">
+    <div className="h-40 w-full bg-[var(--agora-border)]/60" />
+    <div className="flex flex-col flex-1 p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="h-6 w-20 rounded-full bg-[var(--agora-border)]/70" />
+        <div className="h-5 w-10 rounded bg-[var(--agora-border)]/60" />
+      </div>
+      <div className="h-5 w-4/5 rounded bg-[var(--agora-border)]/70" />
+      <div className="space-y-2 flex-1">
+        <div className="h-3.5 w-full rounded bg-[var(--agora-border)]/50" />
+        <div className="h-3.5 w-2/3 rounded bg-[var(--agora-border)]/50" />
+      </div>
+      <div className="pt-4 border-t border-[var(--agora-border)] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-full bg-[var(--agora-border)]/70" />
+          <div className="h-3.5 w-24 rounded bg-[var(--agora-border)]/60" />
+        </div>
+        <div className="h-3.5 w-14 rounded bg-[var(--agora-border)]/50" />
+      </div>
+    </div>
+  </div>
+);
+
+const ExploreStudentCardSkeleton = () => (
+  <div className="flex items-center gap-4 rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-4 animate-pulse">
+    <div className="h-14 w-14 rounded-full bg-[var(--agora-border)]/70 flex-shrink-0" />
+    <div className="flex-1 space-y-2">
+      <div className="h-4 w-3/5 rounded bg-[var(--agora-border)]/70" />
+      <div className="h-3.5 w-2/5 rounded bg-[var(--agora-border)]/50" />
+    </div>
+  </div>
+);
+
 const ExploreProjectsPage = () => {
-  const { tab, projects, students, isLoadingProjects, isLoadingStudents, error, switchTab, formatCategory } = useExplore();
+  const {
+    tab,
+    projects,
+    projectsPage,
+    projectsTotalPages,
+    projectsTotalCount,
+    setProjectsPage,
+    students,
+    isLoadingProjects,
+    isLoadingStudents,
+    error,
+    switchTab,
+    formatCategory,
+  } = useExplore();
+
+  const handlePageChange = (newPage: number) => {
+    setProjectsPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <AppShell title="Explorar" subtitle="Descubra projetos e alunos da universidade">
@@ -44,17 +97,19 @@ const ExploreProjectsPage = () => {
         <>
           <div className="mt-6 flex items-center">
             <p className="text-sm text-[var(--agora-muted)]">
-              {isLoadingProjects ? 'Carregando...' : `${projects.length} projetos`}
+              {isLoadingProjects
+                ? 'Carregando projetos...'
+                : `${projectsTotalCount} ${projectsTotalCount === 1 ? 'projeto' : 'projetos'}`}
             </p>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {isLoadingProjects && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-72 rounded-2xl bg-[var(--agora-border)] animate-pulse" />
+              <ExploreProjectCardSkeleton key={i} />
             ))}
 
             {!isLoadingProjects && projects.length === 0 && (
-              <div className="col-span-3 rounded-xl border border-dashed border-[var(--agora-border)] p-8 text-sm text-[var(--agora-muted)]">
+              <div className="col-span-full rounded-xl border border-dashed border-[var(--agora-border)] p-8 text-center text-sm text-[var(--agora-muted)]">
                 Nenhum projeto encontrado.
               </div>
             )}
@@ -63,7 +118,7 @@ const ExploreProjectsPage = () => {
               <Link
                 key={project.id}
                 to={`/projects/${project.id}`}
-                className="group flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] overflow-hidden transition hover:-translate-y-1 hover:border-[var(--agora-accent)] hover:shadow-md"
+                className="group flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] overflow-hidden transition-colors duration-200 hover:border-[var(--agora-accent)]/50"
               >
                 <div className="h-40 w-full bg-[var(--agora-bg)] overflow-hidden flex-shrink-0">
                   {project.imageUrl ? (
@@ -121,6 +176,15 @@ const ExploreProjectsPage = () => {
               </Link>
             ))}
           </div>
+
+          {!isLoadingProjects && (
+            <Pagination
+              page={projectsPage}
+              totalPages={projectsTotalPages}
+              totalCount={projectsTotalCount}
+              onPageChange={handlePageChange}
+            />
+          )}
         </>
       )}
 
@@ -129,17 +193,17 @@ const ExploreProjectsPage = () => {
         <>
           <div className="mt-6 flex items-center">
             <p className="text-sm text-[var(--agora-muted)]">
-              {isLoadingStudents ? 'Carregando...' : `${students.length} alunos`}
+              {isLoadingStudents ? 'Carregando alunos...' : `${students.length} alunos`}
             </p>
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {isLoadingStudents && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl bg-[var(--agora-border)] animate-pulse" />
+              <ExploreStudentCardSkeleton key={i} />
             ))}
 
             {!isLoadingStudents && students.length === 0 && (
-              <div className="col-span-3 rounded-xl border border-dashed border-[var(--agora-border)] p-8 text-sm text-[var(--agora-muted)]">
+              <div className="col-span-full rounded-xl border border-dashed border-[var(--agora-border)] p-8 text-center text-sm text-[var(--agora-muted)]">
                 Nenhum aluno encontrado.
               </div>
             )}
@@ -148,7 +212,7 @@ const ExploreProjectsPage = () => {
               <Link
                 key={student.id}
                 to={`/profile/${student.id}`}
-                className="group flex items-center gap-4 rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--agora-accent)] hover:shadow-md"
+                className="group flex items-center gap-4 rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] p-4 transition-colors duration-200 hover:border-[var(--agora-accent)]/50"
               >
                 <div className="flex-shrink-0 h-14 w-14 rounded-full overflow-hidden bg-[var(--agora-accent)] flex items-center justify-center text-white text-xl font-bold">
                   {student.photoUrl
