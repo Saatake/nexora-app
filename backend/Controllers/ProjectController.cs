@@ -34,6 +34,10 @@ public class ProjectController : ControllerBase
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
+        var validationErrors = ProjectSubmissionValidator.Validate(request.ContentBlocks, request.SelectedTags);
+        if (validationErrors.Count > 0)
+            return BadRequest(new { message = validationErrors.First(), errors = validationErrors });
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user?.RoleType == UserRole.Professor)
             return StatusCode(403, new { message = "professores não podem publicar projetos." });
@@ -41,6 +45,10 @@ public class ProjectController : ControllerBase
         var result = await _projectService.CreateProjectAsync(request, userId);
         return Ok(result);
     }
+
+    [HttpGet("tags")]
+    [AllowAnonymous]
+    public IActionResult GetTagCatalog() => Ok(ProjectTagCatalog.GetOptions());
 
     [HttpGet]
     [AllowAnonymous]
@@ -129,6 +137,10 @@ public class ProjectController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var validationErrors = ProjectSubmissionValidator.Validate(request.ContentBlocks, request.SelectedTags);
+        if (validationErrors.Count > 0)
+            return BadRequest(new { message = validationErrors.First(), errors = validationErrors });
 
         var result = await _projectService.UpdateAsync(id, request, userId);
 

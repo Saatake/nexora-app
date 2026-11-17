@@ -29,22 +29,26 @@ public class ProjectService : IProjectService
             Description = request.Description,
             Summary = request.Summary,
             ThematicArea = request.ThematicArea,
-            Tags = NormalizeTags(request.Tags),
+            Tags = request.SelectedTags is null ? NormalizeTags(request.Tags) : NormalizeSelectedTags(request.SelectedTags),
             Advisor = request.Advisor,
             TeamMembers = request.TeamMembers,
             GithubLink = request.GithubLink,
             FileUrl = request.FileUrl,
             ImageUrl = request.ImageUrl,
+            AuthorContribution = request.AuthorContribution?.Trim(),
+            AuthorRole = request.AuthorRole?.Trim(),
             Category = request.Category,
             IsPrivate = request.IsPrivate,
             UserId = userId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ContentBlocks = MapContentBlocks(request.ContentBlocks)
         };
 
         var created = await _projectRepository.CreateAsync(project);
 
-        if (request.CollaboratorIds.Count > 0)
-            await _projectRepository.SetCollaboratorsAsync(created.Id, request.CollaboratorIds);
+        var collaborators = GetCollaborators(request.Collaborators, request.CollaboratorIds);
+        if (collaborators.Count > 0)
+            await _projectRepository.SetCollaboratorsAsync(created.Id, collaborators);
 
         var full = await _projectRepository.GetByIdAsync(created.Id);
         return MapToDto(full!);
@@ -108,17 +112,26 @@ public class ProjectService : IProjectService
         project.Description = model.Description;
         project.Summary = model.Summary;
         project.ThematicArea = model.ThematicArea;
-        project.Tags = NormalizeTags(model.Tags);
+        project.Tags = model.SelectedTags is null ? NormalizeTags(model.Tags) : NormalizeSelectedTags(model.SelectedTags);
         project.Advisor = model.Advisor;
         project.TeamMembers = model.TeamMembers;
         project.GithubLink = model.GithubLink;
         project.FileUrl = model.FileUrl;
         project.ImageUrl = model.ImageUrl;
+        project.AuthorContribution = model.AuthorContribution?.Trim();
+        project.AuthorRole = model.AuthorRole?.Trim();
         project.Category = model.Category;
         project.IsPrivate = model.IsPrivate;
 
+        if (model.ContentBlocks is not null)
+        {
+            project.ContentBlocks.Clear();
+            foreach (var block in MapContentBlocks(model.ContentBlocks))
+                project.ContentBlocks.Add(block);
+        }
+
         await _projectRepository.UpdateAsync(project);
-        await _projectRepository.SetCollaboratorsAsync(project.Id, model.CollaboratorIds);
+        await _projectRepository.SetCollaboratorsAsync(project.Id, GetCollaborators(model.Collaborators, model.CollaboratorIds));
 
         var updated = await _projectRepository.GetByIdAsync(project.Id);
         return new ProjectResult { Succeeded = true, Message = "projeto atualizado com sucesso!", Data = MapToDto(updated!) };
@@ -188,6 +201,17 @@ public class ProjectService : IProjectService
     // peso da nota de professor na média ponderada final (interna, para ranking)
     private const double ProfessorWeight = 3.0;
 
+    private static string FormatThematicArea(ThematicArea area) => area switch
+    {
+        ThematicArea.TecnologiaInovacao => "Tecnologia e Inovação",
+        ThematicArea.NegociosGestao => "Negócios e Gestão",
+        ThematicArea.EngenhariaIndustria => "Engenharia e Indústria",
+        ThematicArea.SaudeBiotecnologia => "Saúde e Biotecnologia",
+        ThematicArea.HumanidadesSociedadeDireito => "Humanidades, Sociedade e Direito",
+        ThematicArea.ArtesDesignComunicacao => "Artes, Design e Comunicação",
+        _ => area.ToString()
+    };
+
     private static ProjectResponseDto MapToDto(Project p)
     {
         double? communityAvg = null;
@@ -227,13 +251,16 @@ public class ProjectService : IProjectService
             Description = p.Description,
             Summary = p.Summary,
             ThematicArea = p.ThematicArea,
-            ThematicAreaName = p.ThematicArea.ToString(),
+            ThematicAreaName = FormatThematicArea(p.ThematicArea),
             Tags = p.Tags,
+            SelectedTags = GetSelectedTags(p.Tags),
             Advisor = p.Advisor,
             TeamMembers = p.TeamMembers,
             GithubLink = p.GithubLink,
             FileUrl = p.FileUrl,
             ImageUrl = p.ImageUrl,
+            AuthorContribution = p.AuthorContribution,
+            AuthorRole = p.AuthorRole,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             AuthorId = p.UserId,
@@ -247,6 +274,17 @@ public class ProjectService : IProjectService
             ProfessorCount = professorCount,
             IsPrivate = p.IsPrivate,
             CreatedAt = p.CreatedAt,
+            ContentBlocks = p.ContentBlocks?
+                .OrderBy(block => block.SortOrder)
+                .ThenBy(block => block.Id)
+                .Select(block => new ProjectContentBlockResponseDto
+                {
+                    Type = block.Type.ToString(),
+                    Text = block.Text,
+                    Url = block.Url,
+                    Caption = block.Caption,
+                    SortOrder = block.SortOrder
+                }).ToList() ?? new(),
             Collaborators = p.Collaborators?
                 .Where(c => c.User != null)
                 .Select(c => new CollaboratorDto
@@ -254,7 +292,9 @@ public class ProjectService : IProjectService
                     Id = c.UserId,
                     Name = c.User!.Name,
                     PhotoUrl = c.User.PhotoUrl,
-                    Course = c.User.Course
+                    Course = c.User.Course,
+                    Contribution = c.Contribution,
+                    Role = c.Role
                 }).ToList() ?? new(),
             Badges = p.Badges?
                 .GroupBy(b => b.Badge)
@@ -282,6 +322,31 @@ public class ProjectService : IProjectService
             .Select(t => t.ToLowerInvariant())
             .Distinct());
     }
+
+    private static string? NormalizeSelectedTags(IEnumerable<string>? tags) =>
+        ProjectTagCatalog.TryNormalize(tags, out var normalized) ? normalized : null;
+
+    private static List<string> GetSelectedTags(string? tags) => string.IsNullOrWhiteSpace(tags)
+        ? new()
+        : tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(tag => ProjectTagCatalog.TryCanonicalize(tag, out var canonical) ? canonical : tag)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+    private static ICollection<ProjectContentBlock> MapContentBlocks(IEnumerable<ProjectContentBlockRequestDto>? blocks) =>
+        blocks?.Select(block => new ProjectContentBlock
+        {
+            Type = block.Type,
+            Text = block.Text?.Trim(),
+            Url = block.Url?.Trim(),
+            Caption = block.Caption?.Trim(),
+            SortOrder = block.SortOrder
+        }).ToList() ?? new List<ProjectContentBlock>();
+
+    private static List<ProjectCollaboratorRequestDto> GetCollaborators(
+        IEnumerable<ProjectCollaboratorRequestDto>? collaborators,
+        IEnumerable<string>? collaboratorIds) => collaborators?.ToList() ??
+        (collaboratorIds ?? []).Select(id => new ProjectCollaboratorRequestDto { Id = id }).ToList();
 
     public async Task<AiReviewResult> GenerateAiReviewAsync(int id)
     {

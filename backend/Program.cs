@@ -13,6 +13,7 @@ using Nexora.Api.Interfaces;
 using Nexora.Api.Repositories;
 using Nexora.Api.Middlewares;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
 using System.Threading.RateLimiting;
 using Resend;
 
@@ -22,8 +23,15 @@ var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173
 
 // DB
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var useInMemoryDatabase = builder.Environment.IsDevelopment()
+    && builder.Configuration.GetValue<bool>("Database:UseInMemory");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    if (useInMemoryDatabase)
+        options.UseInMemoryDatabase("AgoraLocalPortfolioTest");
+    else
+        options.UseNpgsql(connectionString);
+});
 
 // Identity (sem endpoints automáticos)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -128,6 +136,23 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 0; // sem fila — rejeita imediatamente
     });
 
+    options.AddPolicy("portfolio-ai", context =>
+    {
+        var userId = context.User.Identity?.IsAuthenticated == true
+            ? context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+        var partitionKey = !string.IsNullOrWhiteSpace(userId)
+            ? $"user:{userId}"
+            : $"ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+        return RateLimitPartition.GetSlidingWindowLimiter(partitionKey, _ => new SlidingWindowRateLimiterOptions
+        {
+            Window = TimeSpan.FromMinutes(1),
+            SegmentsPerWindow = 6,
+            PermitLimit = 5,
+            QueueLimit = 0
+        });
+    });
+
     options.OnRejected = async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -174,7 +199,10 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRankingService, RankingService>();
 builder.Services.AddScoped<BadgeService>();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("portfolio-images", client => client.Timeout = TimeSpan.FromSeconds(12))
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, ConnectTimeout = TimeSpan.FromSeconds(5) });
 builder.Services.AddScoped<IAiReviewService, AiReviewService>();
+builder.Services.AddScoped<IPortfolioAiDraftService, PortfolioAiDraftService>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 
 builder.Services.AddControllers()
@@ -195,7 +223,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        context.Database.Migrate();
+        if (context.Database.IsRelational())
+            context.Database.Migrate();
+        else
+            context.Database.EnsureCreated();
     }
     catch (Exception ex)
     {
@@ -214,6 +245,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Database:UseInMemory"))
+{
+    var localWebRoot = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    Directory.CreateDirectory(localWebRoot);
+    app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(localWebRoot) });
+}
+else
+{
+    app.UseStaticFiles();
+}
 
 // CSRF: rejeita requisições com cookie jwt vindas de origens não permitidas
 var allowedOrigins = new[] { frontendUrl, "http://localhost:3000", "http://localhost:5173" };
@@ -238,9 +279,8 @@ app.Use(async (context, next) =>
 
 app.UseHttpsRedirection();
 
-app.UseRateLimiter();
-
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

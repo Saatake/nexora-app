@@ -47,10 +47,7 @@ const ProfileHeader = ({
   ];
 
   return (
-    <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl shadow-[var(--agora-shadow)] overflow-hidden dash-fade">
-      {/* Faixa superior sutil */}
-      <div className="h-2 bg-gradient-to-r from-[#063b1e] via-[#0a5c2f] to-[#18915b]" />
-
+    <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl shadow-[var(--agora-shadow)] dash-fade">
       {/* Conteúdo principal */}
       <div className="p-5 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -1,3 +1,8 @@
+import { THEMATIC_AREA_LABELS, type ThematicArea } from '../../constants/thematicAreas.ts';
+
+export const formatThematicArea = (area: string): string =>
+  THEMATIC_AREA_LABELS[area as ThematicArea] ?? area;
+
 export const formatCategory = (category: string): string => {
   const lookup: Record<string, string> = {
     Tcc: 'TCC',
@@ -5,6 +10,13 @@ export const formatCategory = (category: string): string => {
     IniciacaoCientifica: 'IC',
     Relatorio: 'Relatório',
     ProjetoEscrito: 'Projeto escrito',
+    PesquisaCientifica: 'Pesquisa científica',
+    Prototipo: 'Protótipo',
+    ProducaoArtistica: 'Produção artística',
+    IntervencaoSocial: 'Intervenção social',
+    Negocio: 'Negócio ou empreendimento',
+    EstudoDeCaso: 'Estudo de caso',
+    Outro: 'Outro',
   };
   return lookup[category] ?? category;
 };

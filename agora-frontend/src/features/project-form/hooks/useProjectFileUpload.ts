@@ -13,6 +13,23 @@ export const useProjectFileUpload = () => {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  const uploadContentImage = async (file: File): Promise<string> => {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Use imagens JPG, PNG ou WEBP.');
+    if (file.size > 5_000_000) throw new Error('Cada imagem deve ter no máximo 5 MB.');
+    const formData = new FormData(); formData.append('file', file);
+    const response = await api.post('/uploads/project-content-image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    if (!response.data.url) throw new Error('O servidor não retornou o endereço da imagem.');
+    return response.data.url;
+  };
+
+  const uploadContentDocument = async (file: File): Promise<string> => {
+    if (file.type !== 'application/pdf' || file.size > 20_000_000) throw new Error('Envie um PDF de até 20 MB.');
+    const formData = new FormData(); formData.append('file', file);
+    const response = await api.post('/uploads/project-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    if (!response.data.url) throw new Error('O servidor não retornou o endereço do PDF.');
+    return response.data.url;
+  };
+
   const handleCoverFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -92,5 +109,7 @@ export const useProjectFileUpload = () => {
     handleCoverFileSelected,
     handleCropConfirm,
     handleFileUpload,
+    uploadContentImage,
+    uploadContentDocument,
   };
 };

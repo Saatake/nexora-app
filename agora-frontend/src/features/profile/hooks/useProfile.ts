@@ -75,7 +75,12 @@ export const useProfile = () => {
             : await api.get(`/projects/user/${userId}/collaborations`, {
                 params: { page: 1, pageSize: 5 },
               });
-          collaborations = collaborationsResponse.data?.items || [];
+          collaborations = (collaborationsResponse.data?.items || []).map(
+            (project: ProfileProject & { collaborators?: Array<{ id: string; role?: string | null }> }) => ({
+              ...project,
+              memberRole: project.collaborators?.find((member) => member.id === userId)?.role ?? null,
+            })
+          );
           collabPages = collaborationsResponse.data?.totalPages ?? 1;
           collabTotal = collaborationsResponse.data?.totalCount ?? collaborations.length;
         } catch {

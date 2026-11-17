@@ -3,13 +3,62 @@ import { Crown, Eye, Star, TrendingUp, Users } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import { useRanking, medalColors } from '@/features/ranking/hooks/useRanking';
 
+const RankingSkeleton = () => (
+  <div className="animate-pulse">
+    <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl p-4 flex flex-col items-center space-y-2"
+        >
+          <div className="h-5 w-5 rounded bg-[var(--agora-border)]/70" />
+          <div className="h-6 w-14 rounded bg-[var(--agora-border)]/70" />
+          <div className="h-3 w-20 rounded bg-[var(--agora-border)]/50" />
+        </div>
+      ))}
+    </section>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {Array.from({ length: 2 }).map((_, col) => (
+        <div
+          key={col}
+          className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-xl overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-[var(--agora-border)] flex items-center gap-2">
+            <div className="h-5 w-5 rounded bg-[var(--agora-border)]/70" />
+            <div className="h-5 w-36 rounded bg-[var(--agora-border)]/70" />
+          </div>
+          {Array.from({ length: 5 }).map((_, row) => (
+            <div
+              key={row}
+              className={`flex items-center gap-4 px-6 py-4 ${
+                row < 4 ? 'border-b border-[var(--agora-border)]' : ''
+              }`}
+            >
+              <div className="h-5 w-6 rounded bg-[var(--agora-border)]/60 flex-shrink-0" />
+              {col === 1 && (
+                <div className="h-8 w-8 rounded bg-[var(--agora-border)]/70 flex-shrink-0" />
+              )}
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-2/3 rounded bg-[var(--agora-border)]/70" />
+                <div className="h-3 w-1/3 rounded bg-[var(--agora-border)]/50" />
+              </div>
+              <div className="h-4 w-12 rounded bg-[var(--agora-border)]/60 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const RankingPage = () => {
   const { topProjects, topStudents, stats, isLoading, error, formatViews } = useRanking();
 
   if (isLoading) {
     return (
-      <AppShell title="Ranking Ágora" subtitle="Celebre a excelência acadêmica da nossa comunidade">
-        <div className="mt-8 text-center text-[var(--agora-muted)]">Carregando...</div>
+      <AppShell title="Ranking Ágora" subtitle="Celebre a excelência acadêmica da nossa comunidade" showSearch={false}>
+        <RankingSkeleton />
       </AppShell>
     );
   }

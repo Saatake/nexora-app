@@ -9,8 +9,7 @@ import ProfileEditModal from '@/features/profile/components/ProfileEditModal';
 const ProfileSkeleton = () => (
   <div className="space-y-6 animate-pulse">
     {/* Header skeleton */}
-    <div className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl overflow-hidden">
-      <div className="h-2 bg-[var(--agora-border)]" />
+    <div className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl">
       <div className="p-5 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6">

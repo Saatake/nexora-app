@@ -46,10 +46,16 @@ const ProjectRow = ({
           </span>
         )}
       </div>
-      <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-[var(--agora-muted)]">
+      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs sm:text-sm text-[var(--agora-muted)]">
         <span>{formatCategory(project.category)}</span>
         <span>•</span>
         <span>{new Date(project.createdAt).getFullYear()}</span>
+        {project.memberRole && (
+          <>
+            <span>•</span>
+            <span className="font-medium text-[var(--agora-accent)]">{project.memberRole}</span>
+          </>
+        )}
       </div>
     </div>
     {project.averageGrade != null && (
@@ -127,7 +133,7 @@ const ProfileProjectsList = ({
     {(collaboratedProjects.length > 0 || collabTotalCount > 0) && (
       <section className="bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl shadow-[var(--agora-shadow)] p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-[var(--agora-ink)]">Colaborações</h3>
+          <h3 className="text-lg font-bold text-[var(--agora-ink)]">Projetos em que participa</h3>
           <span className="text-xs font-semibold text-[var(--agora-muted)] bg-[var(--agora-bg)] border border-[var(--agora-border)] px-2.5 py-1 rounded-full">
             {collabTotalCount}
           </span>
