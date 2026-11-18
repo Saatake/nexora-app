@@ -106,11 +106,11 @@ const MyProjectsPage = () => {
         {!isLoading &&
           projects.map((project) => (
             <div
-              key={project.id}
+              key={project.publicId}
               className="group relative flex flex-col bg-[var(--agora-panel)] border border-[var(--agora-border)] rounded-2xl shadow-[var(--agora-shadow)] overflow-hidden transition-colors duration-200 hover:border-[var(--agora-accent)]/50"
             >
               {/* Cover image */}
-              <Link to={`/projects/${project.id}`} className="block h-36 bg-[var(--agora-bg)] overflow-hidden flex-shrink-0">
+              <Link to={`/projects/${project.publicId}`} className="block h-36 bg-[var(--agora-bg)] overflow-hidden flex-shrink-0">
                 {project.imageUrl ? (
                   <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                 ) : (
@@ -132,14 +132,14 @@ const MyProjectsPage = () => {
                   </div>
                   <div className="flex gap-1.5">
                     <button
-                      onClick={(e) => handleEdit(project.id, e)}
+                      onClick={(e) => handleEdit(project.publicId, e)}
                       className="h-8 w-8 rounded-lg bg-[var(--agora-bg)] text-[var(--agora-muted)] flex items-center justify-center hover:text-[var(--agora-accent)] hover:bg-[var(--agora-accent-bg)] transition-colors"
                       title="Editar"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={(e) => confirmDelete(project.id, project.title, e)}
+                      onClick={(e) => confirmDelete(project.publicId, project.title, e)}
                       className="h-8 w-8 rounded-lg bg-[var(--agora-bg)] text-[var(--agora-muted)] flex items-center justify-center hover:text-red-600 hover:bg-red-50 transition-colors"
                       title="Excluir"
                     >
@@ -148,7 +148,7 @@ const MyProjectsPage = () => {
                   </div>
                 </div>
 
-                <Link to={`/projects/${project.id}`} className="block flex-1">
+                <Link to={`/projects/${project.publicId}`} className="block flex-1">
                   <div className="flex items-start gap-2 mb-1">
                     <h3 className="font-bold text-[var(--agora-ink)] group-hover:text-[var(--agora-accent)] transition-colors leading-snug line-clamp-2 flex-1">
                       {project.title}

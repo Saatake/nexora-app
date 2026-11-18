@@ -102,8 +102,8 @@ const RankingPage = () => {
           ) : (
             topProjects.map((project, index) => (
               <Link
-                key={project.projectId}
-                to={`/projects/${project.projectId}`}
+                key={project.publicId}
+                to={`/projects/${project.publicId}`}
                 className={`flex items-center gap-4 px-6 py-4 hover:bg-[var(--agora-accent-bg)] transition-colors ${index < topProjects.length - 1 ? 'border-b border-[var(--agora-border)]' : ''}`}
               >
                 <span className={`text-lg font-bold w-6 text-center flex-shrink-0 ${medalColors[index] ?? 'text-[var(--agora-muted)]'}`}>

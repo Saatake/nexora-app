@@ -40,8 +40,8 @@ const RecentProjectsList = ({ projects, isLoading }: RecentProjectsListProps) =>
         {!isLoading &&
           projects.map((project) => (
             <Link
-              key={project.id}
-              to={`/projects/${project.id}`}
+              key={project.publicId}
+              to={`/projects/${project.publicId}`}
               className="flex items-center justify-between px-6 py-4 hover:bg-[var(--agora-accent-bg)] transition-colors border-b border-[var(--agora-border)] last:border-b-0"
             >
               <div className="flex items-center gap-4">

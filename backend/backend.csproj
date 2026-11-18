@@ -22,4 +22,10 @@
     <PackageReference Include="Resend" Version="0.10.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\agora-logo-mark.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

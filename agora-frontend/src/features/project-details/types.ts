@@ -40,6 +40,7 @@ export type ProjectContentBlock = {
 
 export type Project = {
   id: number;
+  publicId: string;
   title: string;
   description: string;
   summary?: string | null;

@@ -17,8 +17,8 @@ const PendingProjectsList = ({ projects }: Props) => (
       <div className="divide-y divide-gray-50">
         {projects.map((p) => (
           <Link
-            key={p.id}
-            to={`/projects/${p.id}`}
+            key={p.publicId}
+            to={`/projects/${p.publicId}`}
             className="flex items-center gap-4 py-3 hover:bg-gray-50 rounded-lg px-2 transition-colors group"
           >
             {p.imageUrl ? (

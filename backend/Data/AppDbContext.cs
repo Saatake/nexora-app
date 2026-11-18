@@ -24,6 +24,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<Project>()
+            .HasIndex(p => p.PublicId)
+            .IsUnique();
+        builder.Entity<Project>()
+            .Property(p => p.PublicId)
+            .HasDefaultValueSql("gen_random_uuid()");
+
         builder.Entity<ProjectCollaborator>()
             .HasKey(pc => new { pc.ProjectId, pc.UserId });
 

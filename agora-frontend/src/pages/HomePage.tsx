@@ -21,14 +21,29 @@ import { featuredProjects } from '@/features/home/constants/featuredProjects';
 
 const HomePage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [headerProgress, setHeaderProgress] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const updateHeader = () => {
+      // ScrollBookHero tem 320vh (220vh de percurso rolável).
+      // Começa a ganhar cor e opacidade na reta final da animação (72% -> 96%).
+      const heroScrollable = Math.max(1, window.innerHeight * 2.2);
+      const start = heroScrollable * 0.72;
+      const end = heroScrollable * 0.96;
+      const progress = Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
+      setHeaderProgress(progress);
+    };
+
+    updateHeader();
+    window.addEventListener('scroll', updateHeader, { passive: true });
+    window.addEventListener('resize', updateHeader, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', updateHeader);
+      window.removeEventListener('resize', updateHeader);
+    };
   }, []);
+
+  const effectiveHeaderProgress = isMobileMenuOpen ? 1 : headerProgress;
 
   const navLinks = [
     { label: 'Sobre', href: '#sobre' },
@@ -41,11 +56,14 @@ const HomePage = () => {
     <div className="min-h-screen bg-[#f6f8f7] text-[#141c18] selection:bg-[#22c55e]/20">
       {/* Top Header flutuante sobre a animação em tela cheia */}
       <header
-        className={`fixed top-0 inset-x-0 z-50 transition-colors duration-300 ${
-          isScrolled || isMobileMenuOpen
-            ? 'border-b border-white/10 bg-[#171e1b]/92 backdrop-blur-md shadow-sm'
-            : 'border-b border-transparent bg-transparent'
-        }`}
+        className="fixed top-0 inset-x-0 z-50 border-b transition-shadow duration-200"
+        style={{
+          backgroundColor: `rgba(23, 30, 27, ${(effectiveHeaderProgress * 0.94).toFixed(3)})`,
+          borderBottomColor: `rgba(255, 255, 255, ${(effectiveHeaderProgress * 0.1).toFixed(3)})`,
+          backdropFilter: effectiveHeaderProgress > 0.02 ? `blur(${(effectiveHeaderProgress * 12).toFixed(1)}px)` : 'none',
+          WebkitBackdropFilter: effectiveHeaderProgress > 0.02 ? `blur(${(effectiveHeaderProgress * 12).toFixed(1)}px)` : 'none',
+          boxShadow: effectiveHeaderProgress > 0.25 ? `0 1px 3px rgba(0, 0, 0, ${(effectiveHeaderProgress * 0.16).toFixed(3)})` : 'none',
+        }}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link to="/" className="focus:outline-none">

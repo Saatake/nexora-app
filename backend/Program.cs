@@ -172,12 +172,30 @@ builder.Services.Configure<ResendClientOptions>(options =>
 builder.Services.AddHttpClient<ResendClient>();
 
 // CORS
+var allowedOriginsList = new List<string>
+{
+    frontendUrl.TrimEnd('/'),
+    "https://agora.dev.br",
+    "https://www.agora.dev.br",
+    "https://victorious-sand-036efd210.7.azurestaticapps.net"
+};
+
+if (builder.Environment.IsDevelopment())
+{
+    allowedOriginsList.Add("http://localhost:3000");
+    allowedOriginsList.Add("http://localhost:5173");
+}
+
+var allowedCorsOrigins = allowedOriginsList
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins(frontendUrl, "http://localhost:3000", "http://localhost:5173")
+            policy.WithOrigins(allowedCorsOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -257,7 +275,7 @@ else
 }
 
 // CSRF: rejeita requisições com cookie jwt vindas de origens não permitidas
-var allowedOrigins = new[] { frontendUrl, "http://localhost:3000", "http://localhost:5173" };
+var allowedOrigins = allowedCorsOrigins;
 app.Use(async (context, next) =>
 {
     var hasCookie = context.Request.Cookies.ContainsKey("jwt");

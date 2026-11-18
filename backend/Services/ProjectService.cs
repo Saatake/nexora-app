@@ -247,6 +247,7 @@ public class ProjectService : IProjectService
         return new ProjectResponseDto
         {
             Id = p.Id,
+            PublicId = p.PublicId,
             Title = p.Title,
             Description = p.Description,
             Summary = p.Summary,

@@ -4,6 +4,7 @@ public class RankingProjectDto
 {
     public int Position { get; set; }
     public int ProjectId { get; set; }
+    public Guid PublicId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
     public double AverageGrade { get; set; }

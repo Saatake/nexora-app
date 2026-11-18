@@ -3,7 +3,7 @@ import { BookOpen, Download, Eye, Star, Users } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import Pagination from '@/components/Pagination';
 import RoleBadge from '@/components/RoleBadge';
-import { useExplore } from '@/features/explore/hooks/useExplore';
+import { useExplore, EXPLORE_CATEGORY_FILTERS } from '@/features/explore/hooks/useExplore';
 
 const ExploreProjectCardSkeleton = () => (
   <div className="flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] overflow-hidden animate-pulse">
@@ -42,6 +42,8 @@ const ExploreStudentCardSkeleton = () => (
 const ExploreProjectsPage = () => {
   const {
     tab,
+    activeCategory,
+    setActiveCategory,
     projects,
     projectsPage,
     projectsTotalPages,
@@ -95,7 +97,24 @@ const ExploreProjectsPage = () => {
       {/* Projects tab */}
       {tab !== 'students' && (
         <>
-          <div className="mt-6 flex items-center">
+          <div className="mt-5 flex gap-2 flex-wrap">
+            {EXPLORE_CATEGORY_FILTERS.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={() => setActiveCategory(filter.key)}
+                className={`px-4 py-1.5 text-sm font-semibold rounded-lg border transition-colors ${
+                  activeCategory === filter.key
+                    ? 'border-[var(--agora-accent)] text-[var(--agora-accent)] bg-[var(--agora-accent-bg)]'
+                    : 'border-[var(--agora-border)] text-[var(--agora-muted)] bg-[var(--agora-panel)] hover:text-[var(--agora-ink)] hover:border-[var(--agora-accent)]/40'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-5 flex items-center">
             <p className="text-sm text-[var(--agora-muted)]">
               {isLoadingProjects
                 ? 'Carregando projetos...'
@@ -116,8 +135,8 @@ const ExploreProjectsPage = () => {
 
             {!isLoadingProjects && projects.map((project) => (
               <Link
-                key={project.id}
-                to={`/projects/${project.id}`}
+                key={project.publicId}
+                to={`/projects/${project.publicId}`}
                 className="group flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] shadow-[var(--agora-shadow)] overflow-hidden transition-colors duration-200 hover:border-[var(--agora-accent)]/50"
               >
                 <div className="h-40 w-full bg-[var(--agora-bg)] overflow-hidden flex-shrink-0">

@@ -24,6 +24,7 @@ export type DashboardCharts = {
 
 export type DashboardProject = {
   id: number;
+  publicId: string;
   title: string;
   description: string;
   category: string;
@@ -42,6 +43,7 @@ export type PagedResponse<T> = {
 
 export type PendingProject = {
   id: number;
+  publicId: string;
   title: string;
   summary?: string;
   thematicAreaName: string;
@@ -54,6 +56,7 @@ export type PendingProject = {
 
 export type FeaturedProject = {
   id: number;
+  publicId: string;
   title: string;
   summary?: string;
   thematicAreaName: string;

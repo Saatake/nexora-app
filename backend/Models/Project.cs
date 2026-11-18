@@ -9,6 +9,8 @@ public class Project
     [Key]
     public int Id { get; set; }
 
+    public Guid PublicId { get; set; } = Guid.NewGuid();
+
     [Required]
     public string Title { get; set; } = string.Empty;
     

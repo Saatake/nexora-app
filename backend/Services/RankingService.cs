@@ -41,6 +41,7 @@ public class RankingService : IRankingService
                 (x, p) => new RankingProjectDto
                 {
                     ProjectId = p.Id,
+                    PublicId = p.PublicId,
                     Title = p.Title,
                     AuthorName = p.User != null ? p.User.Name : "Anônimo",
                     AverageGrade = Math.Round(x.Average, 2),

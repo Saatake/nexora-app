@@ -5,6 +5,7 @@ import { formatViews } from '@/shared/utils/formatters';
 export type RankingProject = {
   position: number;
   projectId: number;
+  publicId: string;
   title: string;
   authorName: string;
   authorRoleType?: string;

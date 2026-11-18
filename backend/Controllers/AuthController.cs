@@ -67,6 +67,18 @@ public class AuthController : ControllerBase
         return Ok(new { result.Message });
     }
 
+    [HttpPost("confirm-email")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ConfirmEmailPost([FromBody] ConfirmEmailRequestDto model)
+    {
+        var result = await _authService.ConfirmEmailAsync(model.Email, model.Token);
+
+        if (!result.Succeeded)
+            return BadRequest(new { result.Message });
+
+        return Ok(new { result.Message });
+    }
+
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
     {

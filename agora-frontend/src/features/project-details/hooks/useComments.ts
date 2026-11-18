@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '@/api/axios';
 import type { Comment } from '../types';
 
-export const useComments = (projectId: number) => {
+export const useComments = (projectId: string) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isCommenting, setIsCommenting] = useState(false);

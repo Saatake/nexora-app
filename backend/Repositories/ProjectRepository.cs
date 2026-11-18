@@ -132,6 +132,14 @@ public class ProjectRepository : IProjectRepository
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
+    public async Task<int?> ResolveIdByPublicIdAsync(Guid publicId)
+    {
+        return await _context.Projects
+            .Where(p => p.PublicId == publicId)
+            .Select(p => (int?)p.Id)
+            .FirstOrDefaultAsync();
+    }
+
     public async Task UpdateAsync(Project project)
     {
         _context.Projects.Update(project);

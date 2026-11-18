@@ -471,6 +471,11 @@ namespace backend.Migrations
                     b.Property<bool>("IsPrivate")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("PublicId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
                     b.Property<string>("Summary")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -498,6 +503,9 @@ namespace backend.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 

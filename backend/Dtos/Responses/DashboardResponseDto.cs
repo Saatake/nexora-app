@@ -40,6 +40,7 @@ public class ProfessorDashboardDto
 public class PendingProjectDto
 {
     public int Id { get; set; }
+    public Guid PublicId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Summary { get; set; }
     public string ThematicAreaName { get; set; } = string.Empty;
@@ -53,6 +54,7 @@ public class PendingProjectDto
 public class FeaturedProjectDto
 {
     public int Id { get; set; }
+    public Guid PublicId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Summary { get; set; }
     public string ThematicAreaName { get; set; } = string.Empty;

@@ -6,13 +6,6 @@ const TOTAL_FRAMES = 94;
 
 type FrameSource = HTMLImageElement | ImageBitmap;
 
-type VideoWithRVFC = HTMLVideoElement & {
-  requestVideoFrameCallback?: (
-    callback: (now: number, metadata: { mediaTime: number }) => void
-  ) => number;
-  cancelVideoFrameCallback?: (handle: number) => void;
-};
-
 type SparkleParticle = {
   x: number;
   y: number;
@@ -134,7 +127,7 @@ const drawAmbientSparkles = (
 const buildLoadOrder = (total: number): number[] => {
   const order: number[] = [];
   const seen = new Set<number>();
-  for (const step of [6, 3, 1]) {
+  for (const step of [8, 4, 2, 1]) {
     for (let i = 1; i <= total; i += step) {
       if (!seen.has(i)) {
         seen.add(i);
@@ -144,21 +137,6 @@ const buildLoadOrder = (total: number): number[] => {
   }
   return order;
 };
-
-const seekToTime = (video: HTMLVideoElement, timeSec: number): Promise<void> =>
-  new Promise((resolve) => {
-    let settled = false;
-    const done = () => {
-      if (settled) return;
-      settled = true;
-      video.removeEventListener('seeked', done);
-      resolve();
-    };
-    video.addEventListener('seeked', done, { once: true });
-    // Safety timeout caso o navegador já esteja exatamente naquele timestamp
-    window.setTimeout(done, 120);
-    video.currentTime = timeSec;
-  });
 
 const ScrollBookHero = () => {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -172,163 +150,60 @@ const ScrollBookHero = () => {
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   const framesRef = useRef<(FrameSource | null)[]>(new Array(TOTAL_FRAMES).fill(null));
-  const hdMaskRef = useRef<boolean[]>(new Array(TOTAL_FRAMES).fill(false));
   const particlesRef = useRef<SparkleParticle[]>(createParticles(22));
   const lastRenderKeyRef = useRef('');
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
-  // Extração determinística quadro-a-quadro do MP4 (garante 94/94 quadros sem nenhum pulo!)
-  // + pré-carga leve de quadros-guia para resposta imediata no primeiro segundo
+  // Pré-carrega os 94 quadros com carregamento progressivo e concorrência controlada
   useEffect(() => {
     let cancelled = false;
-    const bitmaps: ImageBitmap[] = [];
 
-    const loadJpegGuides = (fullFallback: boolean) => {
-      const indices = fullFallback
-        ? buildLoadOrder(TOTAL_FRAMES)
-        : [1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 94];
-
-      let pointer = 0;
-      const concurrency = fullFallback ? 6 : 4;
-
-      const loadNext = () => {
-        if (cancelled || pointer >= indices.length) return;
-        const frameNum = indices[pointer++];
-        const idx = frameNum - 1;
-        if (hdMaskRef.current[idx]) {
-          loadNext();
-          return;
-        }
-        const img = new Image();
-        img.decoding = 'async';
-        img.src = getFrameSrc(frameNum);
-        img.onload = () => {
-          if (!cancelled && img.naturalWidth > 0 && !hdMaskRef.current[idx]) {
-            framesRef.current[idx] = img;
-            if (idx === 0) setFirstFrameReady(true);
-            lastRenderKeyRef.current = '';
-          }
-          loadNext();
-        };
-        img.onerror = loadNext;
-      };
-
-      for (let c = 0; c < concurrency; c++) loadNext();
+    // Carrega o frame 1 prioritariamente para exibição imediata
+    const img1 = new Image();
+    img1.decoding = 'async';
+    img1.src = getFrameSrc(1);
+    img1.onload = () => {
+      if (cancelled) return;
+      framesRef.current[0] = img1;
+      setFirstFrameReady(true);
+      lastRenderKeyRef.current = '';
     };
 
-    // Carrega ~13 quadros-guia leves imediatamente para nunca travar mesmo no 1º segundo
-    loadJpegGuides(false);
+    // Pré-carrega todos os 94 quadros em ordem intercalada para cobertura visual instantânea
+    const loadOrder = buildLoadOrder(TOTAL_FRAMES);
+    let pointer = 0;
+    const concurrency = 6;
 
-    const video = document.createElement('video') as VideoWithRVFC;
-    video.src = '/hero-book.mp4';
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = 'auto';
-
-    const extractAllHdFrames = async () => {
-      if (cancelled || !video.duration || !Number.isFinite(video.duration)) {
-        loadJpegGuides(true);
+    const loadNext = () => {
+      if (cancelled || pointer >= loadOrder.length) return;
+      const frameNum = loadOrder[pointer++];
+      const idx = frameNum - 1;
+      if (framesRef.current[idx]) {
+        loadNext();
         return;
       }
-
-      const duration = Math.max(0.1, video.duration - 0.04);
-
-      // Passo 1: Play em 1.0x para capturar a maioria dos quadros em velocidade nativa de hardware
-      if (video.requestVideoFrameCallback) {
-        await new Promise<void>((resolve) => {
-          let handle = 0;
-          const finishPlay = () => {
-            if (handle && video.cancelVideoFrameCallback) {
-              video.cancelVideoFrameCallback(handle);
-            }
-            video.removeEventListener('ended', finishPlay);
-            resolve();
-          };
-
-          const onFrame = async (_now: number, metadata: { mediaTime: number }) => {
-            if (cancelled) {
-              finishPlay();
-              return;
-            }
-            const idx = clamp(
-              Math.round((metadata.mediaTime / duration) * (TOTAL_FRAMES - 1)),
-              0,
-              TOTAL_FRAMES - 1
-            );
-            if (!hdMaskRef.current[idx]) {
-              try {
-                const bmp = await createImageBitmap(video);
-                if (cancelled) {
-                  bmp.close();
-                  finishPlay();
-                  return;
-                }
-                bitmaps.push(bmp);
-                framesRef.current[idx] = bmp;
-                hdMaskRef.current[idx] = true;
-                if (idx === 0) setFirstFrameReady(true);
-                lastRenderKeyRef.current = '';
-              } catch {
-                // ignore
-              }
-            }
-            if (!video.ended && !cancelled) {
-              handle = video.requestVideoFrameCallback!(onFrame);
-            } else {
-              finishPlay();
-            }
-          };
-
-          video.addEventListener('ended', finishPlay, { once: true });
-          video.playbackRate = 1.15;
-          handle = video.requestVideoFrameCallback!(onFrame);
-          video.play().catch(() => finishPlay());
-        });
-      }
-
-      video.pause();
-
-      // Passo 2: Preenche 100% dos quadros que tenham ficado faltando via seek exato
-      for (let idx = 0; idx < TOTAL_FRAMES; idx++) {
-        if (cancelled) break;
-        if (hdMaskRef.current[idx]) continue;
-
-        const targetTime = (idx / (TOTAL_FRAMES - 1)) * duration;
-        await seekToTime(video, targetTime);
-        if (cancelled) break;
-
-        try {
-          const bmp = await createImageBitmap(video);
-          if (cancelled) {
-            bmp.close();
-            break;
-          }
-          bitmaps.push(bmp);
-          framesRef.current[idx] = bmp;
-          hdMaskRef.current[idx] = true;
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = getFrameSrc(frameNum);
+      img.onload = () => {
+        if (!cancelled && img.naturalWidth > 0) {
+          framesRef.current[idx] = img;
           if (idx === 0) setFirstFrameReady(true);
           lastRenderKeyRef.current = '';
-        } catch {
-          // ignore
         }
-      }
-
-      // Se por algum motivo o navegador bloqueou o vídeo completamente, carrega os JPEGs restantes
-      if (!cancelled && hdMaskRef.current.every((v) => !v)) {
-        loadJpegGuides(true);
-      }
+        loadNext();
+      };
+      img.onerror = () => {
+        loadNext();
+      };
     };
 
-    video.addEventListener('loadeddata', extractAllHdFrames, { once: true });
-    video.addEventListener('error', () => loadJpegGuides(true), { once: true });
-    video.load();
+    for (let c = 0; c < concurrency; c++) {
+      loadNext();
+    }
 
     return () => {
       cancelled = true;
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-      bitmaps.forEach((b) => b.close());
     };
   }, []);
 
@@ -385,36 +260,23 @@ const ScrollBookHero = () => {
       smoothProgress = Math.abs(diff) < 0.00025 ? targetProgress : smoothProgress + diff * smoothing;
 
       const exactFrame = clamp(smoothProgress * (TOTAL_FRAMES - 1), 0, TOTAL_FRAMES - 1);
-      const baseIdx = Math.floor(exactFrame);
-      const nextIdx = Math.min(TOTAL_FRAMES - 1, baseIdx + 1);
-      const blendFrac = exactFrame - baseIdx;
-
-      const primary = findNearest(baseIdx);
-      const secondary = nextIdx !== baseIdx ? findNearest(nextIdx) : primary;
+      const targetIdx = Math.round(exactFrame);
+      const currentFrame = findNearest(targetIdx);
 
       const sparkleIntensity = prefersReducedMotion
         ? 0
         : clamp((smoothProgress - 0.58) / 0.25, 0, 1);
 
-      const renderKey = `${primary.actualIdx}:${secondary.actualIdx}:${blendFrac.toFixed(2)}:${hdMaskRef.current[primary.actualIdx] ? 1 : 0}`;
+      const renderKey = `${currentFrame.actualIdx}:${canvasRef.current?.width}x${canvasRef.current?.height}`;
 
       if (
-        primary.src &&
+        currentFrame.src &&
         (renderKey !== lastRenderKeyRef.current || sparkleIntensity > 0.01)
       ) {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d', { alpha: false });
         if (canvas && ctx) {
-          drawFrameCover(ctx, primary.src, canvas.width, canvas.height, 1);
-
-          // Crossfade óptico entre o frame atual e o próximo para fluidez contínua
-          if (
-            secondary.src &&
-            secondary.actualIdx !== primary.actualIdx &&
-            blendFrac > 0.02
-          ) {
-            drawFrameCover(ctx, secondary.src, canvas.width, canvas.height, blendFrac);
-          }
+          drawFrameCover(ctx, currentFrame.src, canvas.width, canvas.height, 1);
 
           if (sparkleIntensity > 0.01) {
             drawAmbientSparkles(

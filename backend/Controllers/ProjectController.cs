@@ -16,17 +16,20 @@ namespace Nexora.Api.Controllers;
 public class ProjectController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly IProjectRepository _projectRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly BadgeService _badgeService;
     private readonly IAiReviewService _aiReviewService;
 
     public ProjectController(
         IProjectService projectService,
+        IProjectRepository projectRepository,
         UserManager<ApplicationUser> userManager,
         BadgeService badgeService,
         IAiReviewService aiReviewService)
     {
         _projectService = projectService;
+        _projectRepository = projectRepository;
         _userManager = userManager;
         _badgeService = badgeService;
         _aiReviewService = aiReviewService;
@@ -162,30 +165,49 @@ public class ProjectController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _projectService.GetByIdAsync(id);
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
+
+        var result = await _projectService.GetByIdAsync(internalId.Value);
 
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
+        if (result.Data?.IsPrivate == true)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAllowed = !string.IsNullOrEmpty(currentUserId) && (
+                result.Data.AuthorId == currentUserId ||
+                result.Data.Collaborators.Any(c => c.Id == currentUserId)
+            );
+            if (!isAllowed)
+                return NotFound(new { message = "Projeto não encontrado." });
+        }
+
         return Ok(result.Data);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateProjectRequestDto request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProjectRequestDto request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
 
         var validationErrors = ProjectSubmissionValidator.Validate(request.ContentBlocks, request.SelectedTags);
         if (validationErrors.Count > 0)
             return BadRequest(new { message = validationErrors.First(), errors = validationErrors });
 
-        var result = await _projectService.UpdateAsync(id, request, userId);
+        var result = await _projectService.UpdateAsync(internalId.Value, request, userId);
 
         if (!result.Succeeded)
         {
@@ -197,14 +219,18 @@ public class ProjectController : ControllerBase
         return Ok(result.Data);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var result = await _projectService.DeleteAsync(id, userId);
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
+
+        var result = await _projectService.DeleteAsync(internalId.Value, userId);
 
         if (!result.Succeeded)
         {
@@ -216,13 +242,16 @@ public class ProjectController : ControllerBase
         return Ok(new { result.Message });
     }
 
-    [HttpPost("{id}/views")]
+    [HttpPost("{id:guid}/views")]
     [AllowAnonymous]
-    public async Task<IActionResult> IncrementView(int id)
+    public async Task<IActionResult> IncrementView(Guid id)
     {
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _projectService.IncrementViewAsync(id, userId);
+        var result = await _projectService.IncrementViewAsync(internalId.Value, userId);
 
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
@@ -230,23 +259,31 @@ public class ProjectController : ControllerBase
         return Ok(new { result.Message });
     }
 
-    [HttpGet("{id}/download")]
+    [HttpGet("{id:guid}/download")]
     [AllowAnonymous]
-    public async Task<IActionResult> Download(int id)
+    public async Task<IActionResult> Download(Guid id)
     {
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
+
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _projectService.GetDownloadAsync(id, userId);
+        var result = await _projectService.GetDownloadAsync(internalId.Value, userId);
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 
         return Ok(new { fileUrl = result.Message });
     }
 
-    [HttpPost("{id}/ai-review")]
+    [HttpPost("{id:guid}/ai-review")]
     [Authorize]
-    public async Task<IActionResult> AiReview(int id)
+    public async Task<IActionResult> AiReview(Guid id)
     {
-        var result = await _projectService.GenerateAiReviewAsync(id);
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
+
+        var result = await _projectService.GenerateAiReviewAsync(internalId.Value);
 
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
@@ -254,32 +291,40 @@ public class ProjectController : ControllerBase
         return Ok(result.Data);
     }
 
-    [HttpPost("{id}/badges/{badge}")]
+    [HttpPost("{id:guid}/badges/{badge}")]
     [Authorize]
-    public async Task<IActionResult> AwardBadge(int id, BadgeType badge)
+    public async Task<IActionResult> AwardBadge(Guid id, BadgeType badge)
     {
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
+
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _userManager.FindByIdAsync(userId!);
         if (user == null || user.RoleType != UserRole.Professor)
             return Forbid();
 
-        var result = await _badgeService.AwardBadgeAsync(id, userId!, badge);
+        var result = await _badgeService.AwardBadgeAsync(internalId.Value, userId!, badge);
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : Conflict(new { result.Message });
 
         return Ok(new { result.Message });
     }
 
-    [HttpDelete("{id}/badges/{badge}")]
+    [HttpDelete("{id:guid}/badges/{badge}")]
     [Authorize]
-    public async Task<IActionResult> RemoveBadge(int id, BadgeType badge)
+    public async Task<IActionResult> RemoveBadge(Guid id, BadgeType badge)
     {
+        var internalId = await _projectRepository.ResolveIdByPublicIdAsync(id);
+        if (!internalId.HasValue)
+            return NotFound(new { message = "Projeto não encontrado." });
+
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await _userManager.FindByIdAsync(userId!);
         if (user == null || user.RoleType != UserRole.Professor)
             return Forbid();
 
-        var result = await _badgeService.RemoveBadgeAsync(id, userId!, badge);
+        var result = await _badgeService.RemoveBadgeAsync(internalId.Value, userId!, badge);
         if (!result.Succeeded)
             return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Message });
 

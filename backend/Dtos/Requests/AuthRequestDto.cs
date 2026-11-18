@@ -55,3 +55,13 @@ public class ResetPasswordRequestDto
     [MinLength(6, ErrorMessage = "senha deve ter no mínimo 6 caracteres.")]
     public string NewPassword { get; set; } = string.Empty;
 }
+
+public class ConfirmEmailRequestDto
+{
+    [Required(ErrorMessage = "e-mail é obrigatório.")]
+    [EmailAddress(ErrorMessage = "e-mail inválido.")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "token é obrigatório.")]
+    public string Token { get; set; } = string.Empty;
+}

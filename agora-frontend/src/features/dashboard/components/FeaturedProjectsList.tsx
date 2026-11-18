@@ -18,8 +18,8 @@ const FeaturedProjectsList = ({ projects }: Props) => (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {projects.map((p, i) => (
           <Link
-            key={p.id}
-            to={`/projects/${p.id}`}
+            key={p.publicId}
+            to={`/projects/${p.publicId}`}
             className="border border-gray-100 rounded-xl p-4 hover:shadow-md transition-shadow group flex flex-col gap-2"
           >
             <div className="flex items-start justify-between gap-2">

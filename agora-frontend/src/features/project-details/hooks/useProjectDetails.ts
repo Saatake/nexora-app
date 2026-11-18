@@ -14,7 +14,7 @@ export const useProjectDetails = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
 
-  const projectId = useMemo(() => Number(id), [id]);
+  const projectId = useMemo(() => id?.trim() ?? '', [id]);
 
   const canEvaluate = useMemo(() => {
     if (!user || !project) return false;

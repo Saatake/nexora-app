@@ -16,6 +16,7 @@ export type UserProfile = {
 
 export type ProfileProject = {
   id: number;
+  publicId: string;
   title: string;
   category: string;
   averageGrade?: number | null;

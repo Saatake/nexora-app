@@ -12,7 +12,7 @@ const defaultFormData: EvaluationFormData = {
 };
 
 export const useEvaluation = (
-  projectId: number,
+  projectId: string,
   onRefresh: () => Promise<void>,
   setPageError: (msg: string) => void,
   isProfessor: boolean = false,

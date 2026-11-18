@@ -7,6 +7,7 @@ export type FilterKey = 'all' | 'Tcc' | 'Upx' | 'IniciacaoCientifica' | 'Relator
 
 export type Project = {
   id: number;
+  publicId: string;
   title: string;
   description: string;
   category: string;
@@ -47,7 +48,7 @@ export const useMyProjects = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{
     show: boolean;
-    projectId: number | null;
+    projectId: string | null;
     projectTitle: string;
   }>({ show: false, projectId: null, projectTitle: '' });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -90,7 +91,7 @@ export const useMyProjects = () => {
     setError('');
     try {
       await api.delete(`/projects/${deleteModal.projectId}`);
-      setProjects((prev) => prev.filter((p) => p.id !== deleteModal.projectId));
+      setProjects((prev) => prev.filter((p) => p.publicId !== deleteModal.projectId));
       setTotalCount((prev) => Math.max(0, prev - 1));
       setDeleteModal({ show: false, projectId: null, projectTitle: '' });
     } catch (err: unknown) {
@@ -103,13 +104,13 @@ export const useMyProjects = () => {
     }
   };
 
-  const handleEdit = (projectId: number, e: React.MouseEvent) => {
+  const handleEdit = (projectId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     navigate(`/projects/${projectId}/edit`);
   };
 
-  const confirmDelete = (projectId: number, projectTitle: string, e: React.MouseEvent) => {
+  const confirmDelete = (projectId: string, projectTitle: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDeleteModal({ show: true, projectId, projectTitle });

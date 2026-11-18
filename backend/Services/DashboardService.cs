@@ -103,6 +103,7 @@ public class DashboardService : IDashboardService
         var pendingProjects = await pendingQuery.Take(10).Select(p => new PendingProjectDto
         {
             Id = p.Id,
+            PublicId = p.PublicId,
             Title = p.Title,
             Summary = p.Summary,
             ThematicAreaName = p.ThematicArea.ToString(),
@@ -127,6 +128,7 @@ public class DashboardService : IDashboardService
             .Select(p => new FeaturedProjectDto
             {
                 Id = p.Id,
+                PublicId = p.PublicId,
                 Title = p.Title,
                 Summary = p.Summary,
                 ThematicAreaName = p.ThematicArea.ToString(),

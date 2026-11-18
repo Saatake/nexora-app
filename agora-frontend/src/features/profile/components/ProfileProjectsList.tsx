@@ -27,7 +27,7 @@ const ProjectRow = ({
   iconBg: string;
 }) => (
   <Link
-    to={`/projects/${project.id}`}
+    to={`/projects/${project.publicId}`}
     className="group flex items-center gap-4 p-4 rounded-xl border border-[var(--agora-border)] bg-[var(--agora-bg)]/40 hover:bg-[var(--agora-accent-bg)]/60 hover:border-[var(--agora-accent)]/40 transition-colors duration-200"
   >
     <div

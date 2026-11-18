@@ -14,6 +14,7 @@ public interface IProjectRepository
     Task<(IEnumerable<Project> Items, int TotalCount)> GetByUserAsync(string userId, ProjectCategory? category, int page, int pageSize);
     Task<(IEnumerable<Project> Items, int TotalCount)> GetCollaboratedAsync(string userId, int page, int pageSize);
     Task<Project?> GetByIdAsync(int id);
+    Task<int?> ResolveIdByPublicIdAsync(Guid publicId);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
     Task SetCollaboratorsAsync(int projectId, List<ProjectCollaboratorRequestDto> collaborators);

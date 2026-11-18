@@ -1,3 +1,4 @@
+using Nexora.Api.Enums;
 using Nexora.Api.Models;
 
 namespace Nexora.Api.Helpers;
@@ -18,7 +19,7 @@ public static class FeatureAccessHelper
     }
 
     public static bool HasAiAccess(ApplicationUser? user) =>
-        HasAnyTag(user, AiAccessTags);
+        user?.RoleType == UserRole.Professor || HasAnyTag(user, AiAccessTags);
 
     public static bool HasAnyTag(ApplicationUser? user, params string[] expectedTags)
     {
