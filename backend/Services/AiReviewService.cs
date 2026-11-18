@@ -142,6 +142,8 @@ public class AiReviewService : IAiReviewService
         if (pdfBytes == null || pdfBytes.Length == 0)
             throw new ArgumentException("O arquivo PDF enviado está vazio.", nameof(pdfBytes));
 
+        var allowedTags = string.Join(" | ", ProjectTagCatalog.GetOptions().Select(o => o.Value));
+
         var prompt = $$$"""
             Você é um assistente acadêmico da plataforma Ágora. Leia o documento PDF anexado (nome do arquivo: {{{fileName}}}) e extraia os dados estruturados do projeto para preencher o formulário de publicação.
             Não invente informações que não estejam no documento. Escreva sempre em português do Brasil.
@@ -153,7 +155,7 @@ public class AiReviewService : IAiReviewService
               "description": "<descrição completa e bem estruturada em pelo menos 2 parágrafos explicando problema, objetivo, metodologia/tecnologias e resultados>",
               "category": "<UM dos valores exatos: Tcc | Relatorio | ProjetoEscrito | Upx | IniciacaoCientifica | PesquisaCientifica | Prototipo | ProducaoArtistica | IntervencaoSocial | Negocio | EstudoDeCaso | Outro>",
               "thematicArea": "<UM dos valores exatos: TecnologiaInovacao | NegociosGestao | EngenhariaIndustria | SaudeBiotecnologia | HumanidadesSociedadeDireito | ArtesDesignComunicacao>",
-              "tags": ["<tag1>", "<tag2>", "<tag3>", "<tag4>"]
+              "tags": ["<escolha de 2 a 6 tags SOMENTE desta lista exata: {{{allowedTags}}}>"]
             }
             """;
 
@@ -193,9 +195,12 @@ public class AiReviewService : IAiReviewService
         {
             foreach (var item in tagsProp.EnumerateArray())
             {
-                var tag = item.GetString()?.Trim();
-                if (!string.IsNullOrWhiteSpace(tag) && tags.Count < 8)
-                    tags.Add(tag);
+                if (ProjectTagCatalog.TryCanonicalize(item.GetString(), out var canonical) &&
+                    !tags.Contains(canonical, StringComparer.OrdinalIgnoreCase) &&
+                    tags.Count < 6)
+                {
+                    tags.Add(canonical);
+                }
             }
         }
 
