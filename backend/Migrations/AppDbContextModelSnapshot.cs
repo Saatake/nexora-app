@@ -181,6 +181,10 @@ namespace backend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("FeatureTags")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("Formation")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");

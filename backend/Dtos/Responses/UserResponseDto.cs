@@ -12,4 +12,6 @@ public class UserResponseDto
     public string RoleType { get; set; } = string.Empty;
     public string? Formation { get; set; }
     public List<string> TeachingAreas { get; set; } = new();
+    public List<string> FeatureTags { get; set; } = new();
+    public bool HasAiAccess { get; set; }
 }

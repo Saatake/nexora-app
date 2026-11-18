@@ -8,6 +8,7 @@ using Nexora.Api.Data;
 using Nexora.Api.Dtos;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Dtos.Responses;
+using Nexora.Api.Helpers;
 using Nexora.Api.Models;
 using Nexora.Api.Interfaces;
 using Microsoft.AspNetCore.RateLimiting;
@@ -31,6 +32,8 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
 
         var user = await db.Users.FindAsync(userId);
         if (user is null) return NotFound();
+        if (!FeatureAccessHelper.HasAiAccess(user))
+            return StatusCode(403, new { message = "Recurso exclusivo para contas habilitadas." });
         var projects = await db.Projects
             .Include(project => project.ContentBlocks)
             .Include(project => project.Collaborators).ThenInclude(collaborator => collaborator.User)
@@ -50,6 +53,10 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+        var user = await db.Users.FindAsync(userId);
+        if (user is null) return NotFound();
+        if (!FeatureAccessHelper.HasAiAccess(user))
+            return StatusCode(403, new { message = "Recurso exclusivo para contas habilitadas." });
 
         if (request.Draft?.Projects is not { Count: >= 1 and <= 12 } projects ||
             projects.Any(project => project is null || project.ProjectId <= 0))
@@ -80,6 +87,8 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
         if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
         var user = await db.Users.FindAsync(userId);
         if (user is null) return NotFound();
+        if (!FeatureAccessHelper.HasAiAccess(user))
+            return StatusCode(403, new { message = "Recurso exclusivo para contas habilitadas." });
 
         var portfolio = await db.Portfolios
             .Include(p => p.User)
@@ -111,6 +120,8 @@ public class PortfolioController(AppDbContext db, IPortfolioAiDraftService portf
 
         var user = await db.Users.FindAsync(userId);
         if (user is null) return NotFound();
+        if (!FeatureAccessHelper.HasAiAccess(user))
+            return StatusCode(403, new { message = "Recurso exclusivo para contas habilitadas." });
         var selected = await db.Projects
             .Include(project => project.ContentBlocks)
             .Include(project => project.Collaborators).ThenInclude(collaborator => collaborator.User)

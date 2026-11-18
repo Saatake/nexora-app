@@ -16,5 +16,8 @@ public class ApplicationUser : IdentityUser
     [MaxLength(300)]
     public string? Formation { get; set; }
 
+    [MaxLength(300)]
+    public string? FeatureTags { get; set; }
+
     public ICollection<UserTeachingArea> TeachingAreas { get; set; } = new List<UserTeachingArea>();
 }
