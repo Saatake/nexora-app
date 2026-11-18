@@ -8,14 +8,18 @@ import type {
   PagedResponse,
 } from '../types';
 
-export const useDashboard = () => {
+export const useDashboard = (enabled = true) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [charts, setCharts] = useState<DashboardCharts | null>(null);
   const [recentProjects, setRecentProjects] = useState<DashboardProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
     let isMounted = true;
     const loadDashboard = async () => {
       setIsLoading(true);
@@ -46,7 +50,7 @@ export const useDashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [enabled]);
 
   const lineChart = useMemo(() => {
     const series = charts?.gradeEvolution?.slice(-7) ?? [];
