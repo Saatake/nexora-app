@@ -9,6 +9,8 @@ interface User {
   bio?: string;
   roleType?: string;
   photoUrl?: string;
+  featureTags?: string[];
+  hasAiAccess?: boolean;
 }
 
 interface AuthContextData {

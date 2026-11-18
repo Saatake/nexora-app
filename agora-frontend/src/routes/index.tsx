@@ -24,6 +24,13 @@ const PrivateRoute = ({ children }: { children: ReactElement }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
+const AiAccessRoute = ({ children }: { children: ReactElement }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  return user?.hasAiAccess ? children : <Navigate to="/dashboard" />;
+};
+
 const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -105,9 +112,9 @@ const AppRoutes = () => {
         <Route
           path="/portfolio/edit"
           element={
-            <PrivateRoute>
+            <AiAccessRoute>
               <PortfolioEditorPage />
-            </PrivateRoute>
+            </AiAccessRoute>
           }
         />
         <Route 

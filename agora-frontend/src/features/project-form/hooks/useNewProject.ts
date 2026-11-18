@@ -27,9 +27,46 @@ export const useNewProject = () => {
   const [collaborators, setCollaborators] = useState<CollaboratorUser[]>([]);
   const [isPrivate, setIsPrivate] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
+  const [extractMessage, setExtractMessage] = useState('');
   const [error, setError] = useState('');
 
   const fileUpload = useProjectFileUpload();
+
+  const handleExtractFromPdf = async (file: File) => {
+    setError('');
+    setExtractMessage('');
+    setIsExtractingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post<{
+        title?: string;
+        summary?: string;
+        description?: string;
+        category?: ProjectCategory;
+        thematicArea?: ThematicArea;
+        tags?: string[];
+      }>('/projects/extract-from-pdf', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const data = response.data;
+      if (data.title) setTitle(data.title);
+      if (data.summary) setSummary(data.summary);
+      if (data.description) setDescription(data.description);
+      if (data.category) setCategory(data.category);
+      if (data.thematicArea) setThematicArea(data.thematicArea);
+      if (Array.isArray(data.tags) && data.tags.length > 0) setTags(data.tags);
+      setExtractMessage('Campos preenchidos pela IA! Revise os dados e adicione os membros da equipe.');
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Não foi possível extrair os dados do PDF com a IA.';
+      setError(message);
+    } finally {
+      setIsExtractingPdf(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -83,6 +120,9 @@ export const useNewProject = () => {
     collaborators, setCollaborators,
     isPrivate, setIsPrivate,
     isSaving,
+    isExtractingPdf,
+    extractMessage,
+    handleExtractFromPdf,
     error,
     currentUser,
     fileUpload,
