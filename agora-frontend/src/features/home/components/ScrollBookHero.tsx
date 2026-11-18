@@ -159,10 +159,21 @@ const ScrollBookHero = () => {
   const lastRenderKeyRef = useRef('');
   const scheduleTickRef = useRef<() => void>(() => {});
   const [firstFrameReady, setFirstFrameReady] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false
+  );
 
-  // Pré-carrega os quadros com decodificação assíncrona fora da main thread
-  // (em mobile redimensiona para ImageBitmap leve na GPU para nunca travar no touch scroll)
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handleChange = () => setIsMobileView(mq.matches);
+    handleChange();
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
+  }, []);
+
+  // Pré-carrega os quadros apenas no desktop (no mobile exibe imagem estática de alta qualidade do livro aberto)
+  useEffect(() => {
+    if (isMobileView) return;
     let cancelled = false;
     const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
     const allocatedBitmaps: ImageBitmap[] = [];
@@ -254,10 +265,11 @@ const ScrollBookHero = () => {
         }
       }
     };
-  }, []);
+  }, [isMobileView]);
 
-  // Loop sob demanda (para quando em repouso/fora da tela) e otimizado para mobile
+  // Loop sob demanda no desktop (no mobile não roda loop de scroll)
   useEffect(() => {
+    if (isMobileView) return;
     let rafId = 0;
     let targetProgress = 0;
     let smoothProgress = 0;
@@ -444,7 +456,62 @@ const ScrollBookHero = () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', updateTargetFromScroll);
     };
-  }, []);
+  }, [isMobileView]);
+
+  // Em dispositivos móveis, exibe uma imagem estática de alta qualidade do livro aberto (sem trilha longa de scroll nem esticamento vertical)
+  if (isMobileView) {
+    return (
+      <section className="relative min-h-[100svh] bg-[#141917] text-white overflow-hidden flex flex-col justify-between pt-24 pb-12">
+        {/* Imagem de alta qualidade do livro aberto com os cards flutuantes e partículas douradas */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <img
+            src="/book-frames/frame-0082.jpg"
+            alt="Livro Ágora aberto com projetos acadêmicos"
+            className="h-full w-full object-cover object-[70%_38%] scale-[1.03]"
+          />
+          {/* Vinhetas suaves para leitura impecável e transição com a seção clara abaixo */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(16,22,19,0.78) 0%, rgba(16,22,19,0.32) 38%, rgba(16,22,19,0.72) 78%, #f6f8f7 100%)',
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-xl px-5 my-auto space-y-5 pt-16 pb-8">
+          <h1
+            className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.1] text-white drop-shadow-sm"
+            style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}
+          >
+            Onde trabalhos acadêmicos ganham{' '}
+            <span className="text-[#4ade80]">visibilidade real.</span>
+          </h1>
+
+          <p className="text-sm sm:text-base text-slate-200/95 leading-relaxed">
+            Publique TCCs, UPXs e iniciações científicas, receba avaliações de professores e
+            transforme o que você construiu na faculdade em vitrine.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-[#052e16] px-5 py-3.5 text-sm font-bold shadow-lg transition-colors"
+            >
+              Começar gratuitamente
+              <ArrowRight size={17} />
+            </Link>
+            <a
+              href="#projetos"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-black/35 backdrop-blur-xs text-white px-5 py-3.5 text-sm font-semibold transition-colors"
+            >
+              Ver destaques
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section ref={trackRef} className="relative h-[320vh] bg-[#f6f8f7] text-white">

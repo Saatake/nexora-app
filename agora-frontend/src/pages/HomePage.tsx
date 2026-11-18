@@ -39,7 +39,17 @@ const HomePage = () => {
 
   useEffect(() => {
     const updateHeader = () => {
-      // ScrollBookHero tem 320vh (220vh de percurso rolável).
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      if (isMobile) {
+        // No mobile o hero é um banner estático de 100svh (sem trilha longa de scroll)
+        const start = Math.max(10, window.innerHeight * 0.12);
+        const end = Math.max(80, window.innerHeight * 0.65);
+        const progress = Math.min(1, Math.max(0, (window.scrollY - start) / (end - start)));
+        headerProgressRef.current = progress;
+        applyHeaderStyle(progress, isMobileMenuOpen);
+        return;
+      }
+      // ScrollBookHero no desktop tem 320vh (220vh de percurso rolável).
       // Começa a ganhar cor e opacidade na reta final da animação (72% -> 96%).
       const heroScrollable = Math.max(1, window.innerHeight * 2.2);
       const start = heroScrollable * 0.72;
