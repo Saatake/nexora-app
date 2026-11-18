@@ -129,7 +129,7 @@ const HomePage = () => {
       <ScrollBookHero />
 
       {/* Recursos */}
-      <section id="recursos" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
+      <section id="recursos" className="relative z-20 -mt-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12 pb-20 sm:pb-24">
         <div className="max-w-2xl mb-12">
           <h2
             className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight"

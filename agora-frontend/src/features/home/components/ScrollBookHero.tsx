@@ -14,8 +14,8 @@ type VideoWithRVFC = HTMLVideoElement & {
 };
 
 type SparkleParticle = {
-  x: number; // 0..1 relativo ao livro aberto
-  y: number; // 0..1
+  x: number;
+  y: number;
   size: number;
   speedY: number;
   driftX: number;
@@ -25,13 +25,13 @@ type SparkleParticle = {
 
 const createParticles = (count: number): SparkleParticle[] =>
   Array.from({ length: count }, (_, i) => ({
-    x: 0.34 + ((i * 37) % 100) * 0.0042, // concentrado sobre as páginas/cards (34%..76% X)
-    y: 0.22 + ((i * 53) % 100) * 0.0055, // 22%..77% Y
+    x: 0.34 + ((i * 37) % 100) * 0.0042,
+    y: 0.22 + ((i * 53) % 100) * 0.0055,
     size: 1.4 + (i % 4) * 0.85,
     speedY: 0.018 + (i % 5) * 0.006,
     driftX: 0.008 + (i % 3) * 0.005,
     phase: i * 1.37,
-    warm: i % 3 !== 0, // mistura partículas douradas suaves com toque esmeralda
+    warm: i % 3 !== 0,
   }));
 
 const getFrameSrc = (index1Based: number) =>
@@ -51,7 +51,8 @@ const drawFrameCover = (
   ctx: CanvasRenderingContext2D,
   source: FrameSource,
   canvasWidth: number,
-  canvasHeight: number
+  canvasHeight: number,
+  alpha = 1
 ) => {
   const { w: imgWidth, h: imgHeight } = getSourceDimensions(source);
   if (!imgWidth || !imgHeight) return;
@@ -74,9 +75,12 @@ const drawFrameCover = (
     offsetX = (canvasWidth - drawWidth) / 2;
   }
 
+  ctx.save();
+  ctx.globalAlpha = alpha;
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(source, offsetX, offsetY, drawWidth, drawHeight);
+  ctx.restore();
 };
 
 const drawAmbientSparkles = (
@@ -98,7 +102,6 @@ const drawAmbientSparkles = (
     const normY = progressY < 0 ? progressY + 0.62 + 0.16 : progressY + 0.16;
     const normX = p.x + Math.sin(timeSec * 0.9 + p.phase) * p.driftX;
 
-    // Fade suave no nascimento/topo e pulsação delicada
     const edgeFade = Math.sin(clamp((normY - 0.16) / 0.62, 0, 1) * Math.PI);
     const twinkle = 0.55 + 0.45 * Math.sin(timeSec * 2.4 + p.phase);
     const alpha = intensity * edgeFade * twinkle * 0.78;
@@ -131,8 +134,8 @@ const drawAmbientSparkles = (
 const buildLoadOrder = (total: number): number[] => {
   const order: number[] = [];
   const seen = new Set<number>();
-  for (const step of [4, 2, 1]) {
-    for (let i = 2; i <= total; i += step) {
+  for (const step of [6, 3, 1]) {
+    for (let i = 1; i <= total; i += step) {
       if (!seen.has(i)) {
         seen.add(i);
         order.push(i);
@@ -142,6 +145,21 @@ const buildLoadOrder = (total: number): number[] => {
   return order;
 };
 
+const seekToTime = (video: HTMLVideoElement, timeSec: number): Promise<void> =>
+  new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      video.removeEventListener('seeked', done);
+      resolve();
+    };
+    video.addEventListener('seeked', done, { once: true });
+    // Safety timeout caso o navegador já esteja exatamente naquele timestamp
+    window.setTimeout(done, 120);
+    video.currentTime = timeSec;
+  });
+
 const ScrollBookHero = () => {
   const trackRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -149,134 +167,164 @@ const ScrollBookHero = () => {
   const leftScrimRef = useRef<HTMLDivElement>(null);
   const outroLayerRef = useRef<HTMLDivElement>(null);
   const bottomBlendRef = useRef<HTMLDivElement>(null);
+  const endVeilRef = useRef<HTMLDivElement>(null);
   const scrollHintRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
   const framesRef = useRef<(FrameSource | null)[]>(new Array(TOTAL_FRAMES).fill(null));
   const hdMaskRef = useRef<boolean[]>(new Array(TOTAL_FRAMES).fill(false));
   const particlesRef = useRef<SparkleParticle[]>(createParticles(22));
-  const lastDrawnFrameRef = useRef(-1);
-  const lastDrawnWasHdRef = useRef(false);
+  const lastRenderKeyRef = useRef('');
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
-  // Carrega APENAS o frame 1 em JPEG (~45 KB) imediatamente;
-  // o restante vem direto do MP4 (~2.9 MB) e só cai para os JPEGs se o navegador não suportar RVFC.
+  // Extração determinística quadro-a-quadro do MP4 (garante 94/94 quadros sem nenhum pulo!)
+  // + pré-carga leve de quadros-guia para resposta imediata no primeiro segundo
   useEffect(() => {
     let cancelled = false;
     const bitmaps: ImageBitmap[] = [];
 
-    const startJpegFallback = () => {
-      const order = buildLoadOrder(TOTAL_FRAMES);
+    const loadJpegGuides = (fullFallback: boolean) => {
+      const indices = fullFallback
+        ? buildLoadOrder(TOTAL_FRAMES)
+        : [1, 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 94];
+
       let pointer = 0;
-      const CONCURRENCY = 6;
+      const concurrency = fullFallback ? 6 : 4;
 
       const loadNext = () => {
-        if (cancelled || pointer >= order.length) return;
-        const frameNum = order[pointer++];
+        if (cancelled || pointer >= indices.length) return;
+        const frameNum = indices[pointer++];
         const idx = frameNum - 1;
         if (hdMaskRef.current[idx]) {
           loadNext();
           return;
         }
-
         const img = new Image();
         img.decoding = 'async';
         img.src = getFrameSrc(frameNum);
         img.onload = () => {
           if (!cancelled && img.naturalWidth > 0 && !hdMaskRef.current[idx]) {
             framesRef.current[idx] = img;
+            if (idx === 0) setFirstFrameReady(true);
+            lastRenderKeyRef.current = '';
           }
           loadNext();
         };
         img.onerror = loadNext;
       };
 
-      for (let c = 0; c < CONCURRENCY; c++) loadNext();
+      for (let c = 0; c < concurrency; c++) loadNext();
     };
 
-    // Frame 1 instantâneo (45 KB)
-    const firstImg = new Image();
-    firstImg.decoding = 'async';
-    firstImg.src = getFrameSrc(1);
-    firstImg.onload = () => {
-      if (!cancelled && firstImg.naturalWidth > 0 && !hdMaskRef.current[0]) {
-        framesRef.current[0] = firstImg;
-        setFirstFrameReady(true);
-        lastDrawnFrameRef.current = -1;
-      }
-    };
+    // Carrega ~13 quadros-guia leves imediatamente para nunca travar mesmo no 1º segundo
+    loadJpegGuides(false);
 
-    // Extração HD do MP4 (evita baixar 4.5 MB extras de JPEGs desnecessariamente em produção!)
     const video = document.createElement('video') as VideoWithRVFC;
     video.src = '/hero-book.mp4';
     video.muted = true;
     video.playsInline = true;
     video.preload = 'auto';
 
-    if (!video.requestVideoFrameCallback) {
-      startJpegFallback();
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    let rvfcHandle = 0;
-
-    const startExtraction = () => {
+    const extractAllHdFrames = async () => {
       if (cancelled || !video.duration || !Number.isFinite(video.duration)) {
-        startJpegFallback();
+        loadJpegGuides(true);
         return;
       }
-      const duration = video.duration;
-      video.playbackRate = 2.5;
 
-      const onFrame = async (_now: number, metadata: { mediaTime: number }) => {
-        if (cancelled) return;
-        const idx = clamp(
-          Math.round((metadata.mediaTime / duration) * (TOTAL_FRAMES - 1)),
-          0,
-          TOTAL_FRAMES - 1
-        );
+      const duration = Math.max(0.1, video.duration - 0.04);
 
-        if (!hdMaskRef.current[idx]) {
-          try {
-            const bmp = await createImageBitmap(video);
+      // Passo 1: Play em 1.0x para capturar a maioria dos quadros em velocidade nativa de hardware
+      if (video.requestVideoFrameCallback) {
+        await new Promise<void>((resolve) => {
+          let handle = 0;
+          const finishPlay = () => {
+            if (handle && video.cancelVideoFrameCallback) {
+              video.cancelVideoFrameCallback(handle);
+            }
+            video.removeEventListener('ended', finishPlay);
+            resolve();
+          };
+
+          const onFrame = async (_now: number, metadata: { mediaTime: number }) => {
             if (cancelled) {
-              bmp.close();
+              finishPlay();
               return;
             }
-            bitmaps.push(bmp);
-            framesRef.current[idx] = bmp;
-            hdMaskRef.current[idx] = true;
-            if (idx === 0) setFirstFrameReady(true);
-            if (idx === lastDrawnFrameRef.current) {
-              lastDrawnFrameRef.current = -1;
+            const idx = clamp(
+              Math.round((metadata.mediaTime / duration) * (TOTAL_FRAMES - 1)),
+              0,
+              TOTAL_FRAMES - 1
+            );
+            if (!hdMaskRef.current[idx]) {
+              try {
+                const bmp = await createImageBitmap(video);
+                if (cancelled) {
+                  bmp.close();
+                  finishPlay();
+                  return;
+                }
+                bitmaps.push(bmp);
+                framesRef.current[idx] = bmp;
+                hdMaskRef.current[idx] = true;
+                if (idx === 0) setFirstFrameReady(true);
+                lastRenderKeyRef.current = '';
+              } catch {
+                // ignore
+              }
             }
-          } catch {
-            // ignora falha pontual
+            if (!video.ended && !cancelled) {
+              handle = video.requestVideoFrameCallback!(onFrame);
+            } else {
+              finishPlay();
+            }
+          };
+
+          video.addEventListener('ended', finishPlay, { once: true });
+          video.playbackRate = 1.15;
+          handle = video.requestVideoFrameCallback!(onFrame);
+          video.play().catch(() => finishPlay());
+        });
+      }
+
+      video.pause();
+
+      // Passo 2: Preenche 100% dos quadros que tenham ficado faltando via seek exato
+      for (let idx = 0; idx < TOTAL_FRAMES; idx++) {
+        if (cancelled) break;
+        if (hdMaskRef.current[idx]) continue;
+
+        const targetTime = (idx / (TOTAL_FRAMES - 1)) * duration;
+        await seekToTime(video, targetTime);
+        if (cancelled) break;
+
+        try {
+          const bmp = await createImageBitmap(video);
+          if (cancelled) {
+            bmp.close();
+            break;
           }
+          bitmaps.push(bmp);
+          framesRef.current[idx] = bmp;
+          hdMaskRef.current[idx] = true;
+          if (idx === 0) setFirstFrameReady(true);
+          lastRenderKeyRef.current = '';
+        } catch {
+          // ignore
         }
+      }
 
-        if (!cancelled && !video.ended) {
-          rvfcHandle = video.requestVideoFrameCallback!(onFrame);
-        }
-      };
-
-      rvfcHandle = video.requestVideoFrameCallback!(onFrame);
-      video.play().catch(() => {
-        startJpegFallback();
-      });
+      // Se por algum motivo o navegador bloqueou o vídeo completamente, carrega os JPEGs restantes
+      if (!cancelled && hdMaskRef.current.every((v) => !v)) {
+        loadJpegGuides(true);
+      }
     };
 
-    video.addEventListener('loadedmetadata', startExtraction, { once: true });
-    video.addEventListener('error', startJpegFallback, { once: true });
+    video.addEventListener('loadeddata', extractAllHdFrames, { once: true });
+    video.addEventListener('error', () => loadJpegGuides(true), { once: true });
     video.load();
 
     return () => {
       cancelled = true;
-      if (rvfcHandle && video.cancelVideoFrameCallback) {
-        video.cancelVideoFrameCallback(rvfcHandle);
-      }
       video.pause();
       video.removeAttribute('src');
       video.load();
@@ -284,11 +332,12 @@ const ScrollBookHero = () => {
     };
   }, []);
 
-  // Loop 60fps sincronizado com o scroll + brilhos sutis quando o livro está aberto
+  // Loop 60/120fps com interpolação entre quadros adjacentes (elimina qualquer sensação de pulo!)
   useEffect(() => {
     let rafId = 0;
     let targetProgress = 0;
     let smoothProgress = 0;
+    let lastTimestamp = performance.now();
     let currentDpr = 1;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -301,7 +350,7 @@ const ScrollBookHero = () => {
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
-        lastDrawnFrameRef.current = -1;
+        lastRenderKeyRef.current = '';
       }
     };
 
@@ -313,49 +362,60 @@ const ScrollBookHero = () => {
       targetProgress = clamp(-rect.top / scrollable, 0, 1);
     };
 
-    const findNearestLoadedFrame = (
-      desiredIdx: number
-    ): { src: FrameSource | null; idx: number; isHd: boolean } => {
-      if (framesRef.current[desiredIdx]) {
-        return {
-          src: framesRef.current[desiredIdx],
-          idx: desiredIdx,
-          isHd: hdMaskRef.current[desiredIdx],
-        };
-      }
-      for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
-        const prev = desiredIdx - offset;
-        if (prev >= 0 && framesRef.current[prev]) {
-          return { src: framesRef.current[prev], idx: prev, isHd: hdMaskRef.current[prev] };
+    const findNearest = (idx: number): { src: FrameSource | null; actualIdx: number } => {
+      if (framesRef.current[idx]) return { src: framesRef.current[idx], actualIdx: idx };
+      for (let d = 1; d < TOTAL_FRAMES; d++) {
+        if (idx - d >= 0 && framesRef.current[idx - d]) {
+          return { src: framesRef.current[idx - d], actualIdx: idx - d };
         }
-        const next = desiredIdx + offset;
-        if (next < TOTAL_FRAMES && framesRef.current[next]) {
-          return { src: framesRef.current[next], idx: next, isHd: hdMaskRef.current[next] };
+        if (idx + d < TOTAL_FRAMES && framesRef.current[idx + d]) {
+          return { src: framesRef.current[idx + d], actualIdx: idx + d };
         }
       }
-      return { src: null, idx: -1, isHd: false };
+      return { src: null, actualIdx: -1 };
     };
 
     const tick = (nowMs: number) => {
+      const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTimestamp) / 1000));
+      lastTimestamp = nowMs;
+
+      // Amortecimento independente da taxa de atualização do monitor (60Hz / 120Hz / 144Hz)
+      const smoothing = 1 - Math.exp(-11 * dt);
       const diff = targetProgress - smoothProgress;
-      smoothProgress = Math.abs(diff) < 0.0004 ? targetProgress : smoothProgress + diff * 0.15;
+      smoothProgress = Math.abs(diff) < 0.00025 ? targetProgress : smoothProgress + diff * smoothing;
 
-      const desiredIdx = clamp(Math.round(smoothProgress * (TOTAL_FRAMES - 1)), 0, TOTAL_FRAMES - 1);
-      const { src, idx, isHd } = findNearestLoadedFrame(desiredIdx);
+      const exactFrame = clamp(smoothProgress * (TOTAL_FRAMES - 1), 0, TOTAL_FRAMES - 1);
+      const baseIdx = Math.floor(exactFrame);
+      const nextIdx = Math.min(TOTAL_FRAMES - 1, baseIdx + 1);
+      const blendFrac = exactFrame - baseIdx;
 
-      // Intensidade dos brilhos flutuantes quando o livro está aberto (58% -> 100%)
+      const primary = findNearest(baseIdx);
+      const secondary = nextIdx !== baseIdx ? findNearest(nextIdx) : primary;
+
       const sparkleIntensity = prefersReducedMotion
         ? 0
         : clamp((smoothProgress - 0.58) / 0.25, 0, 1);
 
-      const frameChanged =
-        idx !== lastDrawnFrameRef.current || (isHd && !lastDrawnWasHdRef.current);
+      const renderKey = `${primary.actualIdx}:${secondary.actualIdx}:${blendFrac.toFixed(2)}:${hdMaskRef.current[primary.actualIdx] ? 1 : 0}`;
 
-      if (src && (frameChanged || sparkleIntensity > 0.01)) {
+      if (
+        primary.src &&
+        (renderKey !== lastRenderKeyRef.current || sparkleIntensity > 0.01)
+      ) {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d', { alpha: false });
         if (canvas && ctx) {
-          drawFrameCover(ctx, src, canvas.width, canvas.height);
+          drawFrameCover(ctx, primary.src, canvas.width, canvas.height, 1);
+
+          // Crossfade óptico entre o frame atual e o próximo para fluidez contínua
+          if (
+            secondary.src &&
+            secondary.actualIdx !== primary.actualIdx &&
+            blendFrac > 0.02
+          ) {
+            drawFrameCover(ctx, secondary.src, canvas.width, canvas.height, blendFrac);
+          }
+
           if (sparkleIntensity > 0.01) {
             drawAmbientSparkles(
               ctx,
@@ -367,12 +427,12 @@ const ScrollBookHero = () => {
               currentDpr
             );
           }
-          lastDrawnFrameRef.current = idx;
-          lastDrawnWasHdRef.current = isHd;
+
+          lastRenderKeyRef.current = renderKey;
         }
       }
 
-      // Coreografia das camadas de texto
+      // Coreografia das camadas
       const introOpacity = clamp(1 - smoothProgress / 0.25, 0, 1);
       if (introLayerRef.current) {
         const introY = -smoothProgress * 64;
@@ -390,22 +450,27 @@ const ScrollBookHero = () => {
       }
 
       if (outroLayerRef.current) {
-        const outroOpacity = clamp((smoothProgress - 0.7) / 0.2, 0, 1);
+        const outroOpacity = clamp((smoothProgress - 0.68) / 0.2, 0, 1);
         const outroY = (1 - outroOpacity) * 24;
         outroLayerRef.current.style.opacity = String(outroOpacity);
         outroLayerRef.current.style.transform = `translate3d(0, ${outroY}px, 0)`;
         outroLayerRef.current.style.pointerEvents = outroOpacity > 0.35 ? 'auto' : 'none';
       }
 
+      // Fusão progressiva longa e sedosa com o fundo #f6f8f7 do resto da página
       if (bottomBlendRef.current) {
-        const blendOpacity = clamp((smoothProgress - 0.78) / 0.22, 0, 1);
+        const blendOpacity = clamp((smoothProgress - 0.55) / 0.42, 0, 1);
         bottomBlendRef.current.style.opacity = String(blendOpacity);
+      }
+      if (endVeilRef.current) {
+        const veilOpacity = clamp((smoothProgress - 0.88) / 0.12, 0, 1) * 0.22;
+        endVeilRef.current.style.opacity = String(veilOpacity);
       }
 
       if (progressBarRef.current) {
         progressBarRef.current.style.transform = `scaleX(${smoothProgress})`;
         progressBarRef.current.style.opacity =
-          smoothProgress > 0.01 && smoothProgress < 0.99 ? '1' : '0';
+          smoothProgress > 0.01 && smoothProgress < 0.96 ? '1' : '0';
       }
 
       rafId = window.requestAnimationFrame(tick);
@@ -426,9 +491,9 @@ const ScrollBookHero = () => {
   }, []);
 
   return (
-    <section ref={trackRef} className="relative h-[300vh] bg-[#1a1e1c] text-white">
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Primeiro quadro imediato (~45 KB) enquanto carrega */}
+    <section ref={trackRef} className="relative h-[320vh] bg-[#f6f8f7] text-white">
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#1a1e1c]">
+        {/* Primeiro quadro imediato enquanto carrega */}
         <img
           src="/book-frames/frame-0001.jpg"
           alt=""
@@ -438,14 +503,14 @@ const ScrollBookHero = () => {
           }`}
         />
 
-        {/* Canvas natural (sem filtro que marcava as sombras escuras) + brilhos ao abrir */}
+        {/* Canvas com crossfade óptico entre quadros + brilhos flutuantes */}
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full block" />
 
         {/* Sombra sutil no topo para leitura da navbar */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-32"
           style={{
-            background: 'linear-gradient(to bottom, rgba(16,20,18,0.68) 0%, transparent 100%)',
+            background: 'linear-gradient(to bottom, rgba(16,20,18,0.65) 0%, transparent 100%)',
           }}
         />
 
@@ -459,14 +524,22 @@ const ScrollBookHero = () => {
           }}
         />
 
-        {/* Transição suave na base para fundir o último frame claro com #f6f8f7 */}
+        {/* Véu atmosférico muito sutil nos últimos 12% do scroll */}
+        <div
+          ref={endVeilRef}
+          style={{ opacity: 0 }}
+          className="pointer-events-none absolute inset-0 bg-[#f6f8f7] z-10"
+        />
+
+        {/* Degradê alto e multi-paradas para fundir sem nenhuma linha divisória com o resto da página */}
         <div
           ref={bottomBlendRef}
           style={{
             opacity: 0,
-            background: 'linear-gradient(to bottom, transparent 0%, #f6f8f7 100%)',
+            background:
+              'linear-gradient(to bottom, rgba(246,248,247,0) 0%, rgba(246,248,247,0.16) 32%, rgba(246,248,247,0.52) 64%, rgba(246,248,247,0.88) 86%, #f6f8f7 100%)',
           }}
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-28 z-10"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-56 sm:h-72 z-10"
         />
 
         {/* ATO 1 (0% -> 25%): Livro fechado "projetos" + Chamada principal à esquerda */}
@@ -514,11 +587,11 @@ const ScrollBookHero = () => {
           </div>
         </div>
 
-        {/* ATO 3 (70% -> 100%): Livro aberto com os cards flutuando à direita + Card compacto à esquerda */}
+        {/* ATO 3 (68% -> 100%): Livro aberto com os cards flutuando à direita + Card compacto à esquerda */}
         <div
           ref={outroLayerRef}
           style={{ opacity: 0 }}
-          className="absolute inset-0 z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-16 flex items-end lg:items-center pointer-events-none"
+          className="absolute inset-0 z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-24 pb-24 flex items-end lg:items-center pointer-events-none"
         >
           <div className="max-w-md rounded-2xl border border-white/15 bg-[#141a17]/82 backdrop-blur-md p-6 sm:p-7 shadow-2xl space-y-4">
             <h2
@@ -549,11 +622,11 @@ const ScrollBookHero = () => {
           </div>
         </div>
 
-        {/* Linha discreta de progresso */}
+        {/* Linha discreta de progresso (some antes do final para não marcar a transição) */}
         <div
           ref={progressBarRef}
           style={{ opacity: 0, transform: 'scaleX(0)' }}
-          className="pointer-events-none absolute bottom-0 inset-x-0 h-[2px] origin-left bg-[#22c55e] z-30 transition-opacity duration-200"
+          className="pointer-events-none absolute bottom-0 inset-x-0 h-[2px] origin-left bg-[#22c55e] z-30 transition-opacity duration-300"
         />
       </div>
     </section>
