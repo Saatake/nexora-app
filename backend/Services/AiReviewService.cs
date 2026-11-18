@@ -151,8 +151,8 @@ public class AiReviewService : IAiReviewService
             Responda SOMENTE com um JSON válido neste formato exato, sem markdown e sem texto adicional:
             {
               "title": "<título claro e fiel ao trabalho, máximo 150 caracteres>",
-              "summary": "<resumo executivo conciso em 2 a 4 frases, máximo 500 caracteres>",
-              "description": "<descrição completa e bem estruturada em pelo menos 2 parágrafos explicando problema, objetivo, metodologia/tecnologias e resultados>",
+              "summary": "<resumo executivo conciso em 1 a 2 frases curtas, ESTRITAMENTE no máximo 190 caracteres>",
+              "description": "<descrição completa e bem estruturada em 2 a 4 parágrafos explicando problema, objetivo, metodologia/tecnologias e resultados, máximo 4500 caracteres>",
               "category": "<UM dos valores exatos: Tcc | Relatorio | ProjetoEscrito | Upx | IniciacaoCientifica | PesquisaCientifica | Prototipo | ProducaoArtistica | IntervencaoSocial | Negocio | EstudoDeCaso | Outro>",
               "thematicArea": "<UM dos valores exatos: TecnologiaInovacao | NegociosGestao | EngenhariaIndustria | SaudeBiotecnologia | HumanidadesSociedadeDireito | ArtesDesignComunicacao>",
               "tags": ["<escolha de 2 a 6 tags SOMENTE desta lista exata: {{{allowedTags}}}>"]
@@ -204,13 +204,9 @@ public class AiReviewService : IAiReviewService
             }
         }
 
-        var title = json.TryGetProperty("title", out var titleProp) ? titleProp.GetString()?.Trim() ?? string.Empty : string.Empty;
-        if (title.Length > 150) title = title[..150];
-
-        var summary = json.TryGetProperty("summary", out var sumProp) ? sumProp.GetString()?.Trim() ?? string.Empty : string.Empty;
-        if (summary.Length > 500) summary = summary[..500];
-
-        var description = json.TryGetProperty("description", out var descProp) ? descProp.GetString()?.Trim() ?? string.Empty : string.Empty;
+        var title = TruncateAtWord(json.TryGetProperty("title", out var titleProp) ? titleProp.GetString() : null, 200);
+        var summary = TruncateAtWord(json.TryGetProperty("summary", out var sumProp) ? sumProp.GetString() : null, 200);
+        var description = TruncateAtWord(json.TryGetProperty("description", out var descProp) ? descProp.GetString() : null, 5000);
 
         return new ProjectPdfExtractResponseDto
         {
@@ -221,5 +217,16 @@ public class AiReviewService : IAiReviewService
             ThematicArea = thematicArea,
             Tags = tags
         };
+    }
+
+    private static string TruncateAtWord(string? value, int maxLength)
+    {
+        var trimmed = value?.Trim() ?? string.Empty;
+        if (trimmed.Length <= maxLength)
+            return trimmed;
+
+        var slice = trimmed[..maxLength];
+        var lastSpace = slice.LastIndexOf(' ');
+        return (lastSpace > maxLength * 2 / 3 ? slice[..lastSpace] : slice).TrimEnd('.', ',', ';', ':', ' ');
     }
 }

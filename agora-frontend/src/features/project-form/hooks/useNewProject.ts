@@ -51,9 +51,9 @@ export const useNewProject = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const data = response.data;
-      if (data.title) setTitle(data.title);
-      if (data.summary) setSummary(data.summary);
-      if (data.description) setDescription(data.description);
+      if (data.title) setTitle(data.title.slice(0, 200));
+      if (data.summary) setSummary(data.summary.slice(0, 200));
+      if (data.description) setDescription(data.description.slice(0, 5000));
       if (data.category) setCategory(data.category);
       if (data.thematicArea) setThematicArea(data.thematicArea);
       if (Array.isArray(data.tags) && data.tags.length > 0) setTags(data.tags);

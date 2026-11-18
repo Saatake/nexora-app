@@ -31,9 +31,11 @@ const ProjectFormDescription = ({ summary, setSummary, description, setDescripti
           onChange={(e) => setDescription(e.target.value)}
           rows={6}
           required
+          maxLength={5000}
           placeholder="Descreva detalhadamente seu projeto, metodologia, objetivos e resultados"
           className={`mt-2 ${inputCls} resize-none`}
         />
+        <p className="mt-2 text-xs text-[var(--agora-muted)]">{description.length}/5000 caracteres</p>
       </div>
     </div>
   </section>

@@ -35,6 +35,7 @@ const ProjectFormBasicInfo = ({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          maxLength={200}
           placeholder="Ex: Sistema de Gestão Acadêmica com IA"
           className={`mt-2 ${inputCls}`}
         />
