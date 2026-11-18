@@ -1,5 +1,5 @@
 import fundoLivro from '@/assets/livro-coluna.png';
-import logoIcon from '@/assets/logo-icon.png';
+import AgoraLogo from '@/components/AgoraLogo';
 import { useAuthForm } from '@/features/auth/hooks/useAuthForm';
 import LoginPanel from '@/features/auth/components/LoginPanel';
 import RegisterPanel from '@/features/auth/components/RegisterPanel';
@@ -33,7 +33,7 @@ const AuthPage = () => {
       style={{ backgroundImage: `url(${fundoLivro})` }}
     >
       <div className='mb-4 relative z-10 flex-shrink-0'>
-        <img src={logoIcon} alt='Ágora' className='h-16 sm:h-20 drop-shadow-lg' />
+        <AgoraLogo className='text-white drop-shadow-lg' />
       </div>
 
       <div className='relative z-10 w-full max-w-[900px] flex-1 max-h-[650px] bg-white rounded-xl shadow-2xl overflow-hidden flex'>
