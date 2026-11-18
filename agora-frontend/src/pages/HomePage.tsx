@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Award,
-  CheckCircle2,
   Download,
   Eye,
   FolderKanban,
@@ -17,10 +16,19 @@ import {
 } from 'lucide-react';
 import AgoraLogo from '@/components/AgoraLogo';
 import RoleBadge from '@/components/RoleBadge';
+import ScrollBookHero from '@/features/home/components/ScrollBookHero';
 import { featuredProjects } from '@/features/home/constants/featuredProjects';
 
 const HomePage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const navLinks = [
     { label: 'Sobre', href: '#sobre' },
@@ -31,8 +39,14 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#f6f8f7] text-[#141c18] selection:bg-[#22c55e]/20">
-      {/* Top Header integrado ao Hero escuro */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#1e272c]/95 backdrop-blur-md">
+      {/* Top Header flutuante sobre a animação em tela cheia */}
+      <header
+        className={`fixed top-0 inset-x-0 z-50 transition-colors duration-300 ${
+          isScrolled || isMobileMenuOpen
+            ? 'border-b border-white/10 bg-[#171e1b]/92 backdrop-blur-md shadow-sm'
+            : 'border-b border-transparent bg-transparent'
+        }`}
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link to="/" className="focus:outline-none">
             <AgoraLogo size="md" className="text-white" />
@@ -78,7 +92,7 @@ const HomePage = () => {
 
         {/* Menu Mobile */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10 bg-[#1e272c] px-4 py-4 space-y-3 shadow-xl">
+          <div className="md:hidden border-t border-white/10 bg-[#171e1b] px-4 py-4 space-y-3 shadow-xl">
             <div className="flex flex-col space-y-1">
               {navLinks.map((item) => (
                 <a
@@ -111,124 +125,8 @@ const HomePage = () => {
         )}
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-[#1e272c] text-white">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-35"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 15% 20%, rgba(34, 197, 94, 0.18), transparent 45%), radial-gradient(circle at 85% 75%, rgba(10, 92, 47, 0.3), transparent 50%)',
-          }}
-        />
-
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
-            {/* Coluna de texto */}
-            <div className="lg:col-span-7 space-y-6">
-              <h1
-                className="text-4xl sm:text-5xl lg:text-[54px] font-bold tracking-tight leading-[1.08]"
-                style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}
-              >
-                Onde trabalhos acadêmicos ganham{' '}
-                <span className="text-[#4ade80]">visibilidade real.</span>
-              </h1>
-
-              <p className="text-base sm:text-lg text-slate-300 max-w-xl leading-relaxed">
-                Publique TCCs, UPXs e iniciações científicas, receba avaliações estruturadas de
-                professores e reúna toda a sua trajetória universitária em um único lugar.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
-                <Link
-                  to="/register"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-[#052e16] px-6 py-3.5 text-sm sm:text-base font-bold transition-colors"
-                >
-                  Começar gratuitamente
-                  <ArrowRight size={18} />
-                </Link>
-                <a
-                  href="#projetos"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white px-6 py-3.5 text-sm sm:text-base font-semibold transition-colors"
-                >
-                  Ver projetos em destaque
-                </a>
-              </div>
-
-              <div className="pt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-slate-300/90">
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 size={15} className="text-[#4ade80]" />
-                  TCC, UPX, IC e Protótipos
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 size={15} className="text-[#4ade80]" />
-                  Parecer docente em 5 critérios
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 size={15} className="text-[#4ade80]" />
-                  Ranking e selos de destaque
-                </span>
-              </div>
-            </div>
-
-            {/* Coluna visual: Exemplo de avaliação docente */}
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-white/12 bg-[#263137]/90 p-6 shadow-2xl space-y-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <span className="inline-block rounded-md bg-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-200">
-                      Iniciação Científica
-                    </span>
-                    <h3
-                      className="text-lg font-bold text-white leading-snug"
-                      style={{ fontFamily: 'Space Grotesk, Manrope, sans-serif' }}
-                    >
-                      Monitoramento Inteligente de Irrigação com Sensores IoT
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-1 rounded-xl bg-amber-400/15 border border-amber-400/30 px-3 py-1.5 text-amber-300 font-bold text-sm flex-shrink-0">
-                    <Star size={14} className="fill-amber-300" />
-                    9.4
-                  </div>
-                </div>
-
-                <div className="space-y-2.5 rounded-xl bg-[#1b2428] p-4 border border-white/5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                    Avaliação Docente
-                  </p>
-                  {[
-                    { label: 'Inovação e Originalidade', score: '9.6', width: '96%' },
-                    { label: 'Rigor Metodológico', score: '9.2', width: '92%' },
-                    { label: 'Relevância e Impacto', score: '9.5', width: '95%' },
-                  ].map((item) => (
-                    <div key={item.label} className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-slate-300">{item.label}</span>
-                        <span className="font-semibold text-[#4ade80]">{item.score}</span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-[#0a5c2f] to-[#22c55e]"
-                          style={{ width: item.width }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-1 text-xs text-slate-300">
-                  <div className="inline-flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-[#22c55e]/15 flex items-center justify-center text-[#4ade80]">
-                      <Award size={15} />
-                    </div>
-                    <span>Selo Destaque em Inovação</span>
-                  </div>
-                  <span className="text-slate-400">Engenharia de Computação</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero em tela cheia com animação do livro guiada pelo scroll */}
+      <ScrollBookHero />
 
       {/* Recursos */}
       <section id="recursos" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
@@ -459,7 +357,7 @@ const HomePage = () => {
       {/* CTA Final */}
       <section className="bg-white pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-[#1e272c] text-white px-6 py-12 sm:px-12 sm:py-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative overflow-hidden">
+          <div className="rounded-3xl bg-[#171e1b] text-white px-6 py-12 sm:px-12 sm:py-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative overflow-hidden">
           <div
             className="pointer-events-none absolute inset-0 opacity-30"
             style={{
@@ -498,7 +396,7 @@ const HomePage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#161d21] text-slate-400 border-t border-white/10 py-10">
+      <footer className="bg-[#121815] text-slate-400 border-t border-white/10 py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <AgoraLogo size="md" className="text-white" />
           <p className="text-xs font-medium text-slate-500">
