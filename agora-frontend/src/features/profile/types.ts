@@ -21,6 +21,7 @@ export type ProfileProject = {
   averageGrade?: number | null;
   createdAt: string;
   isPrivate?: boolean;
+  memberRole?: string | null;
 };
 
 export type EditData = {

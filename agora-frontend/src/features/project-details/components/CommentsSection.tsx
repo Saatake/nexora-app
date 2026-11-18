@@ -20,19 +20,19 @@ const CommentsSection = ({
   onTextChange,
   onSubmit,
 }: CommentsSectionProps) => (
-  <div className="rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] p-6 shadow-[var(--agora-shadow)]">
-    <h2 className="flex items-center gap-2 text-base font-bold text-[var(--agora-ink)] mb-5">
+  <section className="border-t border-[var(--agora-border)] pt-8">
+    <h2 className="mb-5 flex items-center gap-2 border-b border-[var(--agora-border)] pb-4 text-base font-bold text-[var(--agora-ink)]">
       <MessageSquare size={18} />
       Comentários ({comments.length})
     </h2>
 
-    <div className="space-y-3 mb-5">
+    <div className="mb-6 space-y-5">
       {comments.map((comment) => (
         <div key={comment.id} className="flex gap-3">
           <div className="h-9 w-9 flex-shrink-0 rounded-full bg-[var(--agora-accent)] flex items-center justify-center text-white font-bold text-sm">
             {comment.authorName.charAt(0).toUpperCase()}
           </div>
-          <div className="flex-1 bg-[var(--agora-bg)] rounded-xl px-4 py-3">
+          <div className="min-w-0 flex-1 border-b border-[var(--agora-border)] pb-4">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-[var(--agora-ink)]">
@@ -44,7 +44,7 @@ const CommentsSection = ({
                 {formatDate(comment.createdAt)}
               </span>
             </div>
-            <p className="text-sm text-[var(--agora-muted)]">{comment.text}</p>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--agora-ink)]">{comment.text}</p>
           </div>
         </div>
       ))}
@@ -64,7 +64,7 @@ const CommentsSection = ({
         onChange={(e) => onTextChange(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
         placeholder="Adicionar um comentário..."
-        className="flex-1 rounded-lg border border-[var(--agora-border)] bg-[var(--agora-input-bg)] px-4 py-2.5 text-sm text-[var(--agora-ink)] outline-none focus:ring-1 focus:ring-[var(--agora-accent)] focus:border-[var(--agora-accent)]"
+        className="min-w-0 flex-1 border-b border-[var(--agora-border)] bg-transparent px-1 py-2.5 text-sm text-[var(--agora-ink)] outline-none focus:border-[var(--agora-accent)]"
       />
       <button
         type="button"
@@ -75,7 +75,7 @@ const CommentsSection = ({
         Enviar
       </button>
     </div>
-  </div>
+  </section>
 );
 
 export default CommentsSection;

@@ -6,4 +6,6 @@ public class CollaboratorDto
     public string Name { get; set; } = string.Empty;
     public string? PhotoUrl { get; set; }
     public string? Course { get; set; }
+    public string? Contribution { get; set; }
+    public string? Role { get; set; }
 }

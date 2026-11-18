@@ -15,11 +15,20 @@ import ExploreProjectsPage from '../pages/ExploreProjectsPage';
 import RankingPage from '../pages/RankingPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectDetailsPage from '../pages/ProjectDetailsPage';
+import PortfolioEditorPage from '../pages/PortfolioEditorPage';
+import PublicPortfolioPage from '../pages/PublicPortfolioPage';
 
 const PrivateRoute = ({ children }: { children: ReactElement }) => {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return null;
   return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const AiAccessRoute = ({ children }: { children: ReactElement }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  return user?.hasAiAccess ? children : <Navigate to="/dashboard" />;
 };
 
 const AppRoutes = () => {
@@ -34,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/confirmar-email" element={<ConfirmEmailPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/portfolio/:slug" element={<PublicPortfolioPage />} />
         
         <Route 
           path="/dashboard" 
@@ -98,6 +108,14 @@ const AppRoutes = () => {
               <ProfilePage />
             </PrivateRoute>
           } 
+        />
+        <Route
+          path="/portfolio/edit"
+          element={
+            <AiAccessRoute>
+              <PortfolioEditorPage />
+            </AiAccessRoute>
+          }
         />
         <Route 
           path="/profile/:id" 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Compass,
   FolderKanban,
@@ -7,16 +7,17 @@ import {
   LogOut,
   Search,
   Trophy,
-  User2,
   Menu,
   X,
   Moon,
   Sun,
-  ChevronRight
+  ChevronLeft,
+  ChevronRight,
+  BriefcaseBusiness
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import logoIcon from '../assets/logo.png';
+import AgoraLogo from './AgoraLogo';
 
 type AppShellProps = {
   title: string;
@@ -38,10 +39,23 @@ const AppShell = ({
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const initial = user?.name?.trim()?.charAt(0).toUpperCase() ?? 'A';
+  const isProfileActive = location.pathname === '/profile';
 
   const [query, setQuery] = React.useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState<boolean>(() => {
+    return localStorage.getItem('agora-sidebar-collapsed') === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('agora-sidebar-collapsed', String(next));
+      return next;
+    });
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +72,9 @@ const AppShell = ({
     { label: 'Meus projetos', icon: FolderKanban, to: '/projects' },
     { label: 'Explorar projetos', icon: Compass, to: '/explore' },
     { label: 'Ranking', icon: Trophy, to: '/ranking' },
-    { label: 'Perfil', icon: User2, to: '/profile' }
+    ...(user?.hasAiAccess
+      ? [{ label: 'Meu portfólio', icon: BriefcaseBusiness, to: '/portfolio/edit' }]
+      : []),
   ];
 
   const handleLogout = () => {
@@ -66,7 +82,7 @@ const AppShell = ({
     navigate('/');
   };
 
-  const NavLinks = ({ onClick }: { onClick?: () => void }) => (
+  const NavLinks = ({ onClick, collapsed = false }: { onClick?: () => void; collapsed?: boolean }) => (
     <>
       {navItems.map((item) => {
         const Icon = item.icon;
@@ -75,69 +91,131 @@ const AppShell = ({
             key={item.label}
             to={item.to}
             onClick={onClick}
+            title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded transition-all ${isActive
+              `flex items-center gap-3 px-3.5 py-3 text-sm font-medium rounded-lg whitespace-nowrap overflow-hidden transition-colors duration-150 ${isActive
                 ? 'bg-[#0a5c2f] text-white'
                 : 'text-white/65 hover:text-white hover:bg-white/10'
               }`
             }
           >
-            <Icon size={17} />
-            {item.label}
+            <Icon size={18} className="flex-shrink-0" />
+            <span
+              className={`transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${
+                collapsed ? 'opacity-0 -translate-x-1 pointer-events-none' : 'opacity-100 translate-x-0'
+              }`}
+            >
+              {item.label}
+            </span>
           </NavLink>
         );
       })}
     </>
   );
 
+  const UserProfileCard = ({ onSelect, collapsed = false }: { onSelect?: () => void; collapsed?: boolean }) => (
+    <button
+      type="button"
+      onClick={() => {
+        onSelect?.();
+        navigate('/profile');
+      }}
+      className={`group w-full flex items-center gap-2.5 p-1.5 mt-2 rounded-xl border text-left transition-colors duration-150 shadow-sm overflow-hidden whitespace-nowrap ${
+        isProfileActive
+          ? 'border-white/25 bg-white/12'
+          : 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20'
+      }`}
+      title={collapsed ? `${user?.name ?? 'Ágora'} — Abrir meu perfil` : 'Abrir meu perfil'}
+    >
+      {user?.photoUrl ? (
+        <img
+          src={user.photoUrl}
+          alt={user.name}
+          className="h-9 w-9 rounded-full object-cover border border-white/20 flex-shrink-0"
+        />
+      ) : (
+        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#0a5c2f] to-[#063b1e] flex items-center justify-center text-sm font-bold text-white shadow-inner flex-shrink-0 border border-white/15">
+          {initial}
+        </div>
+      )}
+
+      <div
+        className={`w-[168px] flex-shrink-0 flex items-center gap-2 transition-opacity duration-150 ease-[cubic-bezier(0.2,0,0,1)] ${
+          collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        <div className="min-w-0 flex-1 whitespace-normal">
+          <p className="text-[13px] font-semibold text-white leading-snug break-words transition-colors">
+            {user?.name ?? 'Ágora'}
+          </p>
+          <p className="text-[11px] text-white/60 leading-tight mt-0.5 break-words group-hover:text-white/80 transition-colors">
+            {user?.course ?? 'Sem curso'}
+          </p>
+        </div>
+
+        <ChevronRight
+          size={16}
+          className={`flex-shrink-0 transition-transform duration-150 group-hover:translate-x-0.5 ${
+            isProfileActive
+              ? 'text-white'
+              : 'text-white/30 group-hover:text-white/80'
+          }`}
+        />
+      </div>
+    </button>
+  );
+
   return (
     <div className="min-h-screen agora-shell text-[var(--agora-ink)]">
       <div className="flex min-h-screen">
         {/* Sidebar Desktop */}
-        <aside className="hidden lg:flex w-60 flex-shrink-0 flex-col bg-[var(--agora-sidebar)] text-white p-6 sticky top-0 h-screen">
-          {/* Logo Centralizado */}
-          <div className="mb-8 flex justify-center w-full">
-            <img src={logoIcon} alt="Ágora" className="h-16 object-contain" />
-          </div>
+        <aside
+          className={`hidden lg:flex relative flex-shrink-0 flex-col bg-[var(--agora-sidebar)] text-white py-5 px-3 sticky top-0 h-screen transition-[width] duration-[280ms] ease-[cubic-bezier(0.2,0,0,1)] ${
+            isCollapsed ? 'w-[72px]' : 'w-64'
+          }`}
+        >
+          {/* Botão flutuante na borda para recolher/expandir */}
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="absolute -right-3.5 top-7 z-20 h-7 w-7 rounded-full bg-[var(--agora-sidebar)] border border-white/15 text-white/75 hover:text-white hover:border-white/30 active:scale-95 shadow-md flex items-center justify-center transition-[color,border-color,transform] duration-150"
+            title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+            aria-label={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+          >
+            <ChevronLeft
+              size={15}
+              className={`transition-transform duration-[280ms] ease-[cubic-bezier(0.2,0,0,1)] ${
+                isCollapsed ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </button>
 
-          <nav className="space-y-1 flex-1">
-            <NavLinks />
-          </nav>
+          <div className="flex flex-col flex-1 overflow-hidden">
+            {/* Topo: Logo Ágora -> Á centralizado */}
+            <div className="mb-7 flex items-center justify-center h-16">
+              <AgoraLogo collapsed={isCollapsed} className="text-white" />
+            </div>
 
-          <div className="pt-4 border-t border-white/10">
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 rounded transition-all mb-3"
-            >
-              <LogOut size={17} />
-              Sair
-            </button>
-            <div
-              onClick={() => navigate('/profile')}
-              className="group flex items-center gap-3 p-3 mt-2 rounded-xl border border-white/10 bg-white/5 cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-300 shadow-sm"
-            >
-              {user?.photoUrl ? (
-                <img
-                  src={user.photoUrl}
-                  alt={user.name}
-                  className="h-10 w-10 rounded-full object-cover border-2 border-transparent group-hover:border-[#0a5c2f] transition-all flex-shrink-0"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#0a5c2f] to-[#063b1e] flex items-center justify-center text-sm font-bold text-white shadow-inner flex-shrink-0 border-2 border-transparent group-hover:border-white/20 transition-all">
-                  {initial}
-                </div>
-              )}
+            <nav className="space-y-1 flex-1">
+              <NavLinks collapsed={isCollapsed} />
+            </nav>
 
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white truncate transition-colors">
-                  {user?.name ?? 'Ágora'}
-                </p>
-                <p className="text-xs text-white/50 truncate group-hover:text-white/70 transition-colors">
-                  {user?.course ?? 'Sem curso'}
-                </p>
-              </div>
-
-              <ChevronRight size={18} className="text-white/30 group-hover:text-white/80 transition-colors flex-shrink-0 transform group-hover:translate-x-0.5" />
+            <div className="pt-4 border-t border-white/10">
+              <button
+                onClick={handleLogout}
+                title={isCollapsed ? 'Sair' : undefined}
+                className="flex w-full items-center gap-3 px-3.5 py-3 text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 rounded-lg whitespace-nowrap overflow-hidden transition-colors duration-150 mb-2"
+              >
+                <LogOut size={18} className="flex-shrink-0" />
+                <span
+                  className={`transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${
+                    isCollapsed ? 'opacity-0 -translate-x-1 pointer-events-none' : 'opacity-100 translate-x-0'
+                  }`}
+                >
+                  Sair
+                </span>
+              </button>
+              <UserProfileCard collapsed={isCollapsed} />
             </div>
           </div>
         </aside>
@@ -152,12 +230,12 @@ const AppShell = ({
 
         {/* Sidebar Mobile */}
         <aside
-          className={`fixed top-0 left-0 bottom-0 w-60 bg-[var(--agora-sidebar)] text-white p-6 z-50 transform transition-transform duration-300 lg:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`fixed top-0 left-0 bottom-0 w-64 bg-[var(--agora-sidebar)] text-white px-4 py-6 z-50 flex flex-col transform transition-transform duration-300 lg:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
         >
           {/* Logo Centralizado Mobile */}
           <div className="flex items-center justify-center mb-8 relative">
-            <img src={logoIcon} alt="Ágora" className="h-14 object-contain" />
+            <AgoraLogo className="text-white" />
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="absolute right-0 text-white/70 hover:text-white"
@@ -165,17 +243,18 @@ const AppShell = ({
               <X size={22} />
             </button>
           </div>
-          <nav className="space-y-1">
+          <nav className="space-y-1 flex-1">
             <NavLinks onClick={() => setIsMobileMenuOpen(false)} />
           </nav>
           <div className="pt-4 border-t border-white/10 mt-4">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 rounded transition-all"
+              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 rounded transition-all mb-3"
             >
               <LogOut size={17} />
               Sair
             </button>
+            <UserProfileCard onSelect={() => setIsMobileMenuOpen(false)} />
           </div>
         </aside>
 

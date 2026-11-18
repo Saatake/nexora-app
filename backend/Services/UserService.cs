@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Nexora.Api.Data;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Dtos.Responses;
+using Nexora.Api.Helpers;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
 using Nexora.Api.Results;
@@ -120,6 +121,8 @@ public class UserService : IUserService
         Interests = u.Interests,
         RoleType = u.RoleType.ToString(),
         Formation = u.Formation,
-        TeachingAreas = u.TeachingAreas.Select(ta => ta.Area.ToString()).ToList()
+        TeachingAreas = u.TeachingAreas.Select(ta => ta.Area.ToString()).ToList(),
+        FeatureTags = FeatureAccessHelper.ParseTags(u.FeatureTags),
+        HasAiAccess = FeatureAccessHelper.HasAiAccess(u)
     };
 }

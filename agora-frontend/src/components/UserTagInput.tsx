@@ -6,6 +6,8 @@ export type CollaboratorUser = {
   id: string;
   name: string;
   photoUrl?: string;
+  role?: string;
+  contribution?: string;
 };
 
 type Props = {

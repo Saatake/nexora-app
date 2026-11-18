@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Enums;
+using Nexora.Api.Helpers;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
 using Nexora.Api.Services;
@@ -17,12 +18,54 @@ public class ProjectController : ControllerBase
     private readonly IProjectService _projectService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly BadgeService _badgeService;
+    private readonly IAiReviewService _aiReviewService;
 
-    public ProjectController(IProjectService projectService, UserManager<ApplicationUser> userManager, BadgeService badgeService)
+    public ProjectController(
+        IProjectService projectService,
+        UserManager<ApplicationUser> userManager,
+        BadgeService badgeService,
+        IAiReviewService aiReviewService)
     {
         _projectService = projectService;
         _userManager = userManager;
         _badgeService = badgeService;
+        _aiReviewService = aiReviewService;
+    }
+
+    [HttpPost("extract-from-pdf")]
+    [Authorize]
+    [RequestSizeLimit(20 * 1024 * 1024)]
+    public async Task<IActionResult> ExtractFromPdf(IFormFile file)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (!FeatureAccessHelper.HasAiAccess(user))
+            return StatusCode(403, new { message = "Recurso exclusivo para contas habilitadas." });
+
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "Envie um arquivo PDF válido." });
+
+        if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(file.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = "Apenas arquivos PDF são suportados para extração automática." });
+        }
+
+        await using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+
+        try
+        {
+            var extracted = await _aiReviewService.ExtractFromPdfAsync(ms.ToArray(), file.FileName);
+            return Ok(extracted);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(502, new { message = $"Não foi possível extrair os dados do PDF com a IA: {ex.Message}" });
+        }
     }
 
     [HttpPost]
@@ -34,6 +77,10 @@ public class ProjectController : ControllerBase
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
+        var validationErrors = ProjectSubmissionValidator.Validate(request.ContentBlocks, request.SelectedTags);
+        if (validationErrors.Count > 0)
+            return BadRequest(new { message = validationErrors.First(), errors = validationErrors });
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user?.RoleType == UserRole.Professor)
             return StatusCode(403, new { message = "professores não podem publicar projetos." });
@@ -41,6 +88,10 @@ public class ProjectController : ControllerBase
         var result = await _projectService.CreateProjectAsync(request, userId);
         return Ok(result);
     }
+
+    [HttpGet("tags")]
+    [AllowAnonymous]
+    public IActionResult GetTagCatalog() => Ok(ProjectTagCatalog.GetOptions());
 
     [HttpGet]
     [AllowAnonymous]
@@ -129,6 +180,10 @@ public class ProjectController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var validationErrors = ProjectSubmissionValidator.Validate(request.ContentBlocks, request.SelectedTags);
+        if (validationErrors.Count > 0)
+            return BadRequest(new { message = validationErrors.First(), errors = validationErrors });
 
         var result = await _projectService.UpdateAsync(id, request, userId);
 

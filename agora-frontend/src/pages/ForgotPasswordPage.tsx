@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft } from 'lucide-react';
 import fundoLivro from '@/assets/livro-coluna.png';
-import logoIcon from '@/assets/logo-icon.png';
+import AgoraLogo from '@/components/AgoraLogo';
 import { useForgotPassword } from '@/features/auth/hooks/useForgotPassword';
 
 const ForgotPasswordPage = () => {
@@ -13,11 +13,7 @@ const ForgotPasswordPage = () => {
       style={{ backgroundImage: `url(${fundoLivro})` }}
     >
       <div className='mb-6 relative z-10'>
-        <img 
-          src={logoIcon} 
-          alt='Ágora' 
-          className='h-20 drop-shadow-lg'
-        />
+        <AgoraLogo className='text-white drop-shadow-lg' />
       </div>
 
       <div className='relative z-10 w-full max-w-md bg-white rounded-xl shadow-2xl p-8 md:p-10'>
