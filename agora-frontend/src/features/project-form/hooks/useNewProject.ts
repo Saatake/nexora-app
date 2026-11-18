@@ -40,24 +40,89 @@ export const useNewProject = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await api.post<{
-        title?: string;
-        summary?: string;
-        description?: string;
-        category?: ProjectCategory;
-        thematicArea?: ThematicArea;
-        tags?: string[];
-      }>('/projects/extract-from-pdf', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const data = response.data;
+
+      const [extractResult, uploadResult] = await Promise.allSettled([
+        api.post<{
+          title?: string;
+          summary?: string;
+          description?: string;
+          category?: ProjectCategory;
+          thematicArea?: ThematicArea;
+          tags?: string[];
+          advisor?: string | null;
+          authorRole?: string | null;
+          authorContribution?: string | null;
+          githubLink?: string | null;
+          contentBlocks?: Array<{
+            type?: string;
+            text?: string | null;
+            url?: string | null;
+            caption?: string | null;
+            sortOrder?: number;
+          }>;
+        }>('/projects/extract-from-pdf', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }),
+        fileUpload.uploadContentDocument(file),
+      ]);
+
+      if (extractResult.status === 'rejected') {
+        throw extractResult.reason;
+      }
+
+      const data = extractResult.value.data;
       if (data.title) setTitle(data.title.slice(0, 200));
       if (data.summary) setSummary(data.summary.slice(0, 200));
       if (data.description) setDescription(data.description.slice(0, 5000));
       if (data.category) setCategory(data.category);
       if (data.thematicArea) setThematicArea(data.thematicArea);
       if (Array.isArray(data.tags) && data.tags.length > 0) setTags(data.tags);
-      setExtractMessage('Campos preenchidos pela IA! Revise os dados e adicione os membros da equipe.');
+      if (data.advisor) setAdvisor(data.advisor.slice(0, 120));
+      if (data.authorRole) setAuthorRole(data.authorRole.slice(0, 100));
+      if (data.authorContribution) setAuthorContribution(data.authorContribution.slice(0, 800));
+      if (data.githubLink) setGithubLink(data.githubLink);
+
+      const nextBlocks: ProjectContentBlockDraft[] = [];
+      if (Array.isArray(data.contentBlocks)) {
+        for (const item of data.contentBlocks) {
+          if (item.type === 'Text' && item.text?.trim()) {
+            nextBlocks.push({
+              id: crypto.randomUUID(),
+              type: 'Text',
+              text: item.text.trim().slice(0, 5000),
+              caption: item.caption?.trim().slice(0, 300) || undefined,
+              sortOrder: nextBlocks.length,
+            });
+          } else if (item.type === 'Link' && item.url?.trim()) {
+            nextBlocks.push({
+              id: crypto.randomUUID(),
+              type: 'Link',
+              url: item.url.trim(),
+              caption: item.caption?.trim().slice(0, 300) || undefined,
+              sortOrder: nextBlocks.length,
+            });
+          }
+        }
+      }
+
+      if (uploadResult.status === 'fulfilled' && uploadResult.value) {
+        fileUpload.setFileUrl(uploadResult.value);
+        nextBlocks.push({
+          id: crypto.randomUUID(),
+          type: 'Document',
+          url: uploadResult.value,
+          caption: file.name.slice(0, 300),
+          sortOrder: nextBlocks.length,
+        });
+      }
+
+      if (nextBlocks.length > 0) {
+        setContentBlocks(nextBlocks.map((block, sortOrder) => ({ ...block, sortOrder })));
+      }
+
+      setExtractMessage(
+        'Projeto preenchido pela IA (incluindo blocos de conteúdo e PDF anexado)! Revise os dados e adicione imagens ou membros da equipe se desejar.'
+      );
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||

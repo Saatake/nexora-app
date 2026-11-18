@@ -53,7 +53,7 @@ const NewProjectPage = () => {
                   <span>Preencher automaticamente com IA</span>
                 </div>
                 <p className="text-xs sm:text-sm text-[var(--agora-muted)]">
-                  Envie o PDF do seu projeto para extrair título, resumo, descrição, categoria, área temática e tags. Membros da equipe continuam sendo selecionados manualmente abaixo.
+                  Envie o PDF do seu projeto para preencher informações básicas, orientador, resumo, descrição, seções de texto, links externos e anexar o próprio PDF automaticamente. Imagens, vídeo pitch e membros da equipe continuam sendo adicionados manualmente.
                 </p>
                 {extractMessage && (
                   <p className="text-xs font-medium text-[var(--agora-accent)] pt-1">{extractMessage}</p>

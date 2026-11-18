@@ -8,4 +8,9 @@ public class ProjectPdfExtractResponseDto
     public string Category { get; set; } = "Tcc";
     public string ThematicArea { get; set; } = "TecnologiaInovacao";
     public List<string> Tags { get; set; } = new();
+    public string? Advisor { get; set; }
+    public string? AuthorRole { get; set; }
+    public string? AuthorContribution { get; set; }
+    public string? GithubLink { get; set; }
+    public List<ProjectContentBlockResponseDto> ContentBlocks { get; set; } = new();
 }

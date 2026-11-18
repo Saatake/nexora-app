@@ -45,7 +45,8 @@ const drawFrameCover = (
   source: FrameSource,
   canvasWidth: number,
   canvasHeight: number,
-  alpha = 1
+  alpha = 1,
+  lowPower = false
 ) => {
   const { w: imgWidth, h: imgHeight } = getSourceDimensions(source);
   if (!imgWidth || !imgHeight) return;
@@ -71,7 +72,7 @@ const drawFrameCover = (
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  ctx.imageSmoothingQuality = lowPower ? 'low' : 'medium';
   ctx.drawImage(source, offsetX, offsetY, drawWidth, drawHeight);
   ctx.restore();
 };
@@ -124,16 +125,20 @@ const drawAmbientSparkles = (
   ctx.restore();
 };
 
-const buildLoadOrder = (total: number): number[] => {
+const buildLoadOrder = (total: number, mobileMode = false): number[] => {
   const order: number[] = [];
   const seen = new Set<number>();
-  for (const step of [8, 4, 2, 1]) {
+  const steps = mobileMode ? [8, 4, 2] : [8, 4, 2, 1];
+  for (const step of steps) {
     for (let i = 1; i <= total; i += step) {
       if (!seen.has(i)) {
         seen.add(i);
         order.push(i);
       }
     }
+  }
+  if (!seen.has(total)) {
+    order.push(total);
   }
   return order;
 };
@@ -152,27 +157,57 @@ const ScrollBookHero = () => {
   const framesRef = useRef<(FrameSource | null)[]>(new Array(TOTAL_FRAMES).fill(null));
   const particlesRef = useRef<SparkleParticle[]>(createParticles(22));
   const lastRenderKeyRef = useRef('');
+  const scheduleTickRef = useRef<() => void>(() => {});
   const [firstFrameReady, setFirstFrameReady] = useState(false);
 
-  // Pré-carrega os 94 quadros com carregamento progressivo e concorrência controlada
+  // Pré-carrega os quadros com decodificação assíncrona fora da main thread
+  // (em mobile redimensiona para ImageBitmap leve na GPU para nunca travar no touch scroll)
   useEffect(() => {
     let cancelled = false;
+    const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+    const allocatedBitmaps: ImageBitmap[] = [];
+
+    const decodeFrame = async (img: HTMLImageElement): Promise<FrameSource> => {
+      try {
+        if (typeof img.decode === 'function') {
+          await img.decode();
+        }
+      } catch {
+        // ignore decode warning
+      }
+      if (isMobile && typeof createImageBitmap === 'function') {
+        try {
+          const bmp = await createImageBitmap(img, {
+            resizeWidth: 854,
+            resizeHeight: 480,
+            resizeQuality: 'low',
+          });
+          allocatedBitmaps.push(bmp);
+          return bmp;
+        } catch {
+          return img;
+        }
+      }
+      return img;
+    };
 
     // Carrega o frame 1 prioritariamente para exibição imediata
     const img1 = new Image();
     img1.decoding = 'async';
     img1.src = getFrameSrc(1);
     img1.onload = () => {
-      if (cancelled) return;
-      framesRef.current[0] = img1;
-      setFirstFrameReady(true);
-      lastRenderKeyRef.current = '';
+      void decodeFrame(img1).then((source) => {
+        if (cancelled) return;
+        framesRef.current[0] = source;
+        setFirstFrameReady(true);
+        lastRenderKeyRef.current = '';
+        scheduleTickRef.current();
+      });
     };
 
-    // Pré-carrega todos os 94 quadros em ordem intercalada para cobertura visual instantânea
-    const loadOrder = buildLoadOrder(TOTAL_FRAMES);
+    const loadOrder = buildLoadOrder(TOTAL_FRAMES, isMobile);
     let pointer = 0;
-    const concurrency = 6;
+    const concurrency = isMobile ? 4 : 6;
 
     const loadNext = () => {
       if (cancelled || pointer >= loadOrder.length) return;
@@ -186,12 +221,19 @@ const ScrollBookHero = () => {
       img.decoding = 'async';
       img.src = getFrameSrc(frameNum);
       img.onload = () => {
-        if (!cancelled && img.naturalWidth > 0) {
-          framesRef.current[idx] = img;
-          if (idx === 0) setFirstFrameReady(true);
-          lastRenderKeyRef.current = '';
+        if (cancelled || img.naturalWidth <= 0) {
+          loadNext();
+          return;
         }
-        loadNext();
+        void decodeFrame(img).then((source) => {
+          if (!cancelled) {
+            framesRef.current[idx] = source;
+            if (idx === 0) setFirstFrameReady(true);
+            lastRenderKeyRef.current = '';
+            scheduleTickRef.current();
+          }
+          loadNext();
+        });
       };
       img.onerror = () => {
         loadNext();
@@ -204,37 +246,55 @@ const ScrollBookHero = () => {
 
     return () => {
       cancelled = true;
+      for (const bmp of allocatedBitmaps) {
+        try {
+          bmp.close();
+        } catch {
+          // ignore
+        }
+      }
     };
   }, []);
 
-  // Loop 60/120fps com interpolação entre quadros adjacentes (elimina qualquer sensação de pulo!)
+  // Loop sob demanda (para quando em repouso/fora da tela) e otimizado para mobile
   useEffect(() => {
     let rafId = 0;
     let targetProgress = 0;
     let smoothProgress = 0;
     let lastTimestamp = performance.now();
     let currentDpr = 1;
+    let lastViewportW = 0;
+    let lastViewportH = 0;
+    let isHeroVisible = true;
+    const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const syncCanvasSize = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      currentDpr = Math.min(window.devicePixelRatio || 1, 2.25);
-      const width = Math.floor(window.innerWidth * currentDpr);
-      const height = Math.floor(window.innerHeight * currentDpr);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // No mobile, ignora variações pequenas de altura causadas pela barra de endereço ao rolar
+      if (
+        isMobile &&
+        lastViewportW > 0 &&
+        vw === lastViewportW &&
+        Math.abs(vh - lastViewportH) < 150
+      ) {
+        return;
+      }
+
+      lastViewportW = vw;
+      lastViewportH = vh;
+      currentDpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.2 : 2);
+      const width = Math.floor(vw * currentDpr);
+      const height = Math.floor(vh * currentDpr);
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
         lastRenderKeyRef.current = '';
       }
-    };
-
-    const updateTargetFromScroll = () => {
-      const track = trackRef.current;
-      if (!track) return;
-      const rect = track.getBoundingClientRect();
-      const scrollable = Math.max(1, rect.height - window.innerHeight);
-      targetProgress = clamp(-rect.top / scrollable, 0, 1);
     };
 
     const findNearest = (idx: number): { src: FrameSource | null; actualIdx: number } => {
@@ -251,21 +311,23 @@ const ScrollBookHero = () => {
     };
 
     const tick = (nowMs: number) => {
+      rafId = 0;
       const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTimestamp) / 1000));
       lastTimestamp = nowMs;
 
-      // Amortecimento independente da taxa de atualização do monitor (60Hz / 120Hz / 144Hz)
-      const smoothing = 1 - Math.exp(-11 * dt);
+      // Em mobile acompanha o dedo de forma mais direta; no desktop mantém amortecimento sedoso
+      const smoothing = isMobile ? 1 - Math.exp(-26 * dt) : 1 - Math.exp(-12 * dt);
       const diff = targetProgress - smoothProgress;
-      smoothProgress = Math.abs(diff) < 0.00025 ? targetProgress : smoothProgress + diff * smoothing;
+      smoothProgress = Math.abs(diff) < 0.0004 ? targetProgress : smoothProgress + diff * smoothing;
 
       const exactFrame = clamp(smoothProgress * (TOTAL_FRAMES - 1), 0, TOTAL_FRAMES - 1);
       const targetIdx = Math.round(exactFrame);
       const currentFrame = findNearest(targetIdx);
 
-      const sparkleIntensity = prefersReducedMotion
-        ? 0
-        : clamp((smoothProgress - 0.58) / 0.25, 0, 1);
+      const sparkleIntensity =
+        prefersReducedMotion || isMobile
+          ? 0
+          : clamp((smoothProgress - 0.58) / 0.25, 0, 1);
 
       const renderKey = `${currentFrame.actualIdx}:${canvasRef.current?.width}x${canvasRef.current?.height}`;
 
@@ -276,7 +338,7 @@ const ScrollBookHero = () => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d', { alpha: false });
         if (canvas && ctx) {
-          drawFrameCover(ctx, currentFrame.src, canvas.width, canvas.height, 1);
+          drawFrameCover(ctx, currentFrame.src, canvas.width, canvas.height, 1, isMobile);
 
           if (sparkleIntensity > 0.01) {
             drawAmbientSparkles(
@@ -335,19 +397,51 @@ const ScrollBookHero = () => {
           smoothProgress > 0.01 && smoothProgress < 0.96 ? '1' : '0';
       }
 
-      rafId = window.requestAnimationFrame(tick);
+      const needsMoreFrames =
+        isHeroVisible &&
+        (Math.abs(targetProgress - smoothProgress) >= 0.0004 || sparkleIntensity > 0.01);
+
+      if (needsMoreFrames) {
+        rafId = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const scheduleTick = () => {
+      if (rafId === 0 && isHeroVisible) {
+        lastTimestamp = performance.now();
+        rafId = window.requestAnimationFrame(tick);
+      }
+    };
+
+    scheduleTickRef.current = scheduleTick;
+
+    const updateTargetFromScroll = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      isHeroVisible = rect.bottom > -100 && rect.top < window.innerHeight + 100;
+      const scrollable = Math.max(1, rect.height - (lastViewportH || window.innerHeight));
+      targetProgress = clamp(-rect.top / scrollable, 0, 1);
+      scheduleTick();
+    };
+
+    const handleResize = () => {
+      syncCanvasSize();
+      updateTargetFromScroll();
+      scheduleTick();
     };
 
     syncCanvasSize();
     updateTargetFromScroll();
-    rafId = window.requestAnimationFrame(tick);
+    scheduleTick();
 
-    window.addEventListener('resize', syncCanvasSize, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('scroll', updateTargetFromScroll, { passive: true });
 
     return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', syncCanvasSize);
+      scheduleTickRef.current = () => {};
+      if (rafId !== 0) window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', updateTargetFromScroll);
     };
   }, []);
