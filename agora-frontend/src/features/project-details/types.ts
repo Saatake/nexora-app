@@ -97,6 +97,7 @@ export type Comment = {
   authorName: string;
   authorId: string;
   authorRoleType?: string;
+  authorPhotoUrl?: string | null;
   createdAt: string;
 };
 

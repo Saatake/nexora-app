@@ -133,6 +133,7 @@ const ProjectDetailsPage = () => {
                 <CommentsSection
                   comments={comments}
                   userName={user?.name}
+                  userPhotoUrl={user?.photoUrl}
                   commentText={commentText}
                   isCommenting={isCommenting}
                   onTextChange={setCommentText}

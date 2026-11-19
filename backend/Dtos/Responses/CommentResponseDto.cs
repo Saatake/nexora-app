@@ -7,5 +7,6 @@ public class CommentResponseDto
     public string AuthorName { get; set; } = string.Empty;
     public string AuthorId { get; set; } = string.Empty;
     public string AuthorRoleType { get; set; } = string.Empty;
+    public string? AuthorPhotoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }

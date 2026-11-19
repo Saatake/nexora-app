@@ -1,11 +1,39 @@
+import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { formatDate } from '@/shared/utils/formatters';
 import RoleBadge from '@/components/RoleBadge';
 import type { Comment } from '../types';
 
+type CommentAvatarProps = {
+  name: string;
+  photoUrl?: string | null;
+};
+
+const CommentAvatar = ({ name, photoUrl }: CommentAvatarProps) => {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (photoUrl && !imgFailed) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        onError={() => setImgFailed(true)}
+        className="h-9 w-9 flex-shrink-0 rounded-full object-cover border border-[var(--agora-border)]"
+      />
+    );
+  }
+
+  return (
+    <div className="h-9 w-9 flex-shrink-0 rounded-full bg-[var(--agora-accent)] flex items-center justify-center text-white font-bold text-sm">
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
+};
+
 type CommentsSectionProps = {
   comments: Comment[];
   userName?: string;
+  userPhotoUrl?: string | null;
   commentText: string;
   isCommenting: boolean;
   onTextChange: (text: string) => void;
@@ -15,6 +43,7 @@ type CommentsSectionProps = {
 const CommentsSection = ({
   comments,
   userName,
+  userPhotoUrl,
   commentText,
   isCommenting,
   onTextChange,
@@ -29,9 +58,7 @@ const CommentsSection = ({
     <div className="mb-6 space-y-5">
       {comments.map((comment) => (
         <div key={comment.id} className="flex gap-3">
-          <div className="h-9 w-9 flex-shrink-0 rounded-full bg-[var(--agora-accent)] flex items-center justify-center text-white font-bold text-sm">
-            {comment.authorName.charAt(0).toUpperCase()}
-          </div>
+          <CommentAvatar name={comment.authorName || 'A'} photoUrl={comment.authorPhotoUrl} />
           <div className="min-w-0 flex-1 border-b border-[var(--agora-border)] pb-4">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
@@ -56,9 +83,7 @@ const CommentsSection = ({
     </div>
 
     <div className="flex gap-3 items-center">
-      <div className="h-9 w-9 flex-shrink-0 rounded-full bg-[var(--agora-accent)] flex items-center justify-center text-white font-bold text-sm">
-        {userName?.charAt(0).toUpperCase() ?? 'A'}
-      </div>
+      <CommentAvatar name={userName || 'A'} photoUrl={userPhotoUrl} />
       <input
         value={commentText}
         onChange={(e) => onTextChange(e.target.value)}
