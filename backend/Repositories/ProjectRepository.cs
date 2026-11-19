@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Nexora.Api.Data;
 using Nexora.Api.Enums;
@@ -53,11 +55,13 @@ public class ProjectRepository : IProjectRepository
             var tagSearch = ProjectTagCatalog.TryCanonicalize(search, out var canonicalTag)
                 ? canonicalTag.ToLower()
                 : searchLower;
+            var matchingAreas = MatchThematicAreas(searchLower);
             query = query.Where(p =>
                 p.Title.ToLower().Contains(searchLower) ||
                 p.Description.ToLower().Contains(searchLower) ||
                 (p.Tags != null && p.Tags.ToLower().Contains(searchLower)) ||
-                (p.Tags != null && p.Tags.ToLower().Contains(tagSearch)));
+                (p.Tags != null && p.Tags.ToLower().Contains(tagSearch)) ||
+                matchingAreas.Contains(p.ThematicArea));
         }
 
         if (category.HasValue)
@@ -175,5 +179,39 @@ public class ProjectRepository : IProjectRepository
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    private static List<ThematicArea> MatchThematicAreas(string search)
+    {
+        var normalizedSearch = RemoveDiacritics(search).Trim();
+        if (string.IsNullOrEmpty(normalizedSearch))
+            return [];
+
+        var areas = new (ThematicArea Area, string Keywords)[]
+        {
+            (ThematicArea.TecnologiaInovacao, "tecnologia e inovacao tech ti software ia"),
+            (ThematicArea.NegociosGestao, "negocios e gestao administracao empreendedorismo"),
+            (ThematicArea.EngenhariaIndustria, "engenharia e industria mecanica eletrica automacao"),
+            (ThematicArea.SaudeBiotecnologia, "saude e biotecnologia medicina biologia"),
+            (ThematicArea.HumanidadesSociedadeDireito, "humanidades sociedade e direito social"),
+            (ThematicArea.ArtesDesignComunicacao, "artes design e comunicacao midia ux ui"),
+        };
+
+        return areas
+            .Where(a => a.Keywords.Contains(normalizedSearch, StringComparison.Ordinal))
+            .Select(a => a.Area)
+            .ToList();
+    }
+
+    private static string RemoveDiacritics(string text)
+    {
+        var normalized = text.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(normalized.Length);
+        foreach (var ch in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
+                sb.Append(char.ToLowerInvariant(ch));
+        }
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 }

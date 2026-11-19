@@ -114,7 +114,11 @@ const ProjectSidebar = ({
       <h2 className="mb-4 text-sm font-bold text-[var(--agora-ink)]">Equipe do projeto</h2>
       <div className="space-y-4">
         <Link to={`/profile/${project.authorId}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0a5c2f] text-sm font-bold text-white">{project.authorName.charAt(0).toUpperCase()}</div>
+          {project.authorPhotoUrl ? (
+            <img src={project.authorPhotoUrl} alt={project.authorName} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0a5c2f] text-sm font-bold text-white">{project.authorName.charAt(0).toUpperCase()}</div>
+          )}
           <div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--agora-ink)]">{project.authorName} <span className="font-normal text-[var(--agora-muted)]">(autor)</span></p>{project.authorRole && <p className="text-xs font-medium text-[var(--agora-accent)]">{project.authorRole}</p>}{project.authorContribution && <p className="mt-1 text-xs leading-relaxed text-[var(--agora-muted)]">{project.authorContribution}</p>}</div>
         </Link>
         {(project.collaborators ?? []).map((member) => <Link key={member.id} to={`/profile/${member.id}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">

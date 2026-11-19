@@ -3,7 +3,7 @@ import { BookOpen, Download, Eye, Star, Users } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import Pagination from '@/components/Pagination';
 import RoleBadge from '@/components/RoleBadge';
-import { useExplore, EXPLORE_CATEGORY_FILTERS } from '@/features/explore/hooks/useExplore';
+import { useExplore, EXPLORE_CATEGORY_FILTERS, EXPLORE_AREA_FILTERS } from '@/features/explore/hooks/useExplore';
 
 const ExploreProjectCardSkeleton = () => (
   <div className="flex flex-col rounded-2xl border border-[var(--agora-border)] bg-[var(--agora-panel)] overflow-hidden animate-pulse">
@@ -44,6 +44,8 @@ const ExploreProjectsPage = () => {
     tab,
     activeCategory,
     setActiveCategory,
+    activeArea,
+    setActiveArea,
     projects,
     projectsPage,
     projectsTotalPages,
@@ -97,21 +99,36 @@ const ExploreProjectsPage = () => {
       {/* Projects tab */}
       {tab !== 'students' && (
         <>
-          <div className="mt-5 flex gap-2 flex-wrap">
-            {EXPLORE_CATEGORY_FILTERS.map((filter) => (
-              <button
-                key={filter.key}
-                type="button"
-                onClick={() => setActiveCategory(filter.key)}
-                className={`px-4 py-1.5 text-sm font-semibold rounded-lg border transition-colors ${
-                  activeCategory === filter.key
-                    ? 'border-[var(--agora-accent)] text-[var(--agora-accent)] bg-[var(--agora-accent-bg)]'
-                    : 'border-[var(--agora-border)] text-[var(--agora-muted)] bg-[var(--agora-panel)] hover:text-[var(--agora-ink)] hover:border-[var(--agora-accent)]/40'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
+          <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex gap-2 flex-wrap">
+              {EXPLORE_CATEGORY_FILTERS.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => setActiveCategory(filter.key)}
+                  className={`px-4 py-1.5 text-sm font-semibold rounded-lg border transition-colors ${
+                    activeCategory === filter.key
+                      ? 'border-[var(--agora-accent)] text-[var(--agora-accent)] bg-[var(--agora-accent-bg)]'
+                      : 'border-[var(--agora-border)] text-[var(--agora-muted)] bg-[var(--agora-panel)] hover:text-[var(--agora-ink)] hover:border-[var(--agora-accent)]/40'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            <select
+              aria-label="Filtrar por área temática"
+              value={activeArea}
+              onChange={(e) => setActiveArea(e.target.value)}
+              className="px-3.5 py-1.5 text-sm font-semibold rounded-lg border border-[var(--agora-border)] bg-[var(--agora-panel)] text-[var(--agora-ink)] outline-none focus:border-[var(--agora-accent)] transition-colors"
+            >
+              {EXPLORE_AREA_FILTERS.map((area) => (
+                <option key={area.key} value={area.key}>
+                  {area.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="mt-5 flex items-center">

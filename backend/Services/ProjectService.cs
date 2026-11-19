@@ -266,6 +266,7 @@ public class ProjectService : IProjectService
             AuthorName = p.User?.Name ?? "Anônimo",
             AuthorId = p.UserId,
             AuthorRoleType = p.User?.RoleType.ToString() ?? string.Empty,
+            AuthorPhotoUrl = p.User?.PhotoUrl,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
             AverageGrade = weightedAvg,

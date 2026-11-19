@@ -32,7 +32,11 @@ const MembersModal = ({ project, onClose }: MembersModalProps) => (
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--agora-accent-bg)] transition-colors"
         >
           <div className="h-10 w-10 rounded-full bg-[#0a5c2f] flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
-            {project.authorName.charAt(0).toUpperCase()}
+            {project.authorPhotoUrl ? (
+              <img src={project.authorPhotoUrl} alt={project.authorName} className="h-full w-full object-cover" />
+            ) : (
+              project.authorName.charAt(0).toUpperCase()
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-[var(--agora-ink)] truncate">

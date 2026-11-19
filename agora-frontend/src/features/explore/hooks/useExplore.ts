@@ -20,6 +20,16 @@ export const EXPLORE_CATEGORY_FILTERS: { key: ExploreCategoryFilter; label: stri
   { key: 'ProjetoEscrito', label: 'Projeto Escrito' },
 ];
 
+export const EXPLORE_AREA_FILTERS: { key: string; label: string }[] = [
+  { key: 'all', label: 'Todas as áreas' },
+  { key: 'TecnologiaInovacao', label: 'Tecnologia e Inovação' },
+  { key: 'EngenhariaIndustria', label: 'Engenharia e Indústria' },
+  { key: 'SaudeBiotecnologia', label: 'Saúde e Biotecnologia' },
+  { key: 'NegociosGestao', label: 'Negócios e Gestão' },
+  { key: 'HumanidadesSociedadeDireito', label: 'Humanidades, Sociedade e Direito' },
+  { key: 'ArtesDesignComunicacao', label: 'Artes, Design e Comunicação' },
+];
+
 export type Project = {
   id: number;
   publicId: string;
@@ -57,6 +67,7 @@ export const useExplore = () => {
   const tab = searchParams.get('tab') ?? 'projects';
 
   const [activeCategory, setActiveCategoryState] = useState<ExploreCategoryFilter>('all');
+  const [activeArea, setActiveAreaState] = useState<string>('all');
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsPage, setProjectsPage] = useState(1);
   const [projectsTotalPages, setProjectsTotalPages] = useState(1);
@@ -72,8 +83,18 @@ export const useExplore = () => {
     [activeCategory]
   );
 
+  const areaParam = useMemo(
+    () => (activeArea === 'all' ? undefined : activeArea),
+    [activeArea]
+  );
+
   const setActiveCategory = (category: ExploreCategoryFilter) => {
     setActiveCategoryState(category);
+    setProjectsPage(1);
+  };
+
+  const setActiveArea = (area: string) => {
+    setActiveAreaState(area);
     setProjectsPage(1);
   };
 
@@ -91,6 +112,7 @@ export const useExplore = () => {
           params: {
             search: q,
             category: categoryParam,
+            thematicArea: areaParam,
             page: projectsPage,
             pageSize: PROJECTS_PAGE_SIZE,
           },
@@ -108,7 +130,7 @@ export const useExplore = () => {
     };
     load();
     return () => { isMounted = false; };
-  }, [q, categoryParam, projectsPage]);
+  }, [q, categoryParam, areaParam, projectsPage]);
 
   useEffect(() => {
     if (tab !== 'students') return;
@@ -140,6 +162,8 @@ export const useExplore = () => {
     tab,
     activeCategory,
     setActiveCategory,
+    activeArea,
+    setActiveArea,
     projects,
     projectsPage,
     projectsTotalPages,

@@ -60,6 +60,7 @@ export type Project = {
   authorId: string;
   authorName: string;
   authorRoleType?: string;
+  authorPhotoUrl?: string | null;
   viewCount: number;
   downloadCount: number;
   averageGrade?: number | null;
