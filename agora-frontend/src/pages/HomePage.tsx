@@ -28,11 +28,8 @@ const HomePage = () => {
     const header = headerRef.current;
     if (!header) return;
     const effective = menuOpen ? 1 : progress;
-    header.style.backgroundColor = `rgba(23, 30, 27, ${(effective * 0.94).toFixed(3)})`;
+    header.style.backgroundColor = `rgba(23, 30, 27, ${(effective * 0.96).toFixed(3)})`;
     header.style.borderBottomColor = `rgba(255, 255, 255, ${(effective * 0.1).toFixed(3)})`;
-    const blurVal = effective > 0.02 ? `blur(${(effective * 12).toFixed(1)}px)` : 'none';
-    header.style.backdropFilter = blurVal;
-    (header.style as CSSStyleDeclaration & { webkitBackdropFilter?: string }).webkitBackdropFilter = blurVal;
     header.style.boxShadow =
       effective > 0.25 ? `0 1px 3px rgba(0, 0, 0, ${(effective * 0.16).toFixed(3)})` : 'none';
   };

@@ -77,6 +77,33 @@ const drawFrameCover = (
   ctx.restore();
 };
 
+const createSparkleSprite = (warm: boolean): HTMLCanvasElement => {
+  const size = 48;
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  const g = c.getContext('2d');
+  if (g) {
+    const r = size / 2;
+    const grad = g.createRadialGradient(r, r, 0, r, r, r);
+    if (warm) {
+      grad.addColorStop(0, 'rgba(255, 244, 204, 1)');
+      grad.addColorStop(0.45, 'rgba(251, 211, 125, 0.55)');
+      grad.addColorStop(1, 'rgba(251, 211, 125, 0)');
+    } else {
+      grad.addColorStop(0, 'rgba(209, 250, 229, 0.9)');
+      grad.addColorStop(0.45, 'rgba(74, 222, 128, 0.45)');
+      grad.addColorStop(1, 'rgba(74, 222, 128, 0)');
+    }
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+  }
+  return c;
+};
+
+let warmSpriteCache: HTMLCanvasElement | null = null;
+let greenSpriteCache: HTMLCanvasElement | null = null;
+
 const drawAmbientSparkles = (
   ctx: CanvasRenderingContext2D,
   particles: SparkleParticle[],
@@ -87,6 +114,9 @@ const drawAmbientSparkles = (
   dpr: number
 ) => {
   if (intensity <= 0.01) return;
+
+  if (!warmSpriteCache) warmSpriteCache = createSparkleSprite(true);
+  if (!greenSpriteCache) greenSpriteCache = createSparkleSprite(false);
 
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
@@ -101,25 +131,12 @@ const drawAmbientSparkles = (
     const alpha = intensity * edgeFade * twinkle * 0.78;
     if (alpha <= 0.02) continue;
 
-    const cx = normX * canvasWidth;
-    const cy = normY * canvasHeight;
-    const r = p.size * dpr;
+    const radius = p.size * dpr * 3.2;
+    const cx = normX * canvasWidth - radius;
+    const cy = normY * canvasHeight - radius;
 
-    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3.2);
-    if (p.warm) {
-      grad.addColorStop(0, `rgba(255, 244, 204, ${alpha})`);
-      grad.addColorStop(0.45, `rgba(251, 211, 125, ${alpha * 0.55})`);
-      grad.addColorStop(1, 'rgba(251, 211, 125, 0)');
-    } else {
-      grad.addColorStop(0, `rgba(209, 250, 229, ${alpha * 0.9})`);
-      grad.addColorStop(0.45, `rgba(74, 222, 128, ${alpha * 0.45})`);
-      grad.addColorStop(1, 'rgba(74, 222, 128, 0)');
-    }
-
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 3.2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(p.warm ? warmSpriteCache : greenSpriteCache, cx, cy, radius * 2, radius * 2);
   }
 
   ctx.restore();
@@ -299,7 +316,7 @@ const ScrollBookHero = () => {
 
       lastViewportW = vw;
       lastViewportH = vh;
-      currentDpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.2 : 2);
+      currentDpr = Math.min(window.devicePixelRatio || 1, 1.25);
       const width = Math.floor(vw * currentDpr);
       const height = Math.floor(vh * currentDpr);
       if (canvas.width !== width || canvas.height !== height) {
@@ -322,6 +339,8 @@ const ScrollBookHero = () => {
       return { src: null, actualIdx: -1 };
     };
 
+    let lastSparkleDrawMs = 0;
+
     const tick = (nowMs: number) => {
       rafId = 0;
       const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastTimestamp) / 1000));
@@ -330,7 +349,8 @@ const ScrollBookHero = () => {
       // Em mobile acompanha o dedo de forma mais direta; no desktop mantém amortecimento sedoso
       const smoothing = isMobile ? 1 - Math.exp(-26 * dt) : 1 - Math.exp(-12 * dt);
       const diff = targetProgress - smoothProgress;
-      smoothProgress = Math.abs(diff) < 0.0004 ? targetProgress : smoothProgress + diff * smoothing;
+      const isScrolling = Math.abs(diff) >= 0.0004;
+      smoothProgress = isScrolling ? smoothProgress + diff * smoothing : targetProgress;
 
       const exactFrame = clamp(smoothProgress * (TOTAL_FRAMES - 1), 0, TOTAL_FRAMES - 1);
       const targetIdx = Math.round(exactFrame);
@@ -342,15 +362,15 @@ const ScrollBookHero = () => {
           : clamp((smoothProgress - 0.58) / 0.25, 0, 1);
 
       const renderKey = `${currentFrame.actualIdx}:${canvasRef.current?.width}x${canvasRef.current?.height}`;
+      const frameChanged = renderKey !== lastRenderKeyRef.current;
+      const shouldRedrawSparkles =
+        sparkleIntensity > 0.01 && (isScrolling || nowMs - lastSparkleDrawMs >= 42);
 
-      if (
-        currentFrame.src &&
-        (renderKey !== lastRenderKeyRef.current || sparkleIntensity > 0.01)
-      ) {
+      if (currentFrame.src && (frameChanged || shouldRedrawSparkles)) {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d', { alpha: false });
         if (canvas && ctx) {
-          drawFrameCover(ctx, currentFrame.src, canvas.width, canvas.height, 1, isMobile);
+          drawFrameCover(ctx, currentFrame.src, canvas.width, canvas.height, 1, isMobile || isScrolling);
 
           if (sparkleIntensity > 0.01) {
             drawAmbientSparkles(
@@ -362,6 +382,7 @@ const ScrollBookHero = () => {
               canvas.height,
               currentDpr
             );
+            lastSparkleDrawMs = nowMs;
           }
 
           lastRenderKeyRef.current = renderKey;
