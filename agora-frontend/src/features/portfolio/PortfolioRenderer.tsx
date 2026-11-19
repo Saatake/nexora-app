@@ -78,43 +78,25 @@ const typography = {
   mono: '[&_h1]:font-mono [&_h2]:font-mono [&_h3]:font-mono',
 };
 
-const imageTreatments = {
-  natural: 'object-contain',
-  cover: 'object-cover',
-  monochrome: 'object-cover grayscale',
-};
-
 const cardLayouts = {
   standard: {
     article: '',
-    image: 'aspect-[16/10]',
+    image: 'aspect-[16/9] max-h-[22rem]',
     content: 'p-5 @2xl:p-6',
     title: 'text-xl',
   },
   feature: {
     article: '@2xl:col-span-full',
-    image: 'aspect-[16/9] @2xl:aspect-auto @2xl:min-h-64',
+    image: 'aspect-[21/9] max-h-[26rem]',
     content: 'p-6 @2xl:p-8',
     title: 'text-2xl @2xl:text-3xl',
   },
   compact: {
     article: '@2xl:col-span-full',
-    image: 'aspect-[3/1] @xl:aspect-square',
+    image: 'aspect-[16/9] max-h-[18rem]',
     content: 'p-4 @2xl:p-5',
     title: 'text-lg',
   },
-};
-
-const cardMediaLayouts = {
-  standard: '',
-  feature: '@2xl:grid-cols-[minmax(0,5fr)_minmax(0,4fr)]',
-  compact: '@xl:grid-cols-[7rem_minmax(0,1fr)]',
-};
-
-const mediaLayouts = {
-  inline: 'space-y-5',
-  gallery: 'grid grid-cols-2 gap-3 @2xl:grid-cols-3',
-  feature: 'grid gap-6 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:items-center',
 };
 
 const linkClass = 'inline-flex min-h-11 items-center gap-1.5 rounded-sm text-sm font-bold text-(--portfolio-accent) hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--portfolio-accent)';
@@ -178,71 +160,89 @@ function PortfolioSection({ kind, title, direction, meta, children }: {
   );
 }
 
-function ProjectContentMedia({ project, layout, treatment }: { project: PortfolioProject; layout: PortfolioDesignSpec['mediaLayout']; treatment: PortfolioDesignSpec['imageTreatment'] }) {
+function ProjectContentMedia({ project }: { project: PortfolioProject; layout?: PortfolioDesignSpec['mediaLayout']; treatment?: PortfolioDesignSpec['imageTreatment'] }) {
   const blocks = [...(project.contentBlocks ?? [])].sort((left, right) => left.sortOrder - right.sortOrder);
   if (blocks.length === 0) return null;
 
+  const textBlocks = blocks.filter((b) => b.type === 'Text' && b.text?.trim());
+  const imageBlocks = blocks.filter((b) => b.type === 'Image' && getSafeExternalUrl(b.url));
+  const videoBlocks = blocks.filter((b) => b.type === 'YouTube' && b.url && getYouTubeEmbedUrl(b.url));
+  const linkBlocks = blocks.filter((b) => (b.type === 'Document' || b.type === 'Link') && getSafeExternalUrl(b.url));
+
   return (
-    <div className={`mt-6 ${mediaLayouts[layout]}`} role="group" aria-label={`Materiais do projeto ${project.title}`}>
-      {blocks.map((block, index) => {
-        const key = `${block.sortOrder}-${block.type}-${index}`;
-        if (block.type === 'Text') {
-          return block.text?.trim() ? (
-            <p key={key} className={`whitespace-pre-line text-sm leading-7 text-gray-700 ${layout === 'gallery' ? 'col-span-full' : ''}`}>
+    <div className="mt-6 space-y-6" role="group" aria-label={`Materiais do projeto ${project.title}`}>
+      {textBlocks.length > 0 && (
+        <div className="space-y-3">
+          {textBlocks.map((block, index) => (
+            <p key={`txt-${block.sortOrder}-${index}`} className="whitespace-pre-line text-sm leading-7 text-gray-700">
               {block.text}
             </p>
-          ) : null;
-        }
+          ))}
+        </div>
+      )}
 
-        if (block.type === 'Image') {
-          const url = getSafeExternalUrl(block.url);
-          return url ? (
-            <figure key={key} className={layout === 'gallery' ? 'min-w-0' : ''}>
-              <img
-                src={url}
-                alt={block.caption?.trim() || `Imagem do projeto ${project.title}`}
+      {imageBlocks.length > 0 && (
+        <div className={`grid gap-4 ${imageBlocks.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+          {imageBlocks.map((block, index) => {
+            const url = getSafeExternalUrl(block.url)!;
+            return (
+              <figure key={`img-${block.sortOrder}-${index}`} className="min-w-0">
+                <div className="aspect-[16/10] w-full overflow-hidden rounded-xl border border-black/10 bg-(--portfolio-tint)">
+                  <img
+                    src={url}
+                    alt={block.caption?.trim() || `Imagem do projeto ${project.title}`}
+                    loading="lazy"
+                    className="size-full object-cover"
+                  />
+                </div>
+                {block.caption?.trim() && <figcaption className="mt-2 text-xs leading-relaxed text-gray-600">{block.caption}</figcaption>}
+              </figure>
+            );
+          })}
+        </div>
+      )}
+
+      {videoBlocks.map((block, index) => {
+        const embedUrl = getYouTubeEmbedUrl(block.url!)!;
+        return (
+          <figure key={`vid-${block.sortOrder}-${index}`}>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-(--portfolio-accent)">Vídeo pitch</p>
+            <div className="aspect-video overflow-hidden rounded-xl bg-black">
+              <iframe
+                src={embedUrl}
+                title={`Vídeo pitch do projeto ${project.title}`}
                 loading="lazy"
-                className={`w-full bg-(--portfolio-tint) ${imageTreatments[treatment]} ${layout === 'gallery' ? 'aspect-square' : layout === 'feature' ? 'max-h-[42rem]' : 'max-h-[34rem]'}`}
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="size-full"
               />
-              {block.caption?.trim() && <figcaption className="mt-2 text-xs leading-relaxed text-gray-600">{block.caption}</figcaption>}
-            </figure>
-          ) : null;
-        }
-
-        if (block.type === 'YouTube') {
-          const embedUrl = block.url ? getYouTubeEmbedUrl(block.url) : null;
-          return embedUrl ? (
-            <figure key={key} className={layout === 'gallery' ? 'col-span-full' : ''}>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-(--portfolio-accent)">Vídeo pitch</p>
-              <div className="aspect-video overflow-hidden bg-black">
-                <iframe
-                  src={embedUrl}
-                  title={`Vídeo pitch do projeto ${project.title}`}
-                  loading="lazy"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="size-full"
-                />
-              </div>
-              {block.caption?.trim() && <figcaption className="mt-2 text-xs text-gray-600">{block.caption}</figcaption>}
-            </figure>
-          ) : null;
-        }
-
-        if (block.type === 'Document' || block.type === 'Link') {
-          const url = getSafeExternalUrl(block.url);
-          return url ? (
-            <a key={key} href={url} target="_blank" rel="noopener noreferrer" className={`${linkClass} ${layout === 'gallery' ? 'col-span-full' : ''}`}>
-              <FileText size={16} aria-hidden="true" />
-              {block.caption?.trim() || (block.type === 'Document' ? 'Abrir material' : 'Abrir link')}
-              <ArrowUpRight size={14} aria-hidden="true" />
-            </a>
-          ) : null;
-        }
-
-        return null;
+            </div>
+            {block.caption?.trim() && <figcaption className="mt-2 text-xs text-gray-600">{block.caption}</figcaption>}
+          </figure>
+        );
       })}
+
+      {linkBlocks.length > 0 && (
+        <div className="flex flex-wrap gap-2.5">
+          {linkBlocks.map((block, index) => {
+            const url = getSafeExternalUrl(block.url)!;
+            return (
+              <a
+                key={`lnk-${block.sortOrder}-${index}`}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-(--portfolio-paper) px-3.5 py-2 text-xs font-bold text-(--portfolio-accent) hover:border-(--portfolio-accent) transition-colors"
+              >
+                <FileText size={14} aria-hidden="true" />
+                {block.caption?.trim() || (block.type === 'Document' ? 'Abrir material' : 'Abrir link')}
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </a>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -258,17 +258,16 @@ function ProjectCard({ project, variant, treatment, mediaLayout, direction }: {
   const imageUrl = safeWebUrl(project.imageUrl);
   const githubLink = safeWebUrl(project.githubLink);
   const fileUrl = safeWebUrl(project.fileUrl);
-  const contributors = project.contributors ?? [];
 
   return (
-    <article className={`grid overflow-hidden ${directions[direction].card} ${layout.article} ${imageUrl ? cardMediaLayouts[variant] : ''}`}>
+    <article className={`flex flex-col overflow-hidden ${directions[direction].card} ${layout.article}`}>
       {imageUrl && (
-        <div className={`relative overflow-hidden bg-(--portfolio-tint) ${layout.image}`}>
+        <div className={`relative w-full overflow-hidden bg-(--portfolio-tint) ${layout.image}`}>
           <img
             src={imageUrl}
             alt={`Capa do projeto ${project.title}`}
             loading="lazy"
-            className={`absolute inset-0 size-full ${imageTreatments[treatment]}`}
+            className="size-full object-cover"
           />
         </div>
       )}
@@ -287,23 +286,7 @@ function ProjectCard({ project, variant, treatment, mediaLayout, direction }: {
             <p className="mt-1 text-sm leading-relaxed whitespace-pre-line text-gray-700">{project.contribution}</p>
           </div>
         )}
-        {project.visualSummary && <p className="mt-4 max-w-3xl text-sm leading-relaxed text-gray-600">Leitura visual · {project.visualSummary}</p>}
         <ProjectContentMedia project={project} layout={mediaLayout} treatment={treatment} />
-        {contributors.length > 0 && (
-          <div className="mt-6 border-t border-black/10 pt-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.12em] text-gray-600">Em colaboração</h4>
-            <ul className="mt-3 space-y-3">
-              {contributors.map((contributor, index) => (
-                <li key={`${contributor.name}-${index}`} className="text-sm leading-relaxed">
-                  <p className="font-semibold text-gray-800">
-                    {contributor.name}{contributor.role ? <span className="font-normal text-gray-600"> · {contributor.role}</span> : null}
-                  </p>
-                  {contributor.contribution && <p className="mt-0.5 text-gray-600">{contributor.contribution}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
         {(githubLink || fileUrl) && (
           <div className="mt-2 flex flex-wrap gap-x-4">
             {githubLink && (
