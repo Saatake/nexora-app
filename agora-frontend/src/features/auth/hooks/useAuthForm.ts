@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api, { AUTH_TOKEN_KEY } from '@/api/axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '../utils/errorMessages';
@@ -8,8 +8,13 @@ import { passwordRequirements } from '../constants/passwordRequirements';
 export const useAuthForm = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(() => location.pathname !== '/register');
+
+  useEffect(() => {
+    setIsLogin(location.pathname !== '/register');
+  }, [location.pathname]);
 
   // Login state
   const [loginEmail, setLoginEmail] = useState('');

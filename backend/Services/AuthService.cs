@@ -62,11 +62,20 @@ public class AuthService : IAuthService
 
             if (!user.EmailConfirmed)
             {
+                try
+                {
+                    await SendConfirmationEmailAsync(user);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Falha ao reenviar e-mail de confirmação durante tentativa de login para {Email}", user.Email);
+                }
+
                 return new AuthResult
                 {
                     Succeeded = false,
                     IsUnauthorized = true,
-                    Message = "E-mail não confirmado. Verifique sua caixa de entrada (e a pasta de spam) para ativar sua conta."
+                    Message = "E-mail ainda não confirmado. Reenviamos um novo link de confirmação para sua caixa de entrada (verifique também o spam)."
                 };
             }
 
@@ -92,9 +101,53 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult> RegisterAsync(RegisterRequestDto model)
     {
+        ApplicationUser? createdUser = null;
         try
         {
             var role = ParseRoleType(model.RoleType);
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+
+            // Se a conta já existe mas o e-mail nunca foi confirmado, atualiza os dados/senha e reenvia a confirmação
+            if (existingUser != null && !existingUser.EmailConfirmed)
+            {
+                existingUser.Name = model.Name ?? existingUser.Name;
+                existingUser.Course = model.Course ?? existingUser.Course;
+                existingUser.Bio = model.Bio ?? existingUser.Bio;
+                existingUser.RoleType = role;
+                existingUser.FeatureTags = role == UserRole.Professor ? "ai,ai_portfolio,ai_pdf" : existingUser.FeatureTags;
+
+                var resetToken = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+                var pwdResult = await _userManager.ResetPasswordAsync(existingUser, resetToken, model.Password);
+                if (!pwdResult.Succeeded)
+                {
+                    return new AuthResult
+                    {
+                        Succeeded = false,
+                        Errors = pwdResult.Errors.Select(e => e.Description)
+                    };
+                }
+
+                if (_env.IsDevelopment())
+                {
+                    existingUser.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(existingUser);
+                    return new AuthResult
+                    {
+                        Succeeded = true,
+                        Message = "Cadastro concluído (dev: e-mail auto-confirmado)."
+                    };
+                }
+
+                await _userManager.UpdateAsync(existingUser);
+                await SendConfirmationEmailAsync(existingUser);
+
+                return new AuthResult
+                {
+                    Succeeded = true,
+                    Message = "Reenviamos o link de confirmação para o seu e-mail! Verifique sua caixa de entrada e spam."
+                };
+            }
+
             var user = new ApplicationUser
             {
                 UserName = model.Email,
@@ -117,6 +170,8 @@ public class AuthService : IAuthService
                 };
             }
 
+            createdUser = user;
+
             // dev: pula a confirmação por e-mail para acelerar testes
             if (_env.IsDevelopment())
             {
@@ -130,18 +185,7 @@ public class AuthService : IAuthService
                 };
             }
 
-            var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = Uri.EscapeDataString(confirmationToken);
-                        var frontendUrl = ResolveFrontendUrl();
-                        var confirmationLink = $"{frontendUrl}/confirmar-email#email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
-
-                        var emailHtml = EmailTemplateBuilder.BuildConfirmEmail(user.Name, confirmationLink, frontendUrl);
-
-                        await _emailService.SendEmailAsync(
-                                user.Email!,
-                                "Confirme seu e-mail — Ágora",
-                                emailHtml
-                        );
+            await SendConfirmationEmailAsync(user);
 
             return new AuthResult
             {
@@ -153,12 +197,40 @@ public class AuthService : IAuthService
         {
             Console.WriteLine("REGISTER ERROR: " + ex.Message);
 
+            if (createdUser != null)
+            {
+                try
+                {
+                    await _userManager.DeleteAsync(createdUser);
+                }
+                catch (Exception cleanupEx)
+                {
+                    _logger.LogWarning(cleanupEx, "Falha ao reverter criação do usuário {Email} após erro no envio de e-mail", createdUser.Email);
+                }
+            }
+
             return new AuthResult
             {
                 Succeeded = false,
-                Message = "erro no registro"
+                Message = "Não foi possível enviar o e-mail de confirmação. Verifique se o endereço de e-mail é válido e tente novamente."
             };
         }
+    }
+
+    private async Task SendConfirmationEmailAsync(ApplicationUser user)
+    {
+        var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var encodedToken = Uri.EscapeDataString(confirmationToken);
+        var frontendUrl = ResolveFrontendUrl();
+        var confirmationLink = $"{frontendUrl}/confirmar-email#email={Uri.EscapeDataString(user.Email!)}&token={encodedToken}";
+
+        var emailHtml = EmailTemplateBuilder.BuildConfirmEmail(user.Name, confirmationLink, frontendUrl);
+
+        await _emailService.SendEmailAsync(
+            user.Email!,
+            "Confirme seu e-mail — Ágora",
+            emailHtml
+        );
     }
 
     public async Task<AuthResult> ConfirmEmailAsync(string email, string token)
