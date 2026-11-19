@@ -112,8 +112,8 @@ const ProjectSidebar = ({
     <div className="space-y-7 px-5 py-6">
     <section className="border-b border-[var(--agora-border)] pb-6">
       <h2 className="mb-4 text-sm font-bold text-[var(--agora-ink)]">Equipe do projeto</h2>
-      <div className="space-y-4">
-        <Link to={`/profile/${project.authorId}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">
+      <div className="space-y-1.5">
+        <Link to={`/profile/${project.authorId}`} className="flex items-start gap-3 rounded-xl px-2.5 py-2 -mx-2.5 hover:bg-[var(--agora-bg)] transition-colors">
           {project.authorPhotoUrl ? (
             <img src={project.authorPhotoUrl} alt={project.authorName} className="h-10 w-10 shrink-0 rounded-full object-cover" />
           ) : (
@@ -121,7 +121,7 @@ const ProjectSidebar = ({
           )}
           <div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--agora-ink)]">{project.authorName} <span className="font-normal text-[var(--agora-muted)]">(autor)</span></p>{project.authorRole && <p className="text-xs font-medium text-[var(--agora-accent)]">{project.authorRole}</p>}{project.authorContribution && <p className="mt-1 text-xs leading-relaxed text-[var(--agora-muted)]">{project.authorContribution}</p>}</div>
         </Link>
-        {(project.collaborators ?? []).map((member) => <Link key={member.id} to={`/profile/${member.id}`} className="flex items-start gap-3 rounded-lg hover:bg-[var(--agora-bg)]">
+        {(project.collaborators ?? []).map((member) => <Link key={member.id} to={`/profile/${member.id}`} className="flex items-start gap-3 rounded-xl px-2.5 py-2 -mx-2.5 hover:bg-[var(--agora-bg)] transition-colors">
           {member.photoUrl ? <img src={member.photoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">{member.name.charAt(0).toUpperCase()}</div>}
           <div className="min-w-0"><p className="truncate text-sm font-semibold text-[var(--agora-ink)]">{member.name}</p>{member.role && <p className="text-xs font-medium text-[var(--agora-accent)]">{member.role}</p>}{member.contribution && <p className="mt-1 text-xs leading-relaxed text-[var(--agora-muted)]">{member.contribution}</p>}</div>
         </Link>)}
