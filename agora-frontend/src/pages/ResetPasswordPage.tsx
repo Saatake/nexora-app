@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
 import fundoLivro from '@/assets/livro-coluna.png';
 import AgoraLogo from '@/components/AgoraLogo';
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
+import { passwordRequirements } from '@/features/auth/constants/passwordRequirements';
 
 const ResetPasswordPage = () => {
   const { email, setEmail, newPassword, setNewPassword, showPassword, setShowPassword, error, success, loading, handleSubmit } = useResetPassword();
@@ -62,6 +63,22 @@ const ResetPasswordPage = () => {
               >
                 {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
               </button>
+            </div>
+            <div className='mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1'>
+              {passwordRequirements.map((req) => {
+                const met = req.test(newPassword);
+                return (
+                  <div
+                    key={req.label}
+                    className={`flex items-center gap-1.5 text-xs transition-colors ${
+                      met ? 'text-emerald-700 font-medium' : 'text-gray-400'
+                    }`}
+                  >
+                    <Check className={`h-3.5 w-3.5 shrink-0 ${met ? 'opacity-100' : 'opacity-40'}`} />
+                    <span>{req.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '@/api/axios';
+import api, { AUTH_TOKEN_KEY } from '@/api/axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { getErrorMessage } from '../utils/errorMessages';
 import { passwordRequirements } from '../constants/passwordRequirements';
@@ -38,14 +38,18 @@ export const useAuthForm = () => {
     setError('');
     setLoading(true);
     try {
-      await api.post('/auth/login', {
+      const loginResponse = await api.post('/auth/login', {
         email: loginEmail,
         password: loginPassword,
       });
+      if (loginResponse.data?.token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, loginResponse.data.token);
+      }
       const meResponse = await api.get('/users/me');
       login(meResponse.data);
       navigate('/dashboard');
     } catch (err: unknown) {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
       setError(getErrorMessage(err, 'Erro ao realizar login'));
       setLoading(false);
     }

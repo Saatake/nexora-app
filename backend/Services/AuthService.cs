@@ -60,6 +60,16 @@ public class AuthService : IAuthService
             if (!result.Succeeded)
                 return Fail();
 
+            if (!user.EmailConfirmed)
+            {
+                return new AuthResult
+                {
+                    Succeeded = false,
+                    IsUnauthorized = true,
+                    Message = "E-mail não confirmado. Verifique sua caixa de entrada (e a pasta de spam) para ativar sua conta."
+                };
+            }
+
             var token = _tokenService.GenerateJwtToken(user);
 
             return new AuthResult
@@ -158,6 +168,9 @@ public class AuthService : IAuthService
         if (user == null)
             return new AuthResult { Succeeded = false, Message = "usuário não encontrado." };
 
+        if (user.EmailConfirmed)
+            return new AuthResult { Succeeded = true, Message = "E-mail confirmado com sucesso!" };
+
         var decodedToken = Uri.UnescapeDataString(token);
         var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
 
@@ -180,7 +193,7 @@ public class AuthService : IAuthService
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            if (user == null || !user.EmailConfirmed)
+            if (user == null)
             {
                 return new AuthResult
                 {
@@ -239,6 +252,12 @@ public class AuthService : IAuthService
                     Message = "não foi possível redefinir a senha.",
                     Errors = result.Errors.Select(e => e.Description)
                 };
+
+            if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
 
             return new AuthResult
             {

@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
             Expires = DateTimeOffset.UtcNow.AddDays(7)
         });
 
-        return Ok();
+        return Ok(new { token = result.Token });
     }
 
     [HttpPost("logout")]

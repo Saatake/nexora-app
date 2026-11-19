@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import api from '../api/axios';
+import api, { AUTH_TOKEN_KEY } from '../api/axios';
 
 interface User {
   id: string;
@@ -27,11 +27,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // restaura sessão ao carregar a página se o cookie ainda for válido
+  // restaura sessão ao carregar a página se o cookie/token ainda for válido
   useEffect(() => {
     api.get('/users/me')
       .then(res => setUser(res.data))
-      .catch(() => setUser(null))
+      .catch(() => {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        setUser(null);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -41,6 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     await api.post('/auth/logout').catch(() => {});
     setUser(null);
   };
